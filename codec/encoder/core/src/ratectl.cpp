@@ -467,6 +467,8 @@ void RcCalculatePictureQp (sWelsEncCtx* pEncCtx) {
   }
 #endif
   pEncCtx->iGlobalQp = iLumaQp;
+
+  printf("iLumaQp=%d\n", pEncCtx->pSvcParam->iTargetBitrate, iLumaQp);
 }
 
 void RcInitSliceInformation (sWelsEncCtx* pEncCtx) {
