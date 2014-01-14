@@ -35,9 +35,9 @@ Decoder Features
 
 OS Support
 ----------
-- Windows 64-bit and 32-bit (initial release is only 32-bit, 64-bit will follow soon)
-- Mac OS X 64-bit (initial release does not include this target, will follow soon)
-- Linux 64-bit and 32-bit (initial release is only 32-bit, 64-bit will follow soon)
+- Windows 64-bit and 32-bit
+- Mac OS X 64-bit and 32-bit
+- Linux 64-bit and 32-bit
 - Android 32-bit (initial release does not include this target, will follow soon)
 - iOS 64-bit and 32-bit (not supported yet, may be added in the future)
 
@@ -91,7 +91,6 @@ Known Issues
 See the issue tracker on https://github.com/cisco/openh264/issues
 - Encoder errors when resolution exceeds 3840x2160
 - Encoder errors when compressed frame size exceeds half uncompressed size
-- Encoder console app only support multiple of 16 width/height for now
 - Decoder errors when compressed frame size exceeds 1MB
 
 License

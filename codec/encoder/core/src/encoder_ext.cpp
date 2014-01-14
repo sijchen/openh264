@@ -1,4 +1,4 @@
-/*!
+F/*!
  * \copy
  *     Copyright (c)  2009-2013, Cisco Systems
  *     All rights reserved.
@@ -424,27 +424,52 @@ int32_t ParamValidationExt (void* pParam) {
 }
 
 
-void WelsEncoderAdjustFrameRate(SWelsSvcCodingParam* pParam)
+
+void WelsEncoderApplyFrameRate(SWelsSvcCodingParam* pParam)
 {
+  SDLayerParam* pLayerParam;
+  const float kfEpsn = 0.000001f;
   const int32_t kiNumLayer = pParam->iNumDependencyLayer;
   int32_t i;
+  const float kfMaxFrameRate = pParam->fMaxFrameRate;
   float fRatio;
+  float fTargetOutputFrameRate;
 
+  //set input frame rate to each layer
   for (i=0;i<kiNumLayer;i++) {
-    fRatio 
-      = (pParam->sDependencyLayers[i].fInputFrameRate / pParam->sDependencyLayers[i].fOutputFrameRate);
-    if (pParam->fMaxFrameRate < pParam->sDependencyLayers[i].fInputFrameRate) {
-      pParam->sDependencyLayers[i].fInputFrameRate = pParam->fMaxFrameRate;
-      pParam->sDependencyLayers[i].fOutputFrameRate 
-        = pParam->sDependencyLayers[i].fInputFrameRate/fRatio;
+    pLayerParam = &(pParam->sDependencyLayers[i]);
 
+    fRatio = pLayerParam->fOutputFrameRate / pLayerParam->fInputFrameRate;
+    if ( (kfMaxFrameRate - pLayerParam->fInputFrameRate) > kfEpsn
+        || (kfMaxFrameRate - pLayerParam->fInputFrameRate) < -kfEpsn ) {
+      pLayerParam->fInputFrameRate = kfMaxFrameRate;
+      fTargetOutputFrameRate = kfMaxFrameRate*fRatio;
+      pLayerParam->fOutputFrameRate = (fTargetOutputFrameRate>=6)?fTargetOutputFrameRate:(pLayerParam->fInputFrameRate);
       //TODO:{Sijia} from design, there is no sense to have temporal layer when under 6fps even with such setting?
-      if (pParam->sDependencyLayers[i].fOutputFrameRate<6) {
-        pParam->sDependencyLayers[i].fOutputFrameRate 
-          = pParam->sDependencyLayers[i].fInputFrameRate;
-      }
     }
-  } 
+  }
+}
+
+
+void WelsEncoderApplyBitRate(SWelsSvcCodingParam* pParam)
+{
+  //TODO (Sijia):  this is a temporary solution which keep the ratio between layers
+  //but it is also possible to fulfill the bitrate of lower layer first
+
+  SDLayerParam* pLayerParam;
+  const int32_t iNumLayers = pParam->iNumDependencyLayer;
+  int32_t i, iOrigTotalBitrate=0;
+  //read old BR
+  for (i=0;i<iNumLayers;i++) {
+    iOrigTotalBitrate += pParam->sDependencyLayers[i].iSpatialBitrate;
+  }
+  //write new BR
+  float fRatio = 0.0;
+  for (i=0;i<iNumLayers;i++) {
+    pLayerParam = &(pParam->sDependencyLayers[i]);
+    fRatio = pLayerParam->iSpatialBitrate/(static_cast<float>(iOrigTotalBitrate));
+    pLayerParam->iSpatialBitrate = static_cast<int32_t>(pParam->iTargetBitrate*fRatio);
+  }
 }
 
 /*!
@@ -2148,8 +2173,8 @@ int32_t WelsInitEncoderExt (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pCodingPar
 
 #if defined(MEMORY_MONITOR)
   WelsLog (pCtx, WELS_LOG_INFO, "WelsInitEncoderExt() exit, overall memory usage: %llu bytes\n",
-           static_cast<unsigned long long>(sizeof (sWelsEncCtx) /* requested size from malloc() or new operator */
-           + pCtx->pMemAlign->WelsGetMemoryUsage())	/* requested size from CMemoryAlign::WelsMalloc() */
+           static_cast<unsigned long long> (sizeof (sWelsEncCtx) /* requested size from malloc() or new operator */
+               + pCtx->pMemAlign->WelsGetMemoryUsage())	/* requested size from CMemoryAlign::WelsMalloc() */
           );
 #endif//MEMORY_MONITOR
 
@@ -2968,7 +2993,7 @@ int32_t WritePadding (sWelsEncCtx* pCtx, int32_t iLen) {
 #if GOM_TRACE_FLAG
     WelsLog (pCtx, WELS_LOG_ERROR,
              "[RC] paddingcal pBuffer overflow, bufferlen=%lld, paddinglen=%d, iNalIdx= %d, iCountNals= %d\n",
-             static_cast<long long int>(pBs->pBufEnd - pBs->pBufPtr), iLen, iNal, pCtx->pOut->iCountNals);
+             static_cast<long long int> (pBs->pBufEnd - pBs->pBufPtr), iLen, iNal, pCtx->pOut->iCountNals);
 #endif
     return 0;
   }

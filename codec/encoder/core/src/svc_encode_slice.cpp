@@ -680,11 +680,11 @@ int32_t WelsCodePOverDynamicSlice (sWelsEncCtx* pEncCtx, SSlice* pSlice) {
 
 // 1st index: 0: for P pSlice; 1: for I pSlice;
 // 2nd index: 0: for non-dynamic pSlice; 1: for dynamic I pSlice;
-PWelsCodingSliceFunc	g_pWelsSliceCoding[2][2] = {
+const PWelsCodingSliceFunc	g_pWelsSliceCoding[2][2] = {
   { WelsCodePSlice, WelsCodePOverDynamicSlice },	// P SSlice
   { WelsISliceMdEnc, WelsISliceMdEncDynamic }	// I SSlice
 };
-PWelsSliceHeaderWriteFunc		g_pWelsWriteSliceHeader[2] = {	// 0: for base; 1: for ext;
+const PWelsSliceHeaderWriteFunc		g_pWelsWriteSliceHeader[2] = {	// 0: for base; 1: for ext;
   WelsSliceHeaderWrite,
   WelsSliceHeaderExtWrite
 };
@@ -876,7 +876,7 @@ BOOL_T DynSlcJudgeSliceBoundaryStepBack (void* pCtx, void* pSlice, SSliceCtx* pS
     && (kbSliceNumNotExceedConstraint
 #ifdef MT_ENABLED
         && ((pCurSlice->uiSliceIdx + kiActiveThreadsNum) < pSliceCtx->iMaxSliceNumConstraint)
-#endif//MT_ENABLED	
+#endif//MT_ENABLED
        )//able to add new pSlice
 
   ) {
@@ -981,7 +981,7 @@ int32_t WelsMdInterMbLoop (sWelsEncCtx* pEncCtx, SSlice* pSlice, void* pWelsMd, 
 
 #if defined(MB_TYPES_CHECK)
     WelsCountMbType (pEncCtx->sPerInfo.iMbCount, P_SLICE, pCurMb);
-#endif//MB_TYPES_CHECK			
+#endif//MB_TYPES_CHECK
 
     //step (8): update status and other parameters
     pEncCtx->pFuncList->pfRc.pfWelsRcMbInfoUpdate (pEncCtx, pCurMb, pMd->iCostLuma, pSlice);
@@ -1105,7 +1105,7 @@ int32_t WelsMdInterMbLoopOverDynamicSlice (sWelsEncCtx* pEncCtx, SSlice* pSlice,
 
 #if defined(MB_TYPES_CHECK)
     WelsCountMbType (pEncCtx->sPerInfo.iMbCount, P_SLICE, pCurMb);
-#endif//MB_TYPES_CHECK			
+#endif//MB_TYPES_CHECK
 
     //step (8): update status and other parameters
     pEncCtx->pFuncList->pfRc.pfWelsRcMbInfoUpdate (pEncCtx, pCurMb, pMd->iCostLuma, pSlice);
