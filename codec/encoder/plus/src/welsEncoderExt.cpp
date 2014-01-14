@@ -650,6 +650,13 @@ int CWelsH264SVCEncoder::EncodeFrame (const SSourcePicture**   pSrcPicList, int 
   case WELS_FRAME_TYPE_B: // not support B pictures
     iFrameType	= videoFrameTypeInvalid;
     break;
+  case ENC_RETURN_FATAL:
+    iFrameType	= videoFrameTypeInvalid;
+    WelsUninitEncoderExt (&m_pEncContext);
+    break;
+  case ENC_RETURN_UNEXPECTED:
+    iFrameType	= videoFrameTypeInvalid;
+    break;
   default:
     break;
   }

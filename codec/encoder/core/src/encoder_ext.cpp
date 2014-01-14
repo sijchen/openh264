@@ -1373,7 +1373,7 @@ int32_t RequestMemorySvc (sWelsEncCtx** ppCtx) {
   while (iIndex < pParam->iNumDependencyLayer) {
     SDLayerParam* fDlp = &pParam->sDependencyLayers[iIndex];
 
-    fCompressRatioThr	= COMPRESS_RATIO_DECIDED_BY_RESOLUTION (fDlp->iFrameWidth, fDlp->iFrameHeight);
+    fCompressRatioThr	= COMPRESS_RATIO_THR;
 
     iLayerBsSize = WELS_ROUND (((3 * fDlp->iFrameWidth * fDlp->iFrameHeight) >> 1) * fCompressRatioThr);
     iLayerBsSize	= WELS_ALIGN (iLayerBsSize, 4);			// 4 bytes alinged
@@ -1400,10 +1400,10 @@ int32_t RequestMemorySvc (sWelsEncCtx** ppCtx) {
 
 #ifdef MT_ENABLED
   if (pParam->iMultipleThreadIdc > 1) {
-    (*ppCtx)->pFrameBs			= (uint8_t*)pMa->WelsMalloc (iCountBsLen + (iTargetSpatialBsSize * ((*ppCtx)->iMaxSliceCount - 1)),
-                              "pFrameBs");
+    const int32_t iTotalLength = iCountBsLen + (iTargetSpatialBsSize * ((*ppCtx)->iMaxSliceCount - 1));
+    (*ppCtx)->pFrameBs			= (uint8_t*)pMa->WelsMalloc (iTotalLength, "pFrameBs");
     WELS_VERIFY_RETURN_PROC_IF (1, (NULL == (*ppCtx)->pFrameBs), FreeMemorySvc (ppCtx))
-    (*ppCtx)->iFrameBsSize		= iCountBsLen * (*ppCtx)->iMaxSliceCount;
+    (*ppCtx)->iFrameBsSize = iTotalLength;
   } else
 #endif//MT_ENABLED
   {

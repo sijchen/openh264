@@ -216,8 +216,6 @@ struct TagWelsFuncPointerList {
   PIDctFunc				                      pfIDctT4;
   PIDctFunc				                      pfIDctI16x16Dc;
 
-
-
   // OPTI: if MT under diff uiSliceMode, need change here
   //PDynamicSlicingStepBackFunc	dynslc_funcpointer_stepback;//svc_encode_slice.c
   //DYNSLC_LNGTH_CRTL		dynslc_funcpointer_slcsize_ctrl;

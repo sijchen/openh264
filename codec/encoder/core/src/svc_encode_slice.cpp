@@ -59,7 +59,7 @@
 namespace WelsSVCEnc {
 //#define ENC_TRACE
 
-typedef void (*PWelsCodingSliceFunc) (sWelsEncCtx* pCtx, SSlice* pSlice);
+typedef int32_t (*PWelsCodingSliceFunc) (sWelsEncCtx* pCtx, SSlice* pSlice);
 typedef void (*PWelsSliceHeaderWriteFunc) (SBitStringAux* pBs, SDqLayer* pCurLayer, SSlice* pSlice,
     int32_t* pPpsIdDelta);
 
@@ -474,7 +474,7 @@ void OutputPMbWithoutConstructCsRsNoCopy (sWelsEncCtx* pCtx, SDqLayer* pDq, SSli
 //encapsulate two kinds of reconstruction:
 //first. store base or highest Dependency Layer with only one quality (without CS RS reconstruction)
 //second. lower than highest Dependency Layer, and for every Dependency Layer with one quality layer(single layer)
-void WelsISliceMdEnc (sWelsEncCtx* pEncCtx, SSlice* pSlice) { //pMd + encoding
+int32_t WelsISliceMdEnc (sWelsEncCtx* pEncCtx, SSlice* pSlice) { //pMd + encoding
   SDqLayer* pCurLayer				= pEncCtx->pCurDqLayer;
   SSliceCtx* pSliceCtx		= pCurLayer->pSliceEncCtx;
   SMbCache* pMbCache				= &pSlice->sMbCacheInfo;
@@ -503,7 +503,7 @@ void WelsISliceMdEnc (sWelsEncCtx* pEncCtx, SSlice* pSlice) { //pMd + encoding
     WelsMdIntraMb (pEncCtx, &sMd, pCurMb, pMbCache);
     UpdateNonZeroCountCache (pCurMb, pMbCache);
 
-    WelsSpatialWriteMbSyn (pEncCtx, pSlice, pCurMb);
+    if (WelsSpatialWriteMbSyn (pEncCtx, pSlice, pCurMb)) return ENC_RETURN_FATAL;
 
     pCurMb->uiSliceIdc = kiSliceIdx;
 
@@ -520,10 +520,12 @@ void WelsISliceMdEnc (sWelsEncCtx* pEncCtx, SSlice* pSlice) { //pMd + encoding
       break;
     }
   }
+
+  return ENC_RETURN_SUCCESS;
 }
 
 // Only for intra dynamic slicing
-void WelsISliceMdEncDynamic (sWelsEncCtx* pEncCtx, SSlice* pSlice) { //pMd + encoding
+int32_t WelsISliceMdEncDynamic (sWelsEncCtx* pEncCtx, SSlice* pSlice) { //pMd + encoding
   SBitStringAux* pBs				= pSlice->pSliceBsa;
   SDqLayer* pCurLayer				= pEncCtx->pCurDqLayer;
   SSliceCtx* pSliceCtx		= pCurLayer->pSliceEncCtx;
@@ -566,7 +568,7 @@ void WelsISliceMdEncDynamic (sWelsEncCtx* pEncCtx, SSlice* pSlice) { //pMd + enc
     sDss.uiBsStackCurBits	= pBs->uiCurBits;
     sDss.iBsStackLeftBits	= pBs->iLeftBits;
 
-    WelsSpatialWriteMbSyn (pEncCtx, pSlice, pCurMb);
+    if (WelsSpatialWriteMbSyn (pEncCtx, pSlice, pCurMb)) return ENC_RETURN_FATAL;
 
     sDss.iCurrentPos = BsGetBitsPos (pBs);
 
@@ -582,6 +584,7 @@ void WelsISliceMdEncDynamic (sWelsEncCtx* pEncCtx, SSlice* pSlice) { //pMd + enc
 
       break;
     }
+
 
     pCurMb->uiSliceIdc = kiSliceIdx;
 
@@ -602,12 +605,14 @@ void WelsISliceMdEncDynamic (sWelsEncCtx* pEncCtx, SSlice* pSlice) { //pMd + enc
       break;
     }
   }
+
+  return ENC_RETURN_SUCCESS;
 }
 
 //encapsulate two kinds of reconstruction:
 // first. store base or highest Dependency Layer with only one quality (without CS RS reconstruction)
 // second. lower than highest Dependency Layer, and for every Dependency Layer with one quality layer(single layer)
-void WelsPSliceMdEnc (sWelsEncCtx* pEncCtx, SSlice* pSlice,  const bool_t kbIsHighestDlayerFlag) { //pMd + encoding
+int32_t WelsPSliceMdEnc (sWelsEncCtx* pEncCtx, SSlice* pSlice,  const bool_t kbIsHighestDlayerFlag) { //pMd + encoding
   const SSliceHeaderExt*	kpShExt				= &pSlice->sSliceHeaderExt;
   const SSliceHeader*		kpSh					= &kpShExt->sSliceHeader;
   const int32_t			kiSliceFirstMbXY	= kpSh->iFirstMbInSlice;
@@ -619,10 +624,10 @@ void WelsPSliceMdEnc (sWelsEncCtx* pEncCtx, SSlice* pSlice,  const bool_t kbIsHi
     memset (&sMd.sMe, 0, sizeof (sMd.sMe));
 
   //pMb loop
-  WelsMdInterMbLoop (pEncCtx, pSlice, &sMd, kiSliceFirstMbXY);
+  return WelsMdInterMbLoop (pEncCtx, pSlice, &sMd, kiSliceFirstMbXY);
 }
 
-void WelsPSliceMdEncDynamic (sWelsEncCtx* pEncCtx, SSlice* pSlice, const bool_t kbIsHighestDlayerFlag) {
+int32_t WelsPSliceMdEncDynamic (sWelsEncCtx* pEncCtx, SSlice* pSlice, const bool_t kbIsHighestDlayerFlag) {
   const SSliceHeaderExt*	kpShExt				= &pSlice->sSliceHeaderExt;
   const SSliceHeader*		kpSh					= &kpShExt->sSliceHeader;
   const int32_t			kiSliceFirstMbXY	= kpSh->iFirstMbInSlice;
@@ -634,10 +639,10 @@ void WelsPSliceMdEncDynamic (sWelsEncCtx* pEncCtx, SSlice* pSlice, const bool_t 
     memset (&sMd.sMe, 0, sizeof (sMd.sMe));
 
   //mb loop
-  WelsMdInterMbLoopOverDynamicSlice (pEncCtx, pSlice, &sMd, kiSliceFirstMbXY);
+  return WelsMdInterMbLoopOverDynamicSlice (pEncCtx, pSlice, &sMd, kiSliceFirstMbXY);
 }
 
-void WelsCodePSlice (sWelsEncCtx* pEncCtx, SSlice* pSlice) {
+int32_t WelsCodePSlice (sWelsEncCtx* pEncCtx, SSlice* pSlice) {
   //pSlice-level init should be outside and before this function
   SDqLayer* pCurLayer			= pEncCtx->pCurDqLayer;
   const bool_t kbBaseAvail		= pCurLayer->bBaseLayerAvailableFlag;
@@ -652,10 +657,10 @@ void WelsCodePSlice (sWelsEncCtx* pEncCtx, SSlice* pSlice) {
     //initial pMd pointer
     pEncCtx->pFuncList->pfInterMd            = (PInterMdFunc)WelsMdInterMb;
   }
-  WelsPSliceMdEnc (pEncCtx, pSlice, kbHighestSpatial);
+  return WelsPSliceMdEnc (pEncCtx, pSlice, kbHighestSpatial);
 }
 
-void WelsCodePOverDynamicSlice (sWelsEncCtx* pEncCtx, SSlice* pSlice) {
+int32_t WelsCodePOverDynamicSlice (sWelsEncCtx* pEncCtx, SSlice* pSlice) {
   //pSlice-level init should be outside and before this function
   SDqLayer* pCurLayer			= pEncCtx->pCurDqLayer;
   const bool_t kbBaseAvail		= pCurLayer->bBaseLayerAvailableFlag;
@@ -670,7 +675,7 @@ void WelsCodePOverDynamicSlice (sWelsEncCtx* pEncCtx, SSlice* pSlice) {
     //initial pMd pointer
     pEncCtx->pFuncList->pfInterMd            = (PInterMdFunc)WelsMdInterMb;
   }
-  WelsPSliceMdEncDynamic (pEncCtx, pSlice, kbHighestSpatial);
+  return WelsPSliceMdEncDynamic (pEncCtx, pSlice, kbHighestSpatial);
 }
 
 // 1st index: 0: for P pSlice; 1: for I pSlice;
@@ -685,7 +690,7 @@ PWelsSliceHeaderWriteFunc		g_pWelsWriteSliceHeader[2] = {	// 0: for base; 1: for
 };
 
 
-void WelsCodeOneSlice (sWelsEncCtx* pEncCtx, const int32_t kiSliceIdx, const int32_t kiNalType) {
+int32_t WelsCodeOneSlice (sWelsEncCtx* pEncCtx, const int32_t kiSliceIdx, const int32_t kiNalType) {
   SDqLayer* pCurLayer					= pEncCtx->pCurDqLayer;
   SNalUnitHeaderExt* pNalHeadExt	= &pCurLayer->sLayerInfo.sNalHeaderExt;
   SSlice* pCurSlice					= &pCurLayer->sLayerInfo.pSliceInLayer[kiSliceIdx];
@@ -722,11 +727,13 @@ void WelsCodeOneSlice (sWelsEncCtx* pEncCtx, const int32_t kiSliceIdx, const int
 
   pCurSlice->uiLastMbQp = pCurLayer->sLayerInfo.pPpsP->iPicInitQp + pCurSlice->sSliceHeaderExt.sSliceHeader.iSliceQpDelta;
 
-  g_pWelsSliceCoding[pNalHeadExt->bIdrFlag][kiDynamicSliceFlag] (pEncCtx, pCurSlice);
+  if (g_pWelsSliceCoding[pNalHeadExt->bIdrFlag][kiDynamicSliceFlag] (pEncCtx, pCurSlice)) return ENC_RETURN_FATAL;
 
   BsRbspTrailingBits (pBs);
 
   BsFlush (pBs);
+
+  return ENC_RETURN_SUCCESS;
 }
 
 //pFunc: UpdateMbNeighbourInfoForNextSlice()
@@ -912,7 +919,7 @@ BOOL_T DynSlcJudgeSliceBoundaryStepBack (void* pCtx, void* pSlice, SSliceCtx* pS
 //  pMb loop
 ///////////////
 // for inter non-dynamic pSlice
-void WelsMdInterMbLoop (sWelsEncCtx* pEncCtx, SSlice* pSlice, void* pWelsMd, const int32_t kiSliceFirstMbXY) {
+int32_t WelsMdInterMbLoop (sWelsEncCtx* pEncCtx, SSlice* pSlice, void* pWelsMd, const int32_t kiSliceFirstMbXY) {
   SWelsMD* pMd					= (SWelsMD*)pWelsMd;
   SBitStringAux* pBs			= pSlice->pSliceBsa;
   SDqLayer* pCurLayer			= pEncCtx->pCurDqLayer;
@@ -965,7 +972,7 @@ void WelsMdInterMbLoop (sWelsEncCtx* pEncCtx, SSlice* pSlice, void* pWelsMd, con
     } else {
       BsWriteUE (pBs, iMbSkipRun);
       iMbSkipRun = 0;
-      WelsSpatialWriteMbSyn (pEncCtx, pSlice, pCurMb);
+      if (WelsSpatialWriteMbSyn (pEncCtx, pSlice, pCurMb)) return ENC_RETURN_FATAL;
     }
 
     //step (7): reconstruct current MB
@@ -991,10 +998,12 @@ void WelsMdInterMbLoop (sWelsEncCtx* pEncCtx, SSlice* pSlice, void* pWelsMd, con
   if (iMbSkipRun) {
     BsWriteUE (pBs, iMbSkipRun);
   }
+
+  return ENC_RETURN_SUCCESS;
 }
 
 // Only for inter dynamic slicing
-void WelsMdInterMbLoopOverDynamicSlice (sWelsEncCtx* pEncCtx, SSlice* pSlice, void* pWelsMd,
+int32_t WelsMdInterMbLoopOverDynamicSlice (sWelsEncCtx* pEncCtx, SSlice* pSlice, void* pWelsMd,
                                         const int32_t kiSliceFirstMbXY) {
   SWelsMD* pMd					= (SWelsMD*)pWelsMd;
   SBitStringAux* pBs			= pSlice->pSliceBsa;
@@ -1070,7 +1079,7 @@ void WelsMdInterMbLoopOverDynamicSlice (sWelsEncCtx* pEncCtx, SSlice* pSlice, vo
     } else {
       BsWriteUE (pBs, iMbSkipRun);
       iMbSkipRun = 0;
-      WelsSpatialWriteMbSyn (pEncCtx, pSlice, pCurMb);
+      if (WelsSpatialWriteMbSyn (pEncCtx, pSlice, pCurMb)) return ENC_RETURN_FATAL;
     }
 
     //DYNAMIC_SLICING_ONE_THREAD - MultiD
@@ -1115,6 +1124,8 @@ void WelsMdInterMbLoopOverDynamicSlice (sWelsEncCtx* pEncCtx, SSlice* pSlice, vo
   if (iMbSkipRun) {
     BsWriteUE (pBs, iMbSkipRun);
   }
+
+  return ENC_RETURN_SUCCESS;
 }
 
 }//namespace WelsSVCEnc
