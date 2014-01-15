@@ -967,7 +967,6 @@ int CWelsH264SVCEncoder::SetOption (ENCODER_OPTION eOptionId, void* pOption) {
     //adjust to valid range
     m_pEncContext->pSvcParam->iTargetBitrate	= WELS_CLIP3 (iValue, MIN_BIT_RATE, MAX_BIT_RATE);
     WelsEncoderApplyBitRate (m_pEncContext->pSvcParam);
-
   }
   break;
   case ENCODER_OPTION_RC_MODE: {	// 0:quality mode;1:bit-rate mode

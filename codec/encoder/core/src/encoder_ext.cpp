@@ -423,6 +423,7 @@ int32_t ParamValidationExt (void* pParam) {
   return ParamValidation (pCodingParam);
 }
 
+
 void WelsEncoderApplyFrameRate(SWelsSvcCodingParam* pParam)
 {
   SDLayerParam* pLayerParam;
@@ -447,7 +448,6 @@ void WelsEncoderApplyFrameRate(SWelsSvcCodingParam* pParam)
     }
   }
 }
-
 
 void WelsEncoderApplyBitRate(SWelsSvcCodingParam* pParam)
 {
