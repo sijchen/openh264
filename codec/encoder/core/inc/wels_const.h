@@ -90,10 +90,6 @@
 #define MAX_FRAME_RATE			30	// maximal frame rate to support
 #define MIN_FRAME_RATE			1	// minimal frame rate need support
 
-#define MAX_BIT_RATE			INT_MAX	// maximal bit rate to support
-//TODO {Sijia}: 30fps*MaxCPB in level5.1 = 30*240000*1000bits = 7 200 000 000, larger than INT_MAX which is 2147483647, but this is also very big and abnormal number, should figure out a reasonable number after discussion
-#define MIN_BIT_RATE			1	// minimal bit rate need support
-
 #define SVC_QUALITY_BASE_QP		26
 #define SVC_QUALITY_DELTA_QP	(-3)
 
@@ -183,8 +179,9 @@ enum {
 
 typedef enum {
   ENC_RETURN_SUCCESS = 0,
-  ENC_RETURN_FATAL = -1, //will free memory and uninit
-  ENC_RETURN_UNEXPECTED = -2, //unexpected value
+  ENC_RETURN_MEMALLOCERR = -1, //will free memory and uninit
+  ENC_RETURN_UNSUPPORTED_PARA = -2, //unsupported setting
+  ENC_RETURN_UNEXPECTED = -3, //unexpected value
 } ENC_RETURN;
 //TODO: need to complete the return checking in encoder and fill in more types if needed
 
