@@ -113,7 +113,7 @@ CWelsH264SVCEncoder::CWelsH264SVCEncoder()
   time (&tTime);
   tTimeNow = (struct tm*)localtime (&tTime);
   gettimeofday (&tTimev, NULL);
-#endif//WIN32	
+#endif//WIN32
 
 #ifdef _WIN32
 #if defined(_MSC_VER)
@@ -144,7 +144,7 @@ CWelsH264SVCEncoder::CWelsH264SVCEncoder()
                              tTimeNow
 #endif//_MSC_VER>=1500
                             );
-#endif//_MSC_VER			
+#endif//_MSC_VER
 #endif//__GNUC__
     iBufferLeft -= iBufferUsed;
   }
@@ -608,11 +608,11 @@ int CWelsH264SVCEncoder::EncodeFrame (const unsigned char* pSrc, SFrameBSInfo* p
   ++ m_uiCountFrameNum;
   WelsLog (m_pEncContext, WELS_LOG_INFO,
            "CWelsH264SVCEncoder::EncodeFrame(), m_uiCountFrameNum= %d, m_iCspInternal= 0x%x\n", m_uiCountFrameNum, m_iCspInternal);
-#endif//REC_FRAME_COUNT		
+#endif//REC_FRAME_COUNT
 
 #ifdef DUMP_SRC_PICTURE
   DumpSrcPicture (pSrc);
-#endif // DUMP_SRC_PICTURE	
+#endif // DUMP_SRC_PICTURE
 
   return uiFrameType;
 }
@@ -724,10 +724,14 @@ int CWelsH264SVCEncoder::EncodeFrame (const SSourcePicture**   pSrcPicList, int 
 #endif //OUTPUT_BIT_STREAM
 #ifdef DUMP_SRC_PICTURE
   DumpSrcPicture (pSrcPicList[0]->pData[0]);
-#endif // DUMP_SRC_PICTURE	
+#endif // DUMP_SRC_PICTURE
 
   return iFrameType;
 
+}
+
+int CWelsH264SVCEncoder::EncodeParameterSets (SFrameBSInfo* pBsInfo) {
+    return WelsEncoderEncodeParameterSets (m_pEncContext, pBsInfo);
 }
 
 /*
@@ -942,11 +946,12 @@ int CWelsH264SVCEncoder::SetOption (ENCODER_OPTION eOptionId, void* pOption) {
              "CWelsH264SVCEncoder::SetOption():ENCODER_OPTION_FRAME_RATE, m_uiCountFrameNum= %d, m_iCspInternal= 0x%x, iValue= %d\n",
              m_uiCountFrameNum, m_iCspInternal, iValue);
 #endif//REC_FRAME_COUNT
-     if (iValue<=0) {
-        return cmInitParaError;
+    if (iValue<=0) {
+      return cmInitParaError;
     }
-    m_pEncContext->pSvcParam->fMaxFrameRate	= iValue;
-    WelsEncoderAdjustFrameRate (m_pEncContext->pSvcParam);
+    //adjust to valid range
+    m_pEncContext->pSvcParam->fMaxFrameRate	= WELS_CLIP3 (iValue, MIN_FRAME_RATE, MAX_FRAME_RATE);
+    WelsEncoderApplyFrameRate (m_pEncContext->pSvcParam);
   }
   break;
   case ENCODER_OPTION_BITRATE: {	// Target bit-rate
@@ -955,26 +960,14 @@ int CWelsH264SVCEncoder::SetOption (ENCODER_OPTION eOptionId, void* pOption) {
     WelsLog (m_pEncContext, WELS_LOG_INFO,
       "CWelsH264SVCEncoder::SetOption():ENCODER_OPTION_BITRATE, m_uiCountFrameNum= %d, m_iCspInternal= 0x%x, iValue= %d\n",
       m_uiCountFrameNum, m_iCspInternal, iValue);
-#endif//REC_FRAME_COUNT     
+#endif//REC_FRAME_COUNT
     if (iValue<=0) {
         return cmInitParaError;
     }
-    m_pEncContext->pSvcParam->iTargetBitrate = iValue;
+    //adjust to valid range
+    m_pEncContext->pSvcParam->iTargetBitrate	= WELS_CLIP3 (iValue, MIN_BIT_RATE, MAX_BIT_RATE);
+    WelsEncoderApplyBitRate (m_pEncContext->pSvcParam);
 
-    //TODO (Sijia):  this is a temporary solution
-    const int32_t iNumLayers = m_pEncContext->pSvcParam->iNumDependencyLayer;
-    int32_t i, iOrigTotalBitrate=0;
-    //read old BR
-    for (i=0;i<iNumLayers;i++) {
-      iOrigTotalBitrate += 
-        m_pEncContext->pSvcParam->sDependencyLayers[i].iSpatialBitrate;
-    }
-    //write new BR
-    for (i=0;i<iNumLayers;i++) {
-      m_pEncContext->pSvcParam->sDependencyLayers[i].iSpatialBitrate = 
-        ((m_pEncContext->pSvcParam->sDependencyLayers[i].iSpatialBitrate)*
-        iValue)/iOrigTotalBitrate;
-    }
   }
   break;
   case ENCODER_OPTION_RC_MODE: {	// 0:quality mode;1:bit-rate mode
@@ -1145,7 +1138,7 @@ void CWelsH264SVCEncoder::DumpSrcPicture (const uint8_t* pSrc) {
 #else
     pFile = FOPEN (strFileName, "ab+");
 #endif//_MSC_VER>=1500
-#endif//_MSC_VER			
+#endif//_MSC_VER
 #endif//__GNUC__
     //				WelsLog( m_pEncContext, WELS_LOG_INFO, "WELS_CSP_I420, m_iCspInternal= 0x%x\n", m_iCspInternal);
     if (NULL != pFile) {
@@ -1165,7 +1158,7 @@ void CWelsH264SVCEncoder::DumpSrcPicture (const uint8_t* pSrc) {
 #else
     pFile = FOPEN (strFileName, "ab+");
 #endif//_MSC_VER>=1500
-#endif//_MSC_VER			
+#endif//_MSC_VER
 #endif//__GNUC__
     if (NULL != pFile) {
       fwrite (pSrc, sizeof (uint8_t), iDataLength * 3, pFile);
@@ -1183,7 +1176,7 @@ void CWelsH264SVCEncoder::DumpSrcPicture (const uint8_t* pSrc) {
 #else
     pFile = FOPEN (strFileName, "ab+");
 #endif//_MSC_VER>=1500
-#endif//_MSC_VER			
+#endif//_MSC_VER
 #endif//__GNUC__
     //				WelsLog( m_pEncContext, WELS_LOG_INFO, "WELS_CSP_BGR, m_iCspInternal= 0x%x\n", m_iCspInternal);
     if (NULL != pFile) {
@@ -1203,7 +1196,7 @@ void CWelsH264SVCEncoder::DumpSrcPicture (const uint8_t* pSrc) {
 #else
     pFile = FOPEN (strFileName, "ab+");
 #endif//_MSC_VER>=1500
-#endif//_MSC_VER			
+#endif//_MSC_VER
 #endif//__GNUC__
     if (NULL != pFile) {
       fwrite (pSrc, sizeof (uint8_t), (CALC_BI_STRIDE (m_iMaxPicWidth,  16)) * m_iMaxPicHeight, pFile);

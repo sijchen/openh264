@@ -94,7 +94,7 @@ CWelsDecoder::CWelsDecoder (void_t)
   str_t chFileNameSize[1024] = { 0 }; //for .len
   int iBufUsedSize = 0;
   int iBufLeftSize = 1023;
-#endif//OUTPUT_BIT_STREAM 
+#endif//OUTPUT_BIT_STREAM
 
   m_pTrace = CreateWelsTrace (Wels_Trace_Type);
 
@@ -344,6 +344,13 @@ DECODING_STATE CWelsDecoder::DecodeFrame (const unsigned char* kpSrc,
     const int kiSrcLen,
     void_t** ppDst,
     SBufferInfo* pDstInfo) {
+  if (kiSrcLen > MAX_ACCESS_UNIT_CAPACITY) {
+    m_pDecContext->iErrorCode |= dsOutOfMemory;
+    IWelsTrace::WelsVTrace (m_pTrace, IWelsTrace::WELS_LOG_INFO,
+      "max AU size exceeded. Allowed size = %d, current size = %d",
+      MAX_ACCESS_UNIT_CAPACITY, kiSrcLen);
+    return dsOutOfMemory;
+  }
   if (kiSrcLen > 0 && kpSrc != NULL) {
 #ifdef OUTPUT_BIT_STREAM
     if (m_pFBS) {
