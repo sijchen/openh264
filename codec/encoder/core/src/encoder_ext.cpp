@@ -449,6 +449,7 @@ void WelsEncoderApplyFrameRate(SWelsSvcCodingParam* pParam)
   }
 }
 
+
 void WelsEncoderApplyBitRate(SWelsSvcCodingParam* pParam)
 {
   //TODO (Sijia):  this is a temporary solution which keep the ratio between layers
@@ -469,7 +470,6 @@ void WelsEncoderApplyBitRate(SWelsSvcCodingParam* pParam)
     pLayerParam->iSpatialBitrate = static_cast<int32_t>(pParam->iTargetBitrate*fRatio);
   }
 }
-
 /*!
  * \brief	acquire count number of layers and NALs based on configurable paramters dependency
  * \pParam	pCtx				sWelsEncCtx*
