@@ -218,7 +218,7 @@ int32_t CheckBitstreamBuffer(CMemoryAlign*pMa, SBitStringAux* pBS, uint32_t* iBs
 
   if (iLeftLength < MAX_MACROBLOCK_SIZE_IN_BYTE) {
     //invoke realloc
-    const int32_t iNewLength = pBS->pBufEnd - pBS->pBuf + 10000;
+    const int32_t iNewLength = pBS->pBufEnd - pBS->pBuf + 100;
     const int32_t iCurrentLength = pBS->pBufPtr - pBS->pBuf;
     if ( iNewLength <= 0 || iCurrentLength <= 0 || iNewLength<=iCurrentLength ) {
       return ENC_RETURN_UNEXPECTED;
@@ -277,7 +277,7 @@ int32_t WelsSpatialWriteMbSyn (sWelsEncCtx* pEncCtx, SSlice* pSlice, SMB* pCurMb
   }
  
   /* Step 4: Check the left buffer */
-  return CheckBitstreamBuffer(pEncCtx->pMemAlign, pBs, &(pEncCtx->pSliceBs->uiSize));//TODO: check using this or the FrameBSSize?
+  return CheckBitstreamBuffer(pEncCtx->pMemAlign, pBs, &(pEncCtx->pOut->uiSize));
 }
 
 void WelsWriteMbResidual (SMbCache* sMbCacheInfo, SMB* pCurMb, SBitStringAux* pBs) {
