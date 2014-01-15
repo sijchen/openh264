@@ -440,11 +440,12 @@ void WelsEncoderApplyFrameRate(SWelsSvcCodingParam* pParam)
 
     fRatio = pLayerParam->fOutputFrameRate / pLayerParam->fInputFrameRate;
     if ( (kfMaxFrameRate - pLayerParam->fInputFrameRate) > kfEpsn
-      || (kfMaxFrameRate - pLayerParam->fInputFrameRate) < -kfEpsn ) {
-        pLayerParam->fInputFrameRate = kfMaxFrameRate;
-        fTargetOutputFrameRate = kfMaxFrameRate*fRatio;
-        pLayerParam->fOutputFrameRate = (fTargetOutputFrameRate>=6)?fTargetOutputFrameRate:(pLayerParam->fInputFrameRate);
-        //TODO:{Sijia} from design, there is no sense to have temporal layer when under 6fps even with such setting?
+        || (kfMaxFrameRate - pLayerParam->fInputFrameRate) < -kfEpsn ) {
+      pLayerParam->fInputFrameRate = kfMaxFrameRate;
+      fTargetOutputFrameRate = kfMaxFrameRate*fRatio;
+      pLayerParam->fOutputFrameRate = (fTargetOutputFrameRate>=6)?fTargetOutputFrameRate:(pLayerParam->fInputFrameRate);
+      //TODO:{Sijia} from design, there is no sense to have temporal layer when under 6fps even with such setting?
+      }
     }
   }
 }
@@ -468,8 +469,6 @@ void WelsEncoderApplyBitRate(SWelsSvcCodingParam* pParam)
     pLayerParam->iSpatialBitrate = static_cast<int32_t>(pParam->iTargetBitrate*fRatio);
   }
 }
-
-
 /*!
  * \brief	acquire count number of layers and NALs based on configurable paramters dependency
  * \pParam	pCtx				sWelsEncCtx*
