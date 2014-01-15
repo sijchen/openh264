@@ -3135,7 +3135,7 @@ int32_t WelsEncoderEncodeParameterSets (sWelsEncCtx* pCtx, void* pDst) {
  *						[NO in picture list case, YES in console aplication based]
  * \return	EFrameType (WELS_FRAME_TYPE_IDR/WELS_FRAME_TYPE_I/WELS_FRAME_TYPE_P)
  */
-ENC_RETURN WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePicture** ppSrcList,
+int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePicture** ppSrcList,
                               const int32_t iConfiguredLayerNum) {
   SFrameBSInfo* pFbi					= (SFrameBSInfo*)pDst;
   SLayerBSInfo* pLayerBsInfo					= &pFbi->sLayerInfo[0];
@@ -3171,7 +3171,7 @@ ENC_RETURN WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePic
 #if defined(_DEBUG)
   int32_t i = 0, j = 0, k = 0;
 #endif//_DEBUG
-  ENC_RETURN eReturn						= ENC_RETURN_SUCCESS;
+  int32_t eReturn						= ENC_RETURN_SUCCESS;
 
 
   pFbi->iLayerNum	= 0;	// for initialization

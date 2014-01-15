@@ -625,9 +625,9 @@ int CWelsH264SVCEncoder::EncodeFrame (const SSourcePicture**   pSrcPicList, int 
 
   int32_t iFrameTypeReturned = 0;
   int32_t iFrameType = videoFrameTypeInvalid;
-  ENC_RETURN eEncoderReturn = WelsEncoderEncodeExt (m_pEncContext, pBsInfo, pSrcPicList, nSrcPicNum);
+  const int32_t kiEncoderReturn = WelsEncoderEncodeExt (m_pEncContext, pBsInfo, pSrcPicList, nSrcPicNum);
 
-  switch (eEncoderReturn) {
+  switch (kiEncoderReturn) {
   case ENC_RETURN_MEMALLOCERR:
     WelsUninitEncoderExt (&m_pEncContext);
     return videoFrameTypeInvalid;
@@ -637,7 +637,7 @@ int CWelsH264SVCEncoder::EncodeFrame (const SSourcePicture**   pSrcPicList, int 
   case ENC_RETURN_UNEXPECTED:
     return videoFrameTypeInvalid;
   default:
-    WelsLog (m_pEncContext, WELS_LOG_ERROR, "unexpected return(%d) from WelsEncoderEncodeExt()!\n", eEncoderReturn);
+    WelsLog (m_pEncContext, WELS_LOG_ERROR, "unexpected return(%d) from WelsEncoderEncodeExt()!\n", kiEncoderReturn);
     return videoFrameTypeInvalid;
   }
 

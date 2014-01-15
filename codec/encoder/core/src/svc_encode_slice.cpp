@@ -488,6 +488,7 @@ int32_t WelsISliceMdEnc (sWelsEncCtx* pEncCtx, SSlice* pSlice) { //pMd + encodin
   const int32_t kiSliceIdx			= pSlice->uiSliceIdx;
   const uint8_t kuiChromaQpIndexOffset = pCurLayer->sLayerInfo.pPpsP->uiChromaQpIndexOffset;
   SWelsMD sMd;
+  int32_t iEncReturn = ENC_RETURN_SUCCESS;
 
   for (; ;) {
     iCurMbIdx	= iNextMbIdx;
@@ -503,7 +504,9 @@ int32_t WelsISliceMdEnc (sWelsEncCtx* pEncCtx, SSlice* pSlice) { //pMd + encodin
     WelsMdIntraMb (pEncCtx, &sMd, pCurMb, pMbCache);
     UpdateNonZeroCountCache (pCurMb, pMbCache);
 
-    if (WelsSpatialWriteMbSyn (pEncCtx, pSlice, pCurMb)) return ENC_RETURN_MEMALLOCERR;
+    iEncReturn = WelsSpatialWriteMbSyn (pEncCtx, pSlice, pCurMb); 
+    if (ENC_RETURN_SUCCESS != iEncReturn)
+      return iEncReturn;
 
     pCurMb->uiSliceIdc = kiSliceIdx;
 
@@ -540,6 +543,7 @@ int32_t WelsISliceMdEncDynamic (sWelsEncCtx* pEncCtx, SSlice* pSlice) { //pMd + 
   const int32_t kiSliceIdx				= pSlice->uiSliceIdx;
   const int32_t kiPartitionId			= (kiSliceIdx % pEncCtx->iActiveThreadsNum);
   const uint8_t kuiChromaQpIndexOffset = pCurLayer->sLayerInfo.pPpsP->uiChromaQpIndexOffset;
+  int32_t iEncReturn = ENC_RETURN_SUCCESS;
 
   SWelsMD sMd;
   SDynamicSlicingStack sDss;
@@ -568,7 +572,9 @@ int32_t WelsISliceMdEncDynamic (sWelsEncCtx* pEncCtx, SSlice* pSlice) { //pMd + 
     sDss.uiBsStackCurBits	= pBs->uiCurBits;
     sDss.iBsStackLeftBits	= pBs->iLeftBits;
 
-    if (WelsSpatialWriteMbSyn (pEncCtx, pSlice, pCurMb)) return ENC_RETURN_MEMALLOCERR;
+    iEncReturn = WelsSpatialWriteMbSyn (pEncCtx, pSlice, pCurMb);
+    if (ENC_RETURN_SUCCESS != iEncReturn)
+      return iEncReturn;
 
     sDss.iCurrentPos = BsGetBitsPos (pBs);
 
@@ -606,7 +612,7 @@ int32_t WelsISliceMdEncDynamic (sWelsEncCtx* pEncCtx, SSlice* pSlice) { //pMd + 
     }
   }
 
-  return ENC_RETURN_SUCCESS;
+  return iEncReturn;
 }
 
 //encapsulate two kinds of reconstruction:
@@ -727,7 +733,9 @@ int32_t WelsCodeOneSlice (sWelsEncCtx* pEncCtx, const int32_t kiSliceIdx, const 
 
   pCurSlice->uiLastMbQp = pCurLayer->sLayerInfo.pPpsP->iPicInitQp + pCurSlice->sSliceHeaderExt.sSliceHeader.iSliceQpDelta;
 
-  if (g_pWelsSliceCoding[pNalHeadExt->bIdrFlag][kiDynamicSliceFlag] (pEncCtx, pCurSlice)) return ENC_RETURN_MEMALLOCERR;
+  int32_t iEncReturn = g_pWelsSliceCoding[pNalHeadExt->bIdrFlag][kiDynamicSliceFlag] (pEncCtx, pCurSlice);
+  if (ENC_RETURN_SUCCESS != iEncReturn) 
+    return iEncReturn;
 
   BsRbspTrailingBits (pBs);
 
@@ -937,6 +945,7 @@ int32_t WelsMdInterMbLoop (sWelsEncCtx* pEncCtx, SSlice* pSlice, void* pWelsMd, 
   uint16_t* pMvdCostTableInter		= &pEncCtx->pMvdCostTableInter[kiMvdInterTableSize];
   const int32_t kiSliceIdx				= pSlice->uiSliceIdx;
   const uint8_t kuiChromaQpIndexOffset = pCurLayer->sLayerInfo.pPpsP->uiChromaQpIndexOffset;
+  int32_t iEncReturn = ENC_RETURN_SUCCESS;
 
   for (;;) {
     //point to current pMb
@@ -972,7 +981,9 @@ int32_t WelsMdInterMbLoop (sWelsEncCtx* pEncCtx, SSlice* pSlice, void* pWelsMd, 
     } else {
       BsWriteUE (pBs, iMbSkipRun);
       iMbSkipRun = 0;
-      if (WelsSpatialWriteMbSyn (pEncCtx, pSlice, pCurMb)) return ENC_RETURN_MEMALLOCERR;
+      iEncReturn = WelsSpatialWriteMbSyn (pEncCtx, pSlice, pCurMb);
+      if (ENC_RETURN_SUCCESS != iEncReturn) 
+        return iEncReturn;
     }
 
     //step (7): reconstruct current MB
@@ -999,7 +1010,7 @@ int32_t WelsMdInterMbLoop (sWelsEncCtx* pEncCtx, SSlice* pSlice, void* pWelsMd, 
     BsWriteUE (pBs, iMbSkipRun);
   }
 
-  return ENC_RETURN_SUCCESS;
+  return iEncReturn;
 }
 
 // Only for inter dynamic slicing
@@ -1023,6 +1034,7 @@ int32_t WelsMdInterMbLoopOverDynamicSlice (sWelsEncCtx* pEncCtx, SSlice* pSlice,
   const int32_t kiSliceIdx				= pSlice->uiSliceIdx;
   const int32_t kiPartitionId			= (kiSliceIdx % pEncCtx->iActiveThreadsNum);
   const uint8_t kuiChromaQpIndexOffset = pCurLayer->sLayerInfo.pPpsP->uiChromaQpIndexOffset;
+  int32_t iEncReturn = ENC_RETURN_SUCCESS;
 
   SDynamicSlicingStack sDss;
   sDss.iStartPos = BsGetBitsPos (pBs);
@@ -1079,7 +1091,9 @@ int32_t WelsMdInterMbLoopOverDynamicSlice (sWelsEncCtx* pEncCtx, SSlice* pSlice,
     } else {
       BsWriteUE (pBs, iMbSkipRun);
       iMbSkipRun = 0;
-      if (WelsSpatialWriteMbSyn (pEncCtx, pSlice, pCurMb)) return ENC_RETURN_MEMALLOCERR;
+      iEncReturn = WelsSpatialWriteMbSyn (pEncCtx, pSlice, pCurMb);
+      if (ENC_RETURN_SUCCESS != iEncReturn) 
+        return iEncReturn;
     }
 
     //DYNAMIC_SLICING_ONE_THREAD - MultiD
@@ -1125,7 +1139,7 @@ int32_t WelsMdInterMbLoopOverDynamicSlice (sWelsEncCtx* pEncCtx, SSlice* pSlice,
     BsWriteUE (pBs, iMbSkipRun);
   }
 
-  return ENC_RETURN_SUCCESS;
+  return iEncReturn;
 }
 
 }//namespace WelsSVCEnc

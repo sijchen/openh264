@@ -186,7 +186,7 @@ typedef enum {
   ENC_RETURN_MEMALLOCERR = -1, //will free memory and uninit
   ENC_RETURN_UNSUPPORTED_PARA = -2, //unsupported setting
   ENC_RETURN_UNEXPECTED = -3, //unexpected value
-} ENC_RETURN;
+};
 //TODO: need to complete the return checking in encoder and fill in more types if needed
 
 #endif//WELS_CONSTANCE_H__
