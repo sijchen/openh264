@@ -56,6 +56,7 @@ int32_t				iPayloadSize;		// size of pRawNal pData
 
 SNalUnitHeaderExt		sNalExt;		// NAL header information
 
+int32_t iStartPos; //NAL start position in buffer
 } SWelsNalRaw;
 
 /*

@@ -57,6 +57,7 @@ void WelsLoadNal (SWelsEncoderOutput* pEncoderOuput, const int32_t/*EWelsNalUnit
   sNalHeader->uiForbiddenZeroBit	= 0;
 
   pRawNal->pRawData		= &pWelsEncoderOuput->pBsBuffer[kiStartPos];
+  pRawNal->iStartPos	 = kiStartPos;
   pRawNal->iPayloadSize	= 0;
 }
 
@@ -70,7 +71,7 @@ void WelsUnloadNal (SWelsEncoderOutput* pEncoderOuput) {
   const int32_t kiEndPos		= (BsGetBitsPos (&pWelsEncoderOuput->sBsWrite) >> 3);
 
   /* count payload size of pRawNal NAL */
-  pRawNal->iPayloadSize	= &pWelsEncoderOuput->pBsBuffer[kiEndPos] - pRawNal->pRawData;
+  pRawNal->iPayloadSize	= kiEndPos - pRawNal->iStartPos;
 
   ++ (*pIdx);
 }
@@ -91,6 +92,7 @@ void WelsLoadNalForSlice (SWelsSliceBs* pSliceBsIn, const int32_t/*EWelsNalUnitT
   sNalHeader->uiForbiddenZeroBit	= 0;
 
   pRawNal->pRawData		= &pSliceBs->pBsBuffer[kiStartPos];
+  pRawNal->iStartPos	 = kiStartPos;
   pRawNal->iPayloadSize	= 0;
 }
 
@@ -105,7 +107,7 @@ void WelsUnloadNalForSlice (SWelsSliceBs* pSliceBsIn) {
   const int32_t kiEndPos		        = (BsGetBitsPos (pBitStringAux) >> 3);
 
   /* count payload size of pRawNal NAL */
-  pRawNal->iPayloadSize	= &pSliceBs->pBsBuffer[kiEndPos] - pRawNal->pRawData;
+  pRawNal->iPayloadSize	= kiEndPos - pRawNal->iStartPos;
 
   ++ (*pIdx);
 }
