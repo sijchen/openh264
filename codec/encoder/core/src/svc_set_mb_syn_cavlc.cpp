@@ -209,8 +209,43 @@ void WelsSpatialWriteSubMbPred (sWelsEncCtx* pEncCtx, SSlice* pSlice, SMB* pCurM
   }
 }
 
+int32_t CheckBitstreamBuffer(CMemoryAlign*pMa, SBitStringAux* pBS, uint32_t* iBsSize)
+{
+  const int32_t iLeftLength = pBS->pBufEnd - pBS->pBufPtr - 1;
+  if (iLeftLength <= 0) {
+    return ENC_RETURN_UNEXPECTED;
+  }
+
+  if (iLeftLength < MAX_MACROBLOCK_SIZE_IN_BYTE) {
+    //invoke realloc
+    const int32_t iNewLength = pBS->pBufEnd - pBS->pBuf + 10000;
+    const int32_t iCurrentLength = pBS->pBufPtr - pBS->pBuf;
+    if ( iNewLength <= 0 || iCurrentLength <= 0 || iNewLength<=iCurrentLength ) {
+      return ENC_RETURN_UNEXPECTED;
+    }
+
+    //realloc
+    uint8_t* pNewSliceBs		= (uint8_t*)pMa->WelsMalloc (iNewLength, "pNewSliceBs");
+    if (NULL == pNewSliceBs)
+      return ENC_RETURN_MEMALLOCERR;
+    memcpy(pNewSliceBs, pBS->pBuf, iCurrentLength+1);    
+    //free the original buffer
+    pMa->WelsFree(pBS->pBuf, "pNewSliceBs");
+
+    //update pBS
+    pBS->pBuf = pNewSliceBs;
+    pBS->pBufEnd = pNewSliceBs+iNewLength;  
+    pBS->pBufPtr = pNewSliceBs+iCurrentLength;
+//uiCurBits and iLeftBits should be the same
+
+    //update TotalBsSize
+    *iBsSize = iNewLength;
+  }
+  return ENC_RETURN_SUCCESS;
+}
+
 //============================Base Layer CAVLC Writing===============================
-void WelsSpatialWriteMbSyn (sWelsEncCtx* pEncCtx, SSlice* pSlice, SMB* pCurMb) {
+int32_t WelsSpatialWriteMbSyn (sWelsEncCtx* pEncCtx, SSlice* pSlice, SMB* pCurMb) {
   SBitStringAux* pBs = pSlice->pSliceBsa;
   SMbCache* pMbCache = &pSlice->sMbCacheInfo;
 
@@ -240,6 +275,9 @@ void WelsSpatialWriteMbSyn (sWelsEncCtx* pEncCtx, SSlice* pSlice, SMB* pCurMb) {
     pCurMb->uiChromaQp = g_kuiChromaQpTable[CLIP3_QP_0_51 (pCurMb->uiLumaQp +
                                             pEncCtx->pCurDqLayer->sLayerInfo.pPpsP->uiChromaQpIndexOffset)];
   }
+ 
+  /* Step 4: Check the left buffer */
+  return CheckBitstreamBuffer(pEncCtx->pMemAlign, pBs, &(pEncCtx->pSliceBs->uiSize));//TODO: check using this or the FrameBSSize?
 }
 
 void WelsWriteMbResidual (SMbCache* sMbCacheInfo, SMB* pCurMb, SBitStringAux* pBs) {

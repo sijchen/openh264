@@ -49,6 +49,7 @@
 #include "set_mb_syn_cavlc.h"
 
 namespace WelsSVCEnc {
+//#pragma pack(1)
 
 void WelsWriteMbResidual (SMbCache* sMbCacheInfo, SMB* pCurMb, SBitStringAux* pBs);
 
@@ -59,5 +60,6 @@ void WelsSpatialWriteMbPred (sWelsEncCtx* pEncCtx, SSlice* pSlice, SMB* pCurMb);
 //for Base Layer CAVLC writing
 int32_t WelsSpatialWriteMbSyn (sWelsEncCtx* pEncCtx, SSlice* pSlice, SMB* pCurMb);
 
+//#pragma pack()
 }
 #endif

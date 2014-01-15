@@ -1,4 +1,4 @@
-F/*!
+/*!
  * \copy
  *     Copyright (c)  2009-2013, Cisco Systems
  *     All rights reserved.
@@ -424,52 +424,27 @@ int32_t ParamValidationExt (void* pParam) {
 }
 
 
-
-void WelsEncoderApplyFrameRate(SWelsSvcCodingParam* pParam)
+void WelsEncoderAdjustFrameRate(SWelsSvcCodingParam* pParam)
 {
-  SDLayerParam* pLayerParam;
-  const float kfEpsn = 0.000001f;
   const int32_t kiNumLayer = pParam->iNumDependencyLayer;
   int32_t i;
-  const float kfMaxFrameRate = pParam->fMaxFrameRate;
   float fRatio;
-  float fTargetOutputFrameRate;
 
-  //set input frame rate to each layer
   for (i=0;i<kiNumLayer;i++) {
-    pLayerParam = &(pParam->sDependencyLayers[i]);
+    fRatio 
+      = (pParam->sDependencyLayers[i].fInputFrameRate / pParam->sDependencyLayers[i].fOutputFrameRate);
+    if (pParam->fMaxFrameRate < pParam->sDependencyLayers[i].fInputFrameRate) {
+      pParam->sDependencyLayers[i].fInputFrameRate = pParam->fMaxFrameRate;
+      pParam->sDependencyLayers[i].fOutputFrameRate 
+        = pParam->sDependencyLayers[i].fInputFrameRate/fRatio;
 
-    fRatio = pLayerParam->fOutputFrameRate / pLayerParam->fInputFrameRate;
-    if ( (kfMaxFrameRate - pLayerParam->fInputFrameRate) > kfEpsn
-        || (kfMaxFrameRate - pLayerParam->fInputFrameRate) < -kfEpsn ) {
-      pLayerParam->fInputFrameRate = kfMaxFrameRate;
-      fTargetOutputFrameRate = kfMaxFrameRate*fRatio;
-      pLayerParam->fOutputFrameRate = (fTargetOutputFrameRate>=6)?fTargetOutputFrameRate:(pLayerParam->fInputFrameRate);
       //TODO:{Sijia} from design, there is no sense to have temporal layer when under 6fps even with such setting?
+      if (pParam->sDependencyLayers[i].fOutputFrameRate<6) {
+        pParam->sDependencyLayers[i].fOutputFrameRate 
+          = pParam->sDependencyLayers[i].fInputFrameRate;
+      }
     }
-  }
-}
-
-
-void WelsEncoderApplyBitRate(SWelsSvcCodingParam* pParam)
-{
-  //TODO (Sijia):  this is a temporary solution which keep the ratio between layers
-  //but it is also possible to fulfill the bitrate of lower layer first
-
-  SDLayerParam* pLayerParam;
-  const int32_t iNumLayers = pParam->iNumDependencyLayer;
-  int32_t i, iOrigTotalBitrate=0;
-  //read old BR
-  for (i=0;i<iNumLayers;i++) {
-    iOrigTotalBitrate += pParam->sDependencyLayers[i].iSpatialBitrate;
-  }
-  //write new BR
-  float fRatio = 0.0;
-  for (i=0;i<iNumLayers;i++) {
-    pLayerParam = &(pParam->sDependencyLayers[i]);
-    fRatio = pLayerParam->iSpatialBitrate/(static_cast<float>(iOrigTotalBitrate));
-    pLayerParam->iSpatialBitrate = static_cast<int32_t>(pParam->iTargetBitrate*fRatio);
-  }
+  } 
 }
 
 /*!
@@ -2173,8 +2148,8 @@ int32_t WelsInitEncoderExt (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pCodingPar
 
 #if defined(MEMORY_MONITOR)
   WelsLog (pCtx, WELS_LOG_INFO, "WelsInitEncoderExt() exit, overall memory usage: %llu bytes\n",
-           static_cast<unsigned long long> (sizeof (sWelsEncCtx) /* requested size from malloc() or new operator */
-               + pCtx->pMemAlign->WelsGetMemoryUsage())	/* requested size from CMemoryAlign::WelsMalloc() */
+           static_cast<unsigned long long>(sizeof (sWelsEncCtx) /* requested size from malloc() or new operator */
+           + pCtx->pMemAlign->WelsGetMemoryUsage())	/* requested size from CMemoryAlign::WelsMalloc() */
           );
 #endif//MEMORY_MONITOR
 
@@ -2993,7 +2968,7 @@ int32_t WritePadding (sWelsEncCtx* pCtx, int32_t iLen) {
 #if GOM_TRACE_FLAG
     WelsLog (pCtx, WELS_LOG_ERROR,
              "[RC] paddingcal pBuffer overflow, bufferlen=%lld, paddinglen=%d, iNalIdx= %d, iCountNals= %d\n",
-             static_cast<long long int> (pBs->pBufEnd - pBs->pBufPtr), iLen, iNal, pCtx->pOut->iCountNals);
+             static_cast<long long int>(pBs->pBufEnd - pBs->pBufPtr), iLen, iNal, pCtx->pOut->iCountNals);
 #endif
     return 0;
   }
@@ -3106,7 +3081,7 @@ int32_t ForceCodingIDR (sWelsEncCtx* pCtx) {
  *						[NO in picture list case, YES in console aplication based]
  * \return	EFrameType (WELS_FRAME_TYPE_IDR/WELS_FRAME_TYPE_I/WELS_FRAME_TYPE_P)
  */
-int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePicture** ppSrcList,
+ENC_RETURN WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePicture** ppSrcList,
                               const int32_t iConfiguredLayerNum) {
   SFrameBSInfo* pFbi					= (SFrameBSInfo*)pDst;
   SLayerBSInfo* pLayerBsInfo					= &pFbi->sLayerInfo[0];
@@ -3142,6 +3117,8 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
 #if defined(_DEBUG)
   int32_t i = 0, j = 0, k = 0;
 #endif//_DEBUG
+  ENC_RETURN eReturn						= ENC_RETURN_SUCCESS;
+
 
   pFbi->iLayerNum	= 0;	// for initialization
 
@@ -3149,12 +3126,15 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
   iSpatialNum = pCtx->pVpp->WelsPreprocessStep1 (pCtx, ppSrcList, iConfiguredLayerNum);
   if (iSpatialNum < 1) {	// skip due to temporal layer settings (different frame rate)
     ++ pCtx->iCodingIndex;
-    return WELS_FRAME_TYPE_SKIP;
+    pFbi->eOutputFrameType = WELS_FRAME_TYPE_SKIP;
+    return ENC_RETURN_SUCCESS;
   }
 
   eFrameType = DecideFrameType (pCtx, iSpatialNum);
-  if (eFrameType == WELS_FRAME_TYPE_SKIP)
-    return eFrameType;
+  if (eFrameType == WELS_FRAME_TYPE_SKIP) {
+    pFbi->eOutputFrameType = eFrameType;
+    return ENC_RETURN_SUCCESS;
+  }
 
   InitFrameCoding (pCtx, eFrameType);
 
@@ -3238,7 +3218,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
     if (iLayerNum >= MAX_LAYER_NUM_OF_FRAME) {	// check available layer_bs_info writing as follows
       WelsLog (pCtx, WELS_LOG_ERROR, "WelsEncoderEncodeExt(), iLayerNum(%d) overflow(max:%d)!", iLayerNum,
                MAX_LAYER_NUM_OF_FRAME);
-      return -1;
+      return ENC_RETURN_UNSUPPORTED_PARA;
     }
 
     iNalIdxInLayer	= 0;
@@ -3276,9 +3256,10 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
     if (!WelsBuildRefList (pCtx, pCtx->iPOC)) {
       // Force coding IDR as followed
       ForceCodingIDR (pCtx);
-      WelsLog (pCtx, WELS_LOG_WARNING, "WelsEncoderEncodeExt(), WelsBuildRefList failed for P frames, pCtx->iNumRef0= %d.\n",
+      WelsLog (pCtx, WELS_LOG_WARNING, "WelsEncoderEncodeExt(), WelsBuildRefList failed for P frames, pCtx->iNumRef0= %d. ForceCodingIDR!\n",
                pCtx->iNumRef0);
-      return -1;
+      pFbi->eOutputFrameType = WELS_FRAME_TYPE_IDR;
+      return ENC_RETURN_SUCCESS;
     }
 #ifdef LONG_TERM_REF_DUMP
     dump_ref (pCtx);
@@ -3344,13 +3325,13 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
           WelsLog (pCtx, WELS_LOG_ERROR,
                    "WelsEncoderEncodeExt(), iLayerNum(%d) overflow(max:%d) at iDid= %d uiSliceMode= %d, iSliceCount= %d!",
                    iLayerNum, MAX_LAYER_NUM_OF_FRAME, iCurDid, param_d->sMso.uiSliceMode, iSliceCount);
-          return -1;
+          return ENC_RETURN_UNSUPPORTED_PARA;
         }
         if (iSliceCount <= 1) {
           WelsLog (pCtx, WELS_LOG_ERROR,
                    "WelsEncoderEncodeExt(), iSliceCount(%d) from GetCurrentSliceNum() is untrusted due stack/heap crupted!\n",
                    iSliceCount);
-          return -1;
+          return ENC_RETURN_UNEXPECTED;
         }
 
         if (pSvcParam->iCountThreadsNum >= iSliceCount) {	//THREAD_FULLY_FIRE_MODE
@@ -3374,7 +3355,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
             WelsLog (pCtx, WELS_LOG_ERROR,
                      "[MT] WelsEncoderEncodeExt(), FiredSliceThreads return(%d) failed and exit encoding frame, iCountThreadsNum= %d, iSliceCount= %d, uiSliceMode= %d, iMultipleThreadIdc= %d!!\n",
                      err, pSvcParam->iCountThreadsNum, iSliceCount, param_d->sMso.uiSliceMode, pSvcParam->iMultipleThreadIdc);
-            return -1;
+            return ENC_RETURN_UNEXPECTED;
           }
 
           WelsMultipleEventsWaitAllBlocking (iSliceCount, &pCtx->pSliceThreading->pSliceCodedEvent[0]);
@@ -3433,7 +3414,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
             WelsLog (pCtx, WELS_LOG_ERROR,
                      "[MT] WelsEncoderEncodeExt(), FiredSliceThreads return(%d) failed and exit encoding frame, iCountThreadsNum= %d, iSliceCount= %d, uiSliceMode= %d, iMultipleThreadIdc= %d!!\n",
                      err, pSvcParam->iCountThreadsNum, iSliceCount, param_d->sMso.uiSliceMode, pSvcParam->iMultipleThreadIdc);
-            return -1;
+            return ENC_RETURN_UNEXPECTED;
           }
 
           iIndexOfSliceToBeCoded = iNumThreadsRunning;
@@ -3525,7 +3506,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
           WelsLog (pCtx, WELS_LOG_ERROR,
                    "[MT] WelsEncoderEncodeExt(), FiredSliceThreads return(%d) failed and exit encoding frame, iCountThreadsNum= %d, iSliceCount= %d, uiSliceMode= %d, iMultipleThreadIdc= %d!!\n",
                    err, pSvcParam->iCountThreadsNum, iSliceCount, param_d->sMso.uiSliceMode, pSvcParam->iMultipleThreadIdc);
-          return -1;
+          return ENC_RETURN_UNEXPECTED;
         }
 
         WelsMultipleEventsWaitAllBlocking (kiPartitionCnt, &pCtx->pSliceThreading->pSliceCodedEvent[0]);
@@ -3603,8 +3584,9 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
       if (!WelsUpdateRefList (pCtx)) {
         // Force coding IDR as followed
         ForceCodingIDR (pCtx);
-        WelsLog (pCtx, WELS_LOG_WARNING, "WelsEncoderEncodeExt(), WelsUpdateRefList failed.\n");
-        return -1;
+        WelsLog (pCtx, WELS_LOG_WARNING, "WelsEncoderEncodeExt(), WelsUpdateRefList failed. ForceCodingIDR!\n");
+        pFbi->eOutputFrameType = WELS_FRAME_TYPE_IDR;
+        return ENC_RETURN_SUCCESS;
       }
     }
 
@@ -3716,7 +3698,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
                pCtx->pWelsSvcRc[pCtx->uiDependencyId].iPaddingSize);
 #endif
       if (kiPaddingNalSize <= 0)
-        return -1;
+        return ENC_RETURN_UNEXPECTED;
 
       pCtx->pWelsSvcRc[pCtx->uiDependencyId].iPaddingBitrateStat += pCtx->pWelsSvcRc[pCtx->uiDependencyId].iPaddingSize;
 
@@ -3759,7 +3741,9 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
     if (iCurTid < pCtx->uiSpatialLayersInTemporal[d_idx] - 1 || pSvcParam->iDecompStages == 0) {
       if ((iCurTid >= MAX_TEMPORAL_LEVEL) || (pCtx->uiSpatialLayersInTemporal[d_idx] - 1 >= MAX_TEMPORAL_LEVEL)) {
         ForceCodingIDR (pCtx);	// some logic error
-        return -1;
+        WelsLog (pCtx, WELS_LOG_WARNING, "WelsEncoderEncodeExt(), Logic Error Found in temporal level. ForceCodingIDR!\n");
+        pFbi->eOutputFrameType = WELS_FRAME_TYPE_IDR;
+        return ENC_RETURN_SUCCESS;
       }
 
       if (pSvcParam->bEnableLongTermReference && pCtx->bLongTermRefFlag[d_idx][iCurTid]) {
@@ -3809,7 +3793,8 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
   WelsEmms();
 #endif //X86_ASM
 
-  return eFrameType;
+  pFbi->eOutputFrameType = eFrameType;
+  return ENC_RETURN_SUCCESS;
 }
 
 /*!

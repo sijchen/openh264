@@ -264,6 +264,7 @@ typedef struct {
   int		iLayerNum;
   SLayerBSInfo	sLayerInfo[MAX_LAYER_NUM_OF_FRAME];
 
+  int eOutputFrameType;
 } SFrameBSInfo, *PFrameBSInfo;
 
 typedef struct Source_Picture_s {
