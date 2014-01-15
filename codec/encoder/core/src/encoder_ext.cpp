@@ -448,6 +448,8 @@ void WelsEncoderApplyFrameRate(SWelsSvcCodingParam* pParam)
     }
   }
 }
+
+
 void WelsEncoderApplyBitRate(SWelsSvcCodingParam* pParam)
 {
   //TODO (Sijia):  this is a temporary solution which keep the ratio between layers
