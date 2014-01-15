@@ -140,7 +140,7 @@ int32_t WelsEncodeNal (SWelsNalRaw* pRawNal, void* pDst, int32_t* pDstLen);
  *
  * \return	length of pDst NAL
  */
-int32_t WelsEncodeNalExt (SWelsNalRaw* pRawNal, void* pNalHeaderExt, void* pDst, int32_t* pDstLen);
+int32_t WelsEncodeNalExt(void* pCtx, SWelsNalRaw* pRawNal, void* pNalHeaderExt, const int32_t kiSourceLength, int32_t* pDstLen) ;
 
 /*!
  * \brief	write prefix nal

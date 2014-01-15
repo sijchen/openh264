@@ -240,5 +240,9 @@ static inline int32_t BsGetBitsPos (SBitStringAux* pBs) {
 return (((pBs->pBufPtr - pBs->pBuf) << 3) + 32 - pBs->iLeftBits);
 }
 
+static inline int32_t BsGetByteLength (SBitStringAux sBs) {
+return (sBs.pBufPtr - sBs.pBuf + 1);
+}
+
 }
 #endif//WELS_EXPONENTIAL_GOLOMB_ENTROPY_CODING_H__

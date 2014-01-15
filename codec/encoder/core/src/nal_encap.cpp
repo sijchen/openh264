@@ -36,6 +36,8 @@
  * \date	5/25/2009	Created
  *
  *************************************************************************************/
+#include "encoder.h"
+#include "encoder_context.h"
 #include "nal_encap.h"
 #include "svc_enc_golomb.h"
 #include "ls_defines.h"
@@ -163,14 +165,29 @@ int32_t WelsEncodeNal (SWelsNalRaw* pRawNal, void* pDst, int32_t* pDstLen) {
  *
  * \return	length of pDst NAL
  */
-int32_t WelsEncodeNalExt (SWelsNalRaw* pRawNal, void* pNalHeaderExt, void* pDst, int32_t* pDstLen) {
+int32_t WelsEncodeNalExt (void* pCtxPointer, SWelsNalRaw* pRawNal, void* pNalHeaderExt, const int32_t kiSourceLength, int32_t* pDstLen) {
+  sWelsEncCtx* pCtx = (sWelsEncCtx*)pCtxPointer;
+  //when left buffer is less than rawNAL*(1+1/2), 1/2 because for each 0x0001, need a 0x03 insertion
+  const int32_t kiDstOffset = pCtx->iPosBsBuffer;
+  const int32_t kiTargetBsLength = pCtx->iFrameBsSize;
+  const int32_t kiSourceLength2 = pRawNal->iPayloadSize;
+  if ( (kiTargetBsLength - kiDstOffset) < (kiSourceLength2 + (kiSourceLength2>>1))  ) {
+    const int32_t iNeededLen = kiDstOffset + (kiSourceLength2<<1);
+    int32_t iReturn = AllocateBsOutputBuffer(pCtx->pMemAlign, iNeededLen, kiTargetBsLength, "pFrameBs", pCtx->pFrameBs);
+    if (ENC_RETURN_SUCCESS != iReturn)
+      return iReturn;
+    pCtx->iFrameBsSize = iNeededLen;
+  }
+
   SNalUnitHeaderExt* sNalExt	= (SNalUnitHeaderExt*)pNalHeaderExt;
-  uint8_t* pDstStart				    = (uint8_t*)pDst;
+  uint8_t* pDst				    = pCtx->pFrameBs;
+  uint8_t* pDstStart				    = pDst+kiDstOffset;
   uint8_t* pDstPointer				= pDstStart;
   uint8_t* pSrcPointer				= pRawNal->pRawData;
   uint8_t* pSrcEnd					= pRawNal->pRawData + pRawNal->iPayloadSize;
   int32_t iZeroCount					= 0;
   int32_t iNalLength					= 0;
+  int32_t iReturn					= ENC_RETURN_SUCCESS;
 
   if (pRawNal->sNalExt.sNalHeader.eNalUnitType != NAL_UNIT_PREFIX
       && pRawNal->sNalExt.sNalHeader.eNalUnitType != NAL_UNIT_CODED_SLICE_EXT) {

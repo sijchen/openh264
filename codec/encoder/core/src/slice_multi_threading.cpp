@@ -509,10 +509,10 @@ int32_t RequestMtResource (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pCodingPara
   pSliceB	= (*ppCtx)->pSliceBs;
   iSliceBsBufferSize	= iTargetSpatialBsSize;
   iIdx = 0;
+  int32_t iReturn = 0;
   while (iIdx < iMaxSliceNum) {
-    pSliceB->pBsBuffer	= (uint8_t*)pMa->WelsMalloc (iSliceBsBufferSize, "pSliceB->pBsBuffer");
-
-    WELS_VERIFY_RETURN_PROC_IF (1, (NULL == pSliceB->pBsBuffer), FreeMemorySvc (ppCtx))
+    iReturn = AllocateBsOutputBuffer(pMa, iSliceBsBufferSize, 0, "pSliceB->pBsBuffer", pSliceB->pBsBuffer);
+    WELS_VERIFY_RETURN_PROC_IF (1, (ENC_RETURN_SUCCESS != iReturn), FreeMemorySvc (ppCtx))
     pSliceB->uiSize	= iSliceBsBufferSize;
 
     if (iIdx > 0) {
@@ -795,7 +795,8 @@ int32_t WriteSliceToFrameBs (sWelsEncCtx* pCtx, SLayerBSInfo* pLbi, uint8_t* pFr
 #endif//!PACKING_ONE_SLICE_PER_LAYER
 
   while (iNalIdx < kiNalCnt) {
-    iSliceSize += WelsEncodeNalExt (&pSliceBs->sNalList[iNalIdx], pNalHdrExt, pDst, &pNalLen[iNalIdx]);
+    iSliceSize += WelsEncodeNalExt (pCtx, &pSliceBs->sNalList[iNalIdx], pNalHdrExt,
+                                                      BsGetByteLength(pSliceBs->sBsWrite), &pNalLen[iNalIdx]);
     pDst += pNalLen[iNalIdx];
     pLbi->iNalLengthInByte[iNalBase + iNalIdx]	= pNalLen[iNalIdx];
 
@@ -841,7 +842,8 @@ int32_t WriteSliceBs (sWelsEncCtx* pCtx, uint8_t* pSliceBsBuf, const int32_t iSl
     return 0;
 
   while (iNalIdx < kiNalCnt) {
-    iSliceSize += WelsEncodeNalExt (&pSliceBs->sNalList[iNalIdx], pNalHdrExt, pDst, &pNalLen[iNalIdx]);
+    iSliceSize += WelsEncodeNalExt (pCtx, &pSliceBs->sNalList[iNalIdx], pNalHdrExt, 
+                                                      BsGetByteLength(pSliceBs->sBsWrite),&pNalLen[iNalIdx]);
     pDst += pNalLen[iNalIdx];
 
     ++ iNalIdx;

@@ -1413,9 +1413,9 @@ int32_t RequestMemorySvc (sWelsEncCtx** ppCtx) {
   // Output
   (*ppCtx)->pOut = (SWelsEncoderOutput*)pMa->WelsMalloc (sizeof (SWelsEncoderOutput), "SWelsEncoderOutput");
   WELS_VERIFY_RETURN_PROC_IF (1, (NULL == (*ppCtx)->pOut), FreeMemorySvc (ppCtx))
-  (*ppCtx)->pOut->pBsBuffer		= (uint8_t*)pMa->WelsMalloc (iCountBsLen, "pOut->pBsBuffer");
-  WELS_VERIFY_RETURN_PROC_IF (1, (NULL == (*ppCtx)->pOut->pBsBuffer), FreeMemorySvc (ppCtx))
-  (*ppCtx)->pOut->uiSize			= iCountBsLen;
+  int32_t iReturn = AllocateBsOutputBuffer(pMa,  iCountBsLen, 0, "pOut->pBsBuffer", (*ppCtx)->pOut->pBsBuffer);
+  WELS_VERIFY_RETURN_PROC_IF (1, (ENC_RETURN_SUCCESS != iReturn), FreeMemorySvc (ppCtx))
+  (*ppCtx)->pOut->uiSize = iCountBsLen;
   (*ppCtx)->pOut->sNalList		= (SWelsNalRaw*)pMa->WelsMalloc (iCountNals * sizeof (SWelsNalRaw), "pOut->sNalList");
   WELS_VERIFY_RETURN_PROC_IF (1, (NULL == (*ppCtx)->pOut->sNalList), FreeMemorySvc (ppCtx))
   (*ppCtx)->pOut->iCountNals		= iCountNals;
@@ -2949,11 +2949,10 @@ static inline int32_t AddPrefixNal (sWelsEncCtx* pCtx,
 
     WelsUnloadNal (pCtx->pOut);
 
-    iPayloadSize	= WelsEncodeNalExt (&pCtx->pOut->sNalList[pCtx->pOut->iNalIndex - 1],
+    iPayloadSize	= WelsEncodeNalExt (pCtx, &pCtx->pOut->sNalList[pCtx->pOut->iNalIndex - 1],
                                       &pCtx->pCurDqLayer->sLayerInfo.sNalHeaderExt,
-                                      pCtx->pFrameBs + pCtx->iPosBsBuffer,
+                                      BsGetByteLength(pCtx->pOut->sBsWrite),
                                       &pNalLen[*pNalIdxInLayer]);
-
     pCtx->iPosBsBuffer							+= iPayloadSize;
     pLayerBsInfo->iNalLengthInByte[*pNalIdxInLayer]	= iPayloadSize;
 
@@ -2963,11 +2962,10 @@ static inline int32_t AddPrefixNal (sWelsEncCtx* pCtx,
     // No need write any syntax of prefix NAL Unit RBSP here
     WelsUnloadNal (pCtx->pOut);
 
-    iPayloadSize = WelsEncodeNalExt (&pCtx->pOut->sNalList[pCtx->pOut->iNalIndex - 1],
+    iPayloadSize = WelsEncodeNalExt (pCtx, &pCtx->pOut->sNalList[pCtx->pOut->iNalIndex - 1],
                                      &pCtx->pCurDqLayer->sLayerInfo.sNalHeaderExt,
-                                     pCtx->pFrameBs + pCtx->iPosBsBuffer,
+                                     BsGetByteLength(pCtx->pOut->sBsWrite),
                                      &pNalLen[*pNalIdxInLayer]);
-
     pCtx->iPosBsBuffer							+= iPayloadSize;
     pLayerBsInfo->iNalLengthInByte[*pNalIdxInLayer]	= iPayloadSize;
 
@@ -3339,9 +3337,9 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
 
       WelsUnloadNal (pCtx->pOut);
 
-      iSliceSize = WelsEncodeNalExt (&pCtx->pOut->sNalList[pCtx->pOut->iNalIndex - 1],
+      iSliceSize = WelsEncodeNalExt (pCtx, &pCtx->pOut->sNalList[pCtx->pOut->iNalIndex - 1],
                                      &pCtx->pCurDqLayer->sLayerInfo.sNalHeaderExt,
-                                     pCtx->pFrameBs + pCtx->iPosBsBuffer,
+                                     BsGetByteLength(pCtx->pOut->sBsWrite),
                                      &iNalLen[iNalIdxInLayer]);
       iLayerSize += iSliceSize;
       pCtx->iPosBsBuffer	+= iSliceSize;
@@ -3591,9 +3589,9 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
           WelsCodeOneSlice (pCtx, iSliceIdx, eNalType);
           WelsUnloadNal (pCtx->pOut);
 
-          iSliceSize = WelsEncodeNalExt (&pCtx->pOut->sNalList[pCtx->pOut->iNalIndex - 1],
+          iSliceSize = WelsEncodeNalExt (pCtx, &pCtx->pOut->sNalList[pCtx->pOut->iNalIndex - 1],
                                          &pCtx->pCurDqLayer->sLayerInfo.sNalHeaderExt,
-                                         pCtx->pFrameBs + pCtx->iPosBsBuffer,
+                                         BsGetByteLength(pCtx->pOut->sBsWrite),
                                          &iNalLen[iNalIdxInLayer]);
           pCtx->iPosBsBuffer	+= iSliceSize;
           iLayerSize	+= iSliceSize;
@@ -4082,9 +4080,9 @@ int32_t WelsCodeOnePicPartition (sWelsEncCtx* pCtx,
     WelsCodeOneSlice (pCtx, iSliceIdx, keNalType);
     WelsUnloadNal (pCtx->pOut);
 
-    iSliceSize = WelsEncodeNalExt (&pCtx->pOut->sNalList[pCtx->pOut->iNalIndex - 1],
+    iSliceSize = WelsEncodeNalExt (pCtx, &pCtx->pOut->sNalList[pCtx->pOut->iNalIndex - 1],
                                    &pCtx->pCurDqLayer->sLayerInfo.sNalHeaderExt,
-                                   pCtx->pFrameBs + pCtx->iPosBsBuffer,
+                                  BsGetByteLength(pCtx->pOut->sBsWrite),
                                    &iNalLen[iNalIdxInLayer]);
     pCtx->iPosBsBuffer	+= iSliceSize;
     iPartitionBsSize	+= iSliceSize;
@@ -4117,4 +4115,25 @@ int32_t WelsCodeOnePicPartition (sWelsEncCtx* pCtx,
 
   return 0;
 }
+
+
+int32_t AllocateBsOutputBuffer(CMemoryAlign*pMa, const int32_t iNeededLen, int32_t iOrigLen, const str_t* kpTag, uint8_t*& pOutputBuffer )
+{
+  //new memory
+  uint8_t* pBufferPointer = NULL;
+  pBufferPointer	= (uint8_t*)pMa->WelsMalloc(iNeededLen, kpTag);
+  if (NULL == pBufferPointer)
+    return ENC_RETURN_MEMALLOCERR;
+
+  //copy if needed
+  if (iOrigLen>0 && NULL!=pOutputBuffer) {
+    memcpy(pBufferPointer, pOutputBuffer, iOrigLen*sizeof(uint8_t)); //using iOrigLen rather than specific copy len to save input para
+    pMa->WelsFree(pOutputBuffer, "pOut->pBsBuffer");
+  }
+
+  //set the output
+  pOutputBuffer = pBufferPointer;
+  return ENC_RETURN_SUCCESS;
+}
+
 } // namespace WelsSVCEnc

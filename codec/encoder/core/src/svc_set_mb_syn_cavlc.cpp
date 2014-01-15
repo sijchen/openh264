@@ -44,6 +44,9 @@
 #include "svc_set_mb_syn_cavlc.h"
 
 namespace WelsSVCEnc {
+
+extern int32_t AllocateBsOutputBuffer(CMemoryAlign*pMa, const int32_t iNeededLen, int32_t iOrigLen, const str_t* kpTag, uint8_t*& pOutputBuffer );
+
 const uint32_t g_kuiIntra4x4CbpMap[48] = {
   3, 29, 30, 17, 31, 18, 37,  8, 32, 38, 19,  9, 20, 10, 11, 2, //15
   16, 33, 34, 21, 35, 22, 39,  4, 36, 40, 23,  5, 24,  6,  7, 1, //31
@@ -209,37 +212,49 @@ void WelsSpatialWriteSubMbPred (sWelsEncCtx* pEncCtx, SSlice* pSlice, SMB* pCurM
   }
 }
 
-int32_t CheckBitstreamBuffer(CMemoryAlign*pMa, SBitStringAux* pBS, uint32_t* iBsSize)
+int32_t CheckBitstreamBuffer(const uint8_t	kuiSliceIdx, sWelsEncCtx* pEncCtx,  SBitStringAux* pBs)
 {
-  const int32_t iLeftLength = pBS->pBufEnd - pBS->pBufPtr - 1;
+  const int32_t iLeftLength = pBs->pBufEnd - pBs->pBufPtr - 1;
   if (iLeftLength <= 0) {
     return ENC_RETURN_UNEXPECTED;
   }
 
   if (iLeftLength < MAX_MACROBLOCK_SIZE_IN_BYTE) {
-    //invoke realloc
-    const int32_t iNewLength = pBS->pBufEnd - pBS->pBuf + 100;
-    const int32_t iCurrentLength = pBS->pBufPtr - pBS->pBuf;
-    if ( iNewLength <= 0 || iCurrentLength <= 0 || iNewLength<=iCurrentLength ) {
+    //back up
+    const uint32_t kuiCurBits = pBs->uiCurBits;
+    const int32_t kiLeftBits= pBs->iLeftBits;
+    const int32_t kiCurrentLength = pBs->pBufPtr - pBs->pBuf;
+
+    //prepare realloc
+    const int32_t kiNewLength = pBs->pBufEnd - pBs->pBuf + MAX_MACROBLOCK_SIZE_IN_BYTE;
+    if ( kiNewLength <= 0 || kiCurrentLength <= 0 || kiNewLength<=kiCurrentLength ) {
       return ENC_RETURN_UNEXPECTED;
     }
-
     //realloc
-    uint8_t* pNewSliceBs		= (uint8_t*)pMa->WelsMalloc (iNewLength, "pNewSliceBs");
-    if (NULL == pNewSliceBs)
-      return ENC_RETURN_MEMALLOCERR;
-    memcpy(pNewSliceBs, pBS->pBuf, iCurrentLength+1);    
-    //free the original buffer
-    pMa->WelsFree(pBS->pBuf, "pNewSliceBs");
+    CMemoryAlign*pMa = pEncCtx->pMemAlign;
+    int32_t iReturn;
+    if (pEncCtx->pSvcParam->iMultipleThreadIdc<=1)
+    {
+      iReturn = AllocateBsOutputBuffer(pMa, kiNewLength, pEncCtx->pOut->uiSize, "pOut->pBsBuffer", pEncCtx->pOut->pBsBuffer);
+      if (ENC_RETURN_SUCCESS != iReturn)
+        return iReturn;
+      pEncCtx->pOut->uiSize = kiNewLength;
+      InitBits (pBs, pEncCtx->pOut->pBsBuffer, pEncCtx->pOut->uiSize);
+    }
+    else
+    {
+      SWelsSliceBs*		 	pSliceBs = &(pEncCtx->pSliceBs[kuiSliceIdx]);
+      iReturn = AllocateBsOutputBuffer(pMa, kiNewLength, pSliceBs->uiSize, "pSliceB->pBsBuffer", pSliceBs->pBsBuffer);
+      if (ENC_RETURN_SUCCESS != iReturn)
+        return iReturn;
+      pSliceBs->uiSize = kiNewLength;
+      InitBits (pBs, pSliceBs->pBsBuffer, pSliceBs->uiSize);
+    }
 
-    //update pBS
-    pBS->pBuf = pNewSliceBs;
-    pBS->pBufEnd = pNewSliceBs+iNewLength;  
-    pBS->pBufPtr = pNewSliceBs+iCurrentLength;
-//uiCurBits and iLeftBits should be the same
-
-    //update TotalBsSize
-    *iBsSize = iNewLength;
+    //update pBs
+    pBs->pBufPtr = pBs->pBuf +kiCurrentLength;
+    pBs->uiCurBits = kuiCurBits;  
+    pBs->iLeftBits = kiLeftBits;
   }
   return ENC_RETURN_SUCCESS;
 }
@@ -277,7 +292,7 @@ int32_t WelsSpatialWriteMbSyn (sWelsEncCtx* pEncCtx, SSlice* pSlice, SMB* pCurMb
   }
  
   /* Step 4: Check the left buffer */
-  return CheckBitstreamBuffer(pEncCtx->pMemAlign, pBs, &(pEncCtx->pOut->uiSize));
+  return CheckBitstreamBuffer(pSlice->uiSliceIdx, pEncCtx, pBs);
 }
 
 void WelsWriteMbResidual (SMbCache* sMbCacheInfo, SMB* pCurMb, SBitStringAux* pBs) {
