@@ -107,7 +107,7 @@
 
 #define I420_PLANES				3
 
-#define COMPRESS_RATIO_THR (2.0f)	//set to twice size of the original data, which will be very large
+#define COMPRESS_RATIO_THR (1.0f)	//set to size of the original data, which will be large enough considering MinCR
 
 #if !defined(SSEI_BUFFER_SIZE)
 #define SSEI_BUFFER_SIZE	128
