@@ -226,7 +226,7 @@ int32_t CheckBitstreamBuffer(const uint8_t	kuiSliceIdx, sWelsEncCtx* pEncCtx,  S
     const int32_t kiCurrentLength = pBs->pBufPtr - pBs->pBuf;
 
     //prepare realloc
-    const int32_t kiNewLength = pBs->pBufEnd - pBs->pBuf + MAX_MACROBLOCK_SIZE_IN_BYTE;
+    const int32_t kiNewLength = pBs->pBufEnd - pBs->pBuf + 100000;
     if ( kiNewLength <= 0 || kiCurrentLength <= 0 || kiNewLength<=kiCurrentLength ) {
       return ENC_RETURN_UNEXPECTED;
     }

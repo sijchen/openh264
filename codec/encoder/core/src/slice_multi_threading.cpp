@@ -795,8 +795,7 @@ int32_t WriteSliceToFrameBs (sWelsEncCtx* pCtx, SLayerBSInfo* pLbi, uint8_t* pFr
 #endif//!PACKING_ONE_SLICE_PER_LAYER
 
   while (iNalIdx < kiNalCnt) {
-    iSliceSize += WelsEncodeNalExt (pCtx, &pSliceBs->sNalList[iNalIdx], pNalHdrExt,
-                                                      BsGetByteLength(pSliceBs->sBsWrite), &pNalLen[iNalIdx]);
+    iSliceSize += WelsEncodeNalExt_OldNeedFix (&pSliceBs->sNalList[iNalIdx], pNalHdrExt, pDst, &pNalLen[iNalIdx]);
     pDst += pNalLen[iNalIdx];
     pLbi->iNalLengthInByte[iNalBase + iNalIdx]	= pNalLen[iNalIdx];
 
@@ -842,10 +841,8 @@ int32_t WriteSliceBs (sWelsEncCtx* pCtx, uint8_t* pSliceBsBuf, const int32_t iSl
     return 0;
 
   while (iNalIdx < kiNalCnt) {
-    iSliceSize += WelsEncodeNalExt (pCtx, &pSliceBs->sNalList[iNalIdx], pNalHdrExt, 
-                                                      BsGetByteLength(pSliceBs->sBsWrite),&pNalLen[iNalIdx]);
+    iSliceSize += WelsEncodeNalExt_OldNeedFix (&pSliceBs->sNalList[iNalIdx], pNalHdrExt, pDst, &pNalLen[iNalIdx]);
     pDst += pNalLen[iNalIdx];
-
     ++ iNalIdx;
   }
   pSliceBs->uiBsPos	= iSliceSize;
