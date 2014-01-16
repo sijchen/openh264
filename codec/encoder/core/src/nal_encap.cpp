@@ -168,6 +168,7 @@ int32_t WelsEncodeNal (SWelsNalRaw* pRawNal, void* pDst, int32_t* pDstLen) {
  * \return	length of pDst NAL
  */
 //TODO: fix the buffer size overflow, but need to merge with multithread one after refactoring the multithread process
+//TODO: refactor WelsEncodeNalExt() and WelsEncodeNal() since current implementation is not good
 int32_t WelsEncodeNalExt_wCheckAndRealloc (void* pCtxPointer, SWelsNalRaw* pRawNal, void* pNalHeaderExt, const int32_t kiSourceLength, int32_t* pDstLen) {
   sWelsEncCtx* pCtx = (sWelsEncCtx*)pCtxPointer;
   //when left buffer is less than rawNAL*(1+1/2), 1/2 because for each 0x0001, need a 0x03 insertion
