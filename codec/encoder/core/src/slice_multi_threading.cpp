@@ -500,7 +500,6 @@ int32_t RequestMtResource (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pCodingPara
   pSliceB	= (*ppCtx)->pSliceBs;
   iSliceBsBufferSize	= iTargetSpatialBsSize;
   iIdx = 0;
-  int32_t iReturn = 0;
   while (iIdx < iMaxSliceNum) {
     iReturn = AllocateBsOutputBuffer(pMa, iSliceBsBufferSize, 0, "pSliceB->pBsBuffer", pSliceB->pBsBuffer);
     WELS_VERIFY_RETURN_PROC_IF (1, (ENC_RETURN_SUCCESS != iReturn), FreeMemorySvc (ppCtx))

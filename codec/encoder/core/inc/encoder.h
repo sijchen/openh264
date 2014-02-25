@@ -64,7 +64,6 @@ void FreeMemorySvc (sWelsEncCtx** ppCtx);
 int32_t AllocateBsOutputBuffer(CMemoryAlign*pMa, const int32_t iNeededLen, int32_t iOrigLen, const char* kpTag, uint8_t*& pOutputBuffer );
 //TODO: to finish this function and call it
 
-
 /*!
  * \brief	initialize function pointers that potentially used in Wels encoding
  * \param	pEncCtx		sWelsEncCtx*
