@@ -4079,7 +4079,7 @@ int32_t WelsCodeOnePicPartition (sWelsEncCtx* pCtx,
 }
 
 
-int32_t AllocateBsOutputBuffer(CMemoryAlign*pMa, const int32_t iNeededLen, int32_t iOrigLen, const str_t* kpTag, uint8_t*& pOutputBuffer )
+int32_t AllocateBsOutputBuffer(CMemoryAlign*pMa, const int32_t iNeededLen, int32_t iOrigLen, const char* kpTag, uint8_t*& pOutputBuffer )
 {
   //new memory
   uint8_t* pBufferPointer = NULL;

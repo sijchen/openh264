@@ -157,6 +157,8 @@ int32_t WelsEncodeNal (SWelsNalRaw* pRawNal, void* pNalHeaderExt, const int32_t 
 
     *pDstPointer++ =	(0x80) |
       (sNalExt->uiDependencyId << 4);
+  }
+}
 
 
 /*!
