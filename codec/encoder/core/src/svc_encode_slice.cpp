@@ -495,11 +495,7 @@ int32_t WelsISliceMdEnc (sWelsEncCtx* pEncCtx, SSlice* pSlice) { //pMd + encodin
     WelsMdIntraMb (pEncCtx, &sMd, pCurMb, pMbCache);
     UpdateNonZeroCountCache (pCurMb, pMbCache);
 
-<<<<<<< HEAD
-    iEncReturn = WelsSpatialWriteMbSyn (pEncCtx, pSlice, pCurMb); 
-=======
     iEncReturn = WelsSpatialWriteMbSyn (pEncCtx, pSlice, pCurMb);
->>>>>>> upstream/master
     if (ENC_RETURN_SUCCESS != iEncReturn)
       return iEncReturn;
 
@@ -606,21 +602,13 @@ int32_t WelsISliceMdEncDynamic (sWelsEncCtx* pEncCtx, SSlice* pSlice) { //pMd + 
       break;
     }
   }
-<<<<<<< HEAD
-
-=======
->>>>>>> upstream/master
   return iEncReturn;
 }
 
 //encapsulate two kinds of reconstruction:
 // first. store base or highest Dependency Layer with only one quality (without CS RS reconstruction)
 // second. lower than highest Dependency Layer, and for every Dependency Layer with one quality layer(single layer)
-<<<<<<< HEAD
-int32_t WelsPSliceMdEnc (sWelsEncCtx* pEncCtx, SSlice* pSlice,  const bool_t kbIsHighestDlayerFlag) { //pMd + encoding
-=======
 int32_t WelsPSliceMdEnc (sWelsEncCtx* pEncCtx, SSlice* pSlice,  const bool kbIsHighestDlayerFlag) { //pMd + encoding
->>>>>>> upstream/master
   const SSliceHeaderExt*	kpShExt				= &pSlice->sSliceHeaderExt;
   const SSliceHeader*		kpSh					= &kpShExt->sSliceHeader;
   const int32_t			kiSliceFirstMbXY	= kpSh->iFirstMbInSlice;
@@ -635,11 +623,7 @@ int32_t WelsPSliceMdEnc (sWelsEncCtx* pEncCtx, SSlice* pSlice,  const bool kbIsH
   return WelsMdInterMbLoop (pEncCtx, pSlice, &sMd, kiSliceFirstMbXY);
 }
 
-<<<<<<< HEAD
-int32_t WelsPSliceMdEncDynamic (sWelsEncCtx* pEncCtx, SSlice* pSlice, const bool_t kbIsHighestDlayerFlag) {
-=======
 int32_t WelsPSliceMdEncDynamic (sWelsEncCtx* pEncCtx, SSlice* pSlice, const bool kbIsHighestDlayerFlag) {
->>>>>>> upstream/master
   const SSliceHeaderExt*	kpShExt				= &pSlice->sSliceHeaderExt;
   const SSliceHeader*		kpSh					= &kpShExt->sSliceHeader;
   const int32_t			kiSliceFirstMbXY	= kpSh->iFirstMbInSlice;
@@ -742,11 +726,7 @@ int32_t WelsCodeOneSlice (sWelsEncCtx* pEncCtx, const int32_t kiSliceIdx, const 
   pCurSlice->uiLastMbQp = pCurLayer->sLayerInfo.pPpsP->iPicInitQp + pCurSlice->sSliceHeaderExt.sSliceHeader.iSliceQpDelta;
 
   int32_t iEncReturn = g_pWelsSliceCoding[pNalHeadExt->bIdrFlag][kiDynamicSliceFlag] (pEncCtx, pCurSlice);
-<<<<<<< HEAD
-  if (ENC_RETURN_SUCCESS != iEncReturn) 
-=======
   if (ENC_RETURN_SUCCESS != iEncReturn)
->>>>>>> upstream/master
     return iEncReturn;
 
   BsRbspTrailingBits (pBs);
@@ -994,11 +974,7 @@ int32_t WelsMdInterMbLoop (sWelsEncCtx* pEncCtx, SSlice* pSlice, void* pWelsMd, 
       BsWriteUE (pBs, iMbSkipRun);
       iMbSkipRun = 0;
       iEncReturn = WelsSpatialWriteMbSyn (pEncCtx, pSlice, pCurMb);
-<<<<<<< HEAD
-      if (ENC_RETURN_SUCCESS != iEncReturn) 
-=======
       if (ENC_RETURN_SUCCESS != iEncReturn)
->>>>>>> upstream/master
         return iEncReturn;
     }
 
@@ -1108,11 +1084,7 @@ int32_t WelsMdInterMbLoopOverDynamicSlice (sWelsEncCtx* pEncCtx, SSlice* pSlice,
       BsWriteUE (pBs, iMbSkipRun);
       iMbSkipRun = 0;
       iEncReturn = WelsSpatialWriteMbSyn (pEncCtx, pSlice, pCurMb);
-<<<<<<< HEAD
-      if (ENC_RETURN_SUCCESS != iEncReturn) 
-=======
       if (ENC_RETURN_SUCCESS != iEncReturn)
->>>>>>> upstream/master
         return iEncReturn;
     }
 

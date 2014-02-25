@@ -129,27 +129,10 @@ void WelsUnloadNalForSlice (SWelsSliceBs* pSliceBs);
  * \param	pRawNal			pRawNal NAL pData
  * \return	ERR_CODE
  */
-<<<<<<< HEAD
-int32_t WelsEncodeNal (SWelsNalRaw* pRawNal, void* pDst, int32_t* pDstLen);
-
-/*!
- * \brief	encode a nal into a pBuffer for any type of NAL, involved WelsEncodeNal introduced in AVC
- *
- * \param	pDst			pDst NAL pData
- * \param	pDstLen		length of pDst NAL output
- * \param	annexeb		annexeb flag
- * \param	pRawNal			pRawNal NAL pData
- * \param	pNalHeaderExt	pointer of SNalUnitHeaderExt
- *
- * \return	length of pDst NAL
- */
 //TODO: to merge the two after multithread refactoring
 int32_t WelsEncodeNalExt_wCheckAndRealloc(void* pCtx, SWelsNalRaw* pRawNal, void* pNalHeaderExt, const int32_t kiSourceLength, int32_t* pDstLen);
-int32_t WelsEncodeNalExt_OldNeedFix(SWelsNalRaw* pRawNal, void* pNalHeaderExt, void* pDst, int32_t* pDstLen);
-=======
-int32_t WelsEncodeNal (SWelsNalRaw* pRawNal, void* pNalHeaderExt, const int32_t kiDstBufferLen, void* pDst, int32_t* pDstLen);
+int32_t WelsEncodeNal(SWelsNalRaw* pRawNal, void* pNalHeaderExt, const int32_t kiDstBufferLen, void* pDst, int32_t* pDstLen);
 
->>>>>>> upstream/master
 /*!
  * \brief	write prefix nal
  */

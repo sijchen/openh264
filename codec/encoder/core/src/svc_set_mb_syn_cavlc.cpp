@@ -44,7 +44,7 @@
 
 namespace WelsSVCEnc {
 
-extern int32_t AllocateBsOutputBuffer(CMemoryAlign*pMa, const int32_t iNeededLen, int32_t iOrigLen, const str_t* kpTag, uint8_t*& pOutputBuffer );
+extern int32_t AllocateBsOutputBuffer(CMemoryAlign*pMa, const int32_t iNeededLen, int32_t iOrigLen, const char* kpTag, uint8_t*& pOutputBuffer );
 
 const uint32_t g_kuiIntra4x4CbpMap[48] = {
   3, 29, 30, 17, 31, 18, 37,  8, 32, 38, 19,  9, 20, 10, 11, 2, //15
@@ -214,12 +214,12 @@ void WelsSpatialWriteSubMbPred (sWelsEncCtx* pEncCtx, SSlice* pSlice, SMB* pCurM
 int32_t CheckBitstreamBuffer(const uint8_t	kuiSliceIdx, sWelsEncCtx* pEncCtx,  SBitStringAux* pBs)
 {
   const int32_t iLeftLength = pBs->pBufEnd - pBs->pBufPtr - 1;
-<<<<<<< HEAD
-  if (iLeftLength <= 0) {
-    return ENC_RETURN_UNEXPECTED;
-  }
+  assert(iLeftLength > 0);
 
   if (iLeftLength < MAX_MACROBLOCK_SIZE_IN_BYTE) {
+     return ENC_RETURN_MEMALLOCERR;
+    //TODO: call the realloc&copy instead
+
     //back up
     const uint32_t kuiCurBits = pBs->uiCurBits;
     const int32_t kiLeftBits= pBs->iLeftBits;
@@ -255,13 +255,6 @@ int32_t CheckBitstreamBuffer(const uint8_t	kuiSliceIdx, sWelsEncCtx* pEncCtx,  S
     pBs->pBufPtr = pBs->pBuf +kiCurrentLength;
     pBs->uiCurBits = kuiCurBits;  
     pBs->iLeftBits = kiLeftBits;
-=======
-  assert(iLeftLength > 0);
-
-  if (iLeftLength < MAX_MACROBLOCK_SIZE_IN_BYTE) {
-    return ENC_RETURN_MEMALLOCERR;
-    //TODO: call the realloc&copy instead
->>>>>>> upstream/master
   }
   return ENC_RETURN_SUCCESS;
 }
@@ -297,11 +290,7 @@ int32_t WelsSpatialWriteMbSyn (sWelsEncCtx* pEncCtx, SSlice* pSlice, SMB* pCurMb
     pCurMb->uiChromaQp = g_kuiChromaQpTable[CLIP3_QP_0_51 (pCurMb->uiLumaQp +
                                             pEncCtx->pCurDqLayer->sLayerInfo.pPpsP->uiChromaQpIndexOffset)];
   }
-<<<<<<< HEAD
- 
-=======
 
->>>>>>> upstream/master
   /* Step 4: Check the left buffer */
   return CheckBitstreamBuffer(pSlice->uiSliceIdx, pEncCtx, pBs);
 }

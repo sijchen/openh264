@@ -517,34 +517,24 @@ int CWelsH264SVCEncoder::EncodeFrame (const SSourcePicture* kpSrcPic, SFrameBSIn
 }
 
 
-<<<<<<< HEAD
-int CWelsH264SVCEncoder::EncodeFrame (const SSourcePicture**   pSrcPicList, int nSrcPicNum, SFrameBSInfo* pBsInfo) {
-=======
 int CWelsH264SVCEncoder::EncodeFrame2 (const SSourcePicture**   pSrcPicList, int nSrcPicNum, SFrameBSInfo* pBsInfo) {
->>>>>>> upstream/master
   if (!(pSrcPicList && m_pEncContext && m_bInitialFlag) || (nSrcPicNum<=0) ){
     return videoFrameTypeInvalid;
   }
 
   int32_t iFrameTypeReturned = 0;
   int32_t iFrameType = videoFrameTypeInvalid;
-<<<<<<< HEAD
-  const int32_t kiEncoderReturn = WelsEncoderEncodeExt (m_pEncContext, pBsInfo, pSrcPicList, nSrcPicNum);
-=======
   XMMREG_PROTECT_STORE(CWelsH264SVCEncoder);
   const int32_t kiEncoderReturn = WelsEncoderEncodeExt (m_pEncContext, pBsInfo, pSrcPicList, nSrcPicNum);
   XMMREG_PROTECT_LOAD(CWelsH264SVCEncoder);
->>>>>>> upstream/master
 
   switch (kiEncoderReturn) {
   case ENC_RETURN_MEMALLOCERR:
+  case ENC_RETURN_MEMOVERFLOWFOUND:
     WelsUninitEncoderExt (&m_pEncContext);
     return videoFrameTypeInvalid;
   case ENC_RETURN_SUCCESS:
-<<<<<<< HEAD
-=======
   case ENC_RETURN_CORRECTED:
->>>>>>> upstream/master
     break;//continue processing
   case ENC_RETURN_UNSUPPORTED_PARA:
   case ENC_RETURN_UNEXPECTED:
@@ -846,11 +836,7 @@ int CWelsH264SVCEncoder::SetOption (ENCODER_OPTION eOptionId, void* pOption) {
       return cmInitParaError;
     }
     //adjust to valid range
-<<<<<<< HEAD
-    m_pEncContext->pSvcParam->fMaxFrameRate  = WELS_CLIP3 (iValue, MIN_FRAME_RATE, MAX_FRAME_RATE);
-=======
     m_pEncContext->pSvcParam->fMaxFrameRate = WELS_CLIP3 (iValue, MIN_FRAME_RATE, MAX_FRAME_RATE);
->>>>>>> upstream/master
     WelsEncoderApplyFrameRate (m_pEncContext->pSvcParam);
   }
   break;

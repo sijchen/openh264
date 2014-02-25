@@ -158,7 +158,7 @@ int32_t WelsEncodeNal (SWelsNalRaw* pRawNal, void* pNalHeaderExt, const int32_t 
     *pDstPointer++ =	(0x80) |
       (sNalExt->uiDependencyId << 4);
 
-<<<<<<< HEAD
+
 /*!
  * \brief	encode a nal into a pBuffer for any type of NAL, involved WelsEncodeNal introduced in AVC
  *
@@ -198,11 +198,6 @@ int32_t WelsEncodeNalExt_wCheckAndRealloc (void* pCtxPointer, SWelsNalRaw* pRawN
   if (pRawNal->sNalExt.sNalHeader.eNalUnitType != NAL_UNIT_PREFIX
       && pRawNal->sNalExt.sNalHeader.eNalUnitType != NAL_UNIT_CODED_SLICE_EXT) {
     return WelsEncodeNal (pRawNal, pDstStart, pDstLen);
-=======
-    *pDstPointer++ =	(sNalExt->uiTemporalId << 5) |
-      (sNalExt->bDiscardableFlag << 3) |
-      (0x07);
->>>>>>> upstream/master
   }
 
   while (pSrcPointer < pSrcEnd) {

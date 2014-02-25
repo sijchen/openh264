@@ -1339,15 +1339,9 @@ int32_t RequestMemorySvc (sWelsEncCtx** ppCtx) {
   // Output
   (*ppCtx)->pOut = (SWelsEncoderOutput*)pMa->WelsMalloc (sizeof (SWelsEncoderOutput), "SWelsEncoderOutput");
   WELS_VERIFY_RETURN_PROC_IF (1, (NULL == (*ppCtx)->pOut), FreeMemorySvc (ppCtx))
-<<<<<<< HEAD
   int32_t iReturn = AllocateBsOutputBuffer(pMa,  iCountBsLen, 0, "pOut->pBsBuffer", (*ppCtx)->pOut->pBsBuffer);
   WELS_VERIFY_RETURN_PROC_IF (1, (ENC_RETURN_SUCCESS != iReturn), FreeMemorySvc (ppCtx))
   (*ppCtx)->pOut->uiSize = iCountBsLen;
-=======
-  (*ppCtx)->pOut->pBsBuffer    = (uint8_t*)pMa->WelsMalloc (iCountBsLen, "pOut->pBsBuffer");
-  WELS_VERIFY_RETURN_PROC_IF (1, (NULL == (*ppCtx)->pOut->pBsBuffer), FreeMemorySvc (ppCtx))
-  (*ppCtx)->pOut->uiSize      = iCountBsLen;
->>>>>>> upstream/master
   (*ppCtx)->pOut->sNalList		= (SWelsNalRaw*)pMa->WelsMalloc (iCountNals * sizeof (SWelsNalRaw), "pOut->sNalList");
   WELS_VERIFY_RETURN_PROC_IF (1, (NULL == (*ppCtx)->pOut->sNalList), FreeMemorySvc (ppCtx))
   (*ppCtx)->pOut->iCountNals		= iCountNals;
@@ -2876,13 +2870,8 @@ static inline int32_t AddPrefixNal (sWelsEncCtx* pCtx,
 
     WelsUnloadNal (pCtx->pOut);
 
-<<<<<<< HEAD
-    iPayloadSize	= WelsEncodeNalExt_wCheckAndRealloc (pCtx, &pCtx->pOut->sNalList[pCtx->pOut->iNalIndex - 1],
-                                      &pCtx->pCurDqLayer->sLayerInfo.sNalHeaderExt,
-                                      BsGetByteLength(pCtx->pOut->sBsWrite),
-                                      &pNalLen[*pNalIdxInLayer]);
-=======
-    iReturn = WelsEncodeNal (&pCtx->pOut->sNalList[pCtx->pOut->iNalIndex - 1],
+    //WelsEncodeNalExt_wCheckAndRealloc
+    iReturn = WelsEncodeNal(&pCtx->pOut->sNalList[pCtx->pOut->iNalIndex - 1],
                                             &pCtx->pCurDqLayer->sLayerInfo.sNalHeaderExt,
                                             pCtx->iFrameBsSize-pCtx->iPosBsBuffer,
                                             pCtx->pFrameBs+pCtx->iPosBsBuffer,
@@ -2890,7 +2879,6 @@ static inline int32_t AddPrefixNal (sWelsEncCtx* pCtx,
     WELS_VERIFY_RETURN_IFNEQ(iReturn, ENC_RETURN_SUCCESS)
     iPayloadSize = pNalLen[*pNalIdxInLayer];
 
->>>>>>> upstream/master
     pCtx->iPosBsBuffer							+= iPayloadSize;
     pLayerBsInfo->iNalLengthInByte[*pNalIdxInLayer]	= iPayloadSize;
 
@@ -2900,12 +2888,7 @@ static inline int32_t AddPrefixNal (sWelsEncCtx* pCtx,
     // No need write any syntax of prefix NAL Unit RBSP here
     WelsUnloadNal (pCtx->pOut);
 
-<<<<<<< HEAD
-    iPayloadSize = WelsEncodeNalExt_wCheckAndRealloc (pCtx, &pCtx->pOut->sNalList[pCtx->pOut->iNalIndex - 1],
-                                     &pCtx->pCurDqLayer->sLayerInfo.sNalHeaderExt,
-                                     BsGetByteLength(pCtx->pOut->sBsWrite),
-                                     &pNalLen[*pNalIdxInLayer]);
-=======
+    //WelsEncodeNalExt_wCheckAndRealloc
     iReturn = WelsEncodeNal (&pCtx->pOut->sNalList[pCtx->pOut->iNalIndex - 1],
                                             &pCtx->pCurDqLayer->sLayerInfo.sNalHeaderExt,
                                             pCtx->iFrameBsSize-pCtx->iPosBsBuffer,
@@ -2914,7 +2897,6 @@ static inline int32_t AddPrefixNal (sWelsEncCtx* pCtx,
     WELS_VERIFY_RETURN_IFNEQ(iReturn, ENC_RETURN_SUCCESS)
     iPayloadSize = pNalLen[*pNalIdxInLayer];
 
->>>>>>> upstream/master
     pCtx->iPosBsBuffer							+= iPayloadSize;
     pLayerBsInfo->iNalLengthInByte[*pNalIdxInLayer]	= iPayloadSize;
 
@@ -3267,12 +3249,8 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
       WelsLog (pCtx, WELS_LOG_WARNING, "WelsEncoderEncodeExt(), WelsBuildRefList failed for P frames, pCtx->iNumRef0= %d. ForceCodingIDR!\n",
                pCtx->iNumRef0);
       pFbi->eOutputFrameType = WELS_FRAME_TYPE_IDR;
-<<<<<<< HEAD
-      return ENC_RETURN_SUCCESS;
-=======
       pCtx->iEncoderError = ENC_RETURN_CORRECTED;
       return ENC_RETURN_CORRECTED;
->>>>>>> upstream/master
     }
 #ifdef LONG_TERM_REF_DUMP
     dump_ref (pCtx);
@@ -3303,12 +3281,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
 
       WelsUnloadNal (pCtx->pOut);
 
-<<<<<<< HEAD
-      iSliceSize = WelsEncodeNalExt_wCheckAndRealloc (pCtx, &pCtx->pOut->sNalList[pCtx->pOut->iNalIndex - 1],
-                                     &pCtx->pCurDqLayer->sLayerInfo.sNalHeaderExt,
-                                     BsGetByteLength(pCtx->pOut->sBsWrite),
-                                     &iNalLen[iNalIdxInLayer]);
-=======
+      //WelsEncodeNalExt_wCheckAndRealloc
       pCtx->iEncoderError = WelsEncodeNal (&pCtx->pOut->sNalList[pCtx->pOut->iNalIndex - 1],
                                                                  &pCtx->pCurDqLayer->sLayerInfo.sNalHeaderExt,
                                                                  pCtx->iFrameBsSize-pCtx->iPosBsBuffer,
@@ -3317,7 +3290,6 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
       WELS_VERIFY_RETURN_IFNEQ(pCtx->iEncoderError, ENC_RETURN_SUCCESS)
       iSliceSize = iNalLen[iNalIdxInLayer];
 
->>>>>>> upstream/master
       iLayerSize += iSliceSize;
       pCtx->iPosBsBuffer	+= iSliceSize;
       pLayerBsInfo->uiLayerType		= VIDEO_CODING_LAYER;
@@ -3354,11 +3326,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
             >= MAX_LAYER_NUM_OF_FRAME) {	// check available layer_bs_info for further writing as followed
           WelsLog (pCtx, WELS_LOG_ERROR,
                    "WelsEncoderEncodeExt(), iLayerNum(%d) overflow(max:%d) at iDid= %d uiSliceMode= %d, iSliceCount= %d!",
-<<<<<<< HEAD
-                   iLayerNum, MAX_LAYER_NUM_OF_FRAME, iCurDid, param_d->sMso.uiSliceMode, iSliceCount);
-=======
                    iLayerNum, MAX_LAYER_NUM_OF_FRAME, iCurDid, param_d->sSliceCfg.uiSliceMode, iSliceCount);
->>>>>>> upstream/master
           return ENC_RETURN_UNSUPPORTED_PARA;
         }
         if (iSliceCount <= 1) {
@@ -3388,11 +3356,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
           if (err) {
             WelsLog (pCtx, WELS_LOG_ERROR,
                      "[MT] WelsEncoderEncodeExt(), FiredSliceThreads return(%d) failed and exit encoding frame, iCountThreadsNum= %d, iSliceCount= %d, uiSliceMode= %d, iMultipleThreadIdc= %d!!\n",
-<<<<<<< HEAD
-                     err, pSvcParam->iCountThreadsNum, iSliceCount, param_d->sMso.uiSliceMode, pSvcParam->iMultipleThreadIdc);
-=======
                      err, pSvcParam->iCountThreadsNum, iSliceCount, param_d->sSliceCfg.uiSliceMode, pSvcParam->iMultipleThreadIdc);
->>>>>>> upstream/master
             return ENC_RETURN_UNEXPECTED;
           }
 
@@ -3453,11 +3417,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
           if (err) {
             WelsLog (pCtx, WELS_LOG_ERROR,
                      "[MT] WelsEncoderEncodeExt(), FiredSliceThreads return(%d) failed and exit encoding frame, iCountThreadsNum= %d, iSliceCount= %d, uiSliceMode= %d, iMultipleThreadIdc= %d!!\n",
-<<<<<<< HEAD
-                     err, pSvcParam->iCountThreadsNum, iSliceCount, param_d->sMso.uiSliceMode, pSvcParam->iMultipleThreadIdc);
-=======
                      err, pSvcParam->iCountThreadsNum, iSliceCount, param_d->sSliceCfg.uiSliceMode, pSvcParam->iMultipleThreadIdc);
->>>>>>> upstream/master
             return ENC_RETURN_UNEXPECTED;
           }
 
@@ -3550,11 +3510,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
         if (err) {
           WelsLog (pCtx, WELS_LOG_ERROR,
                    "[MT] WelsEncoderEncodeExt(), FiredSliceThreads return(%d) failed and exit encoding frame, iCountThreadsNum= %d, iSliceCount= %d, uiSliceMode= %d, iMultipleThreadIdc= %d!!\n",
-<<<<<<< HEAD
-                   err, pSvcParam->iCountThreadsNum, iSliceCount, param_d->sMso.uiSliceMode, pSvcParam->iMultipleThreadIdc);
-=======
                    err, pSvcParam->iCountThreadsNum, iSliceCount, param_d->sSliceCfg.uiSliceMode, pSvcParam->iMultipleThreadIdc);
->>>>>>> upstream/master
           return ENC_RETURN_UNEXPECTED;
         }
 
@@ -3591,12 +3547,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
 
           WelsUnloadNal (pCtx->pOut);
 
-<<<<<<< HEAD
-          iSliceSize = WelsEncodeNalExt_wCheckAndRealloc (pCtx, &pCtx->pOut->sNalList[pCtx->pOut->iNalIndex - 1],
-                                         &pCtx->pCurDqLayer->sLayerInfo.sNalHeaderExt,
-                                         BsGetByteLength(pCtx->pOut->sBsWrite),
-                                         &iNalLen[iNalIdxInLayer]);
-=======
+          //WelsEncodeNalExt_wCheckAndRealloc
           pCtx->iEncoderError = WelsEncodeNal (&pCtx->pOut->sNalList[pCtx->pOut->iNalIndex - 1],
                                                       &pCtx->pCurDqLayer->sLayerInfo.sNalHeaderExt,
                                                       pCtx->iFrameBsSize-pCtx->iPosBsBuffer,
@@ -3604,7 +3555,6 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
           WELS_VERIFY_RETURN_IFNEQ(pCtx->iEncoderError, ENC_RETURN_SUCCESS)
           iSliceSize = iNalLen[iNalIdxInLayer];
 
->>>>>>> upstream/master
           pCtx->iPosBsBuffer	+= iSliceSize;
           iLayerSize	+= iSliceSize;
           pLayerBsInfo->iNalLengthInByte[iNalIdxInLayer]	= iSliceSize;
@@ -3649,14 +3599,9 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
         // Force coding IDR as followed
         ForceCodingIDR (pCtx);
         WelsLog (pCtx, WELS_LOG_WARNING, "WelsEncoderEncodeExt(), WelsUpdateRefList failed. ForceCodingIDR!\n");
-<<<<<<< HEAD
-        pFbi->eOutputFrameType = WELS_FRAME_TYPE_IDR;
-        return ENC_RETURN_SUCCESS;
-=======
         //the above is to set the next frame to be IDR
         pFbi->eOutputFrameType = eFrameType;
         return ENC_RETURN_CORRECTED;
->>>>>>> upstream/master
       }
     }
 
@@ -3769,11 +3714,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
       WelsLog (pCtx, WELS_LOG_INFO, "[RC] encoding_qp%d Padding: %d\n", pCtx->uiDependencyId,
                pCtx->pWelsSvcRc[pCtx->uiDependencyId].iPaddingSize);
 #endif
-<<<<<<< HEAD
-      if (kiPaddingNalSize <= 0)
-=======
       if (iPaddingNalSize <= 0)
->>>>>>> upstream/master
         return ENC_RETURN_UNEXPECTED;
 
       pCtx->pWelsSvcRc[pCtx->uiDependencyId].iPaddingBitrateStat += pCtx->pWelsSvcRc[pCtx->uiDependencyId].iPaddingSize;
@@ -3814,34 +3755,12 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, void* pDst, const SSourcePictur
       pCtx->bLongTermRefFlag[d_idx][0] = true;
     }
 
-<<<<<<< HEAD
-    if (iCurTid < pCtx->uiSpatialLayersInTemporal[d_idx] - 1 || pSvcParam->iDecompStages == 0) {
-      if ((iCurTid >= MAX_TEMPORAL_LEVEL) || (pCtx->uiSpatialLayersInTemporal[d_idx] - 1 >= MAX_TEMPORAL_LEVEL)) {
-        ForceCodingIDR (pCtx);	// some logic error
-        WelsLog (pCtx, WELS_LOG_WARNING, "WelsEncoderEncodeExt(), Logic Error Found in temporal level. ForceCodingIDR!\n");
-        pFbi->eOutputFrameType = WELS_FRAME_TYPE_IDR;
-        return ENC_RETURN_SUCCESS;
-      }
-
-      if (pSvcParam->bEnableLongTermReference && pCtx->bLongTermRefFlag[d_idx][iCurTid]) {
-        SPicture* tmp	= pCtx->pSpatialPic[d_idx][pCtx->uiSpatialLayersInTemporal[d_idx] + pCtx->pVaa->uiMarkLongTermPicIdx];
-        pCtx->pSpatialPic[d_idx][pCtx->uiSpatialLayersInTemporal[d_idx] + pCtx->pVaa->uiMarkLongTermPicIdx] =
-          pCtx->pSpatialPic[d_idx][iCurTid];
-        pCtx->pSpatialPic[d_idx][iCurTid] = pCtx->pSpatialPic[d_idx][pCtx->uiSpatialLayersInTemporal[d_idx] - 1];
-        pCtx->pSpatialPic[d_idx][pCtx->uiSpatialLayersInTemporal[d_idx] - 1] = tmp;
-        pCtx->bLongTermRefFlag[d_idx][iCurTid] = false;
-      } else {
-        WelsExchangeSpatialPictures (&pCtx->pSpatialPic[d_idx][pCtx->uiSpatialLayersInTemporal[d_idx] - 1],
-                                     &pCtx->pSpatialPic[d_idx][iCurTid]);
-      }
-=======
     if( pCtx->pVpp->UpdateSpatialPictures(pCtx, pSvcParam, iCurTid, d_idx) != 0 ){
       ForceCodingIDR(pCtx);
       WelsLog (pCtx, WELS_LOG_WARNING, "WelsEncoderEncodeExt(), Logic Error Found in temporal level. ForceCodingIDR!\n");
       //the above is to set the next frame IDR
       pFbi->eOutputFrameType = eFrameType;
       return ENC_RETURN_CORRECTED;
->>>>>>> upstream/master
     }
 
     if (pSvcParam->bEnableLongTermReference && ((pCtx->pLtr[pCtx->uiDependencyId].bLTRMarkingFlag
@@ -4118,12 +4037,7 @@ int32_t WelsCodeOnePicPartition (sWelsEncCtx* pCtx,
     WELS_VERIFY_RETURN_IFNEQ(iReturn, ENC_RETURN_SUCCESS)
     WelsUnloadNal (pCtx->pOut);
 
-<<<<<<< HEAD
-    iSliceSize = WelsEncodeNalExt_wCheckAndRealloc (pCtx, &pCtx->pOut->sNalList[pCtx->pOut->iNalIndex - 1],
-                                   &pCtx->pCurDqLayer->sLayerInfo.sNalHeaderExt,
-                                  BsGetByteLength(pCtx->pOut->sBsWrite),
-                                   &iNalLen[iNalIdxInLayer]);
-=======
+    //WelsEncodeNalExt_wCheckAndRealloc
     iReturn = WelsEncodeNal (&pCtx->pOut->sNalList[pCtx->pOut->iNalIndex - 1],
                                                 &pCtx->pCurDqLayer->sLayerInfo.sNalHeaderExt,
                                                 pCtx->iFrameBsSize-pCtx->iPosBsBuffer,
@@ -4132,7 +4046,6 @@ int32_t WelsCodeOnePicPartition (sWelsEncCtx* pCtx,
     WELS_VERIFY_RETURN_IFNEQ(iReturn, ENC_RETURN_SUCCESS)
     iSliceSize = iNalLen[iNalIdxInLayer];
 
->>>>>>> upstream/master
     pCtx->iPosBsBuffer	+= iSliceSize;
     iPartitionBsSize	+= iSliceSize;
     pLayerBsInfo->iNalLengthInByte[iNalIdxInLayer]	= iSliceSize;

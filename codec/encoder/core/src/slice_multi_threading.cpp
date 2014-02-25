@@ -502,14 +502,8 @@ int32_t RequestMtResource (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pCodingPara
   iIdx = 0;
   int32_t iReturn = 0;
   while (iIdx < iMaxSliceNum) {
-<<<<<<< HEAD
     iReturn = AllocateBsOutputBuffer(pMa, iSliceBsBufferSize, 0, "pSliceB->pBsBuffer", pSliceB->pBsBuffer);
     WELS_VERIFY_RETURN_PROC_IF (1, (ENC_RETURN_SUCCESS != iReturn), FreeMemorySvc (ppCtx))
-=======
-    pSliceB->pBsBuffer  = (uint8_t*)pMa->WelsMalloc (iSliceBsBufferSize, "pSliceB->pBsBuffer");
-
-    WELS_VERIFY_RETURN_PROC_IF (1, (NULL == pSliceB->pBsBuffer), FreeMemorySvc (ppCtx))
->>>>>>> upstream/master
     pSliceB->uiSize	= iSliceBsBufferSize;
 
     if (iIdx > 0) {
@@ -798,11 +792,6 @@ int32_t WriteSliceToFrameBs (sWelsEncCtx* pCtx, SLayerBSInfo* pLbi, uint8_t* pFr
   iSliceSize				= 0;
 
   while (iNalIdx < kiNalCnt) {
-<<<<<<< HEAD
-    iSliceSize += WelsEncodeNalExt_OldNeedFix (&pSliceBs->sNalList[iNalIdx], pNalHdrExt, pDst, &pNalLen[iNalIdx]);
-    pDst += pNalLen[iNalIdx];
-    pLbi->iNalLengthInByte[iNalBase + iNalIdx]	= pNalLen[iNalIdx];
-=======
     iNalSize = 0;
     iReturn = WelsEncodeNal (&pSliceBs->sNalList[iNalIdx], pNalHdrExt, pCtx->iFrameBsSize-kiWrittenLength-iSliceSize, pDst, &iNalSize);
     WELS_VERIFY_RETURN_IFNEQ(iReturn, ENC_RETURN_SUCCESS)
@@ -810,7 +799,6 @@ int32_t WriteSliceToFrameBs (sWelsEncCtx* pCtx, SLayerBSInfo* pLbi, uint8_t* pFr
     iSliceSize += iNalSize;
     pDst += iNalSize;
     pLbi->iNalLengthInByte[iNalBase + iNalIdx]	= iNalSize;
->>>>>>> upstream/master
 
     ++ iNalIdx;
   }
@@ -857,17 +845,12 @@ int32_t WriteSliceBs (sWelsEncCtx* pCtx, uint8_t* pSliceBsBuf, const int32_t iSl
     return 0;
 
   while (iNalIdx < kiNalCnt) {
-<<<<<<< HEAD
-    iSliceSize += WelsEncodeNalExt_OldNeedFix (&pSliceBs->sNalList[iNalIdx], pNalHdrExt, pDst, &pNalLen[iNalIdx]);
-    pDst += pNalLen[iNalIdx];
-=======
     iNalSize = 0;
     iReturn = WelsEncodeNal (&pSliceBs->sNalList[iNalIdx], pNalHdrExt, pSliceBs->uiSize-kiWrittenLength-iSliceSize, pDst, &iNalSize);
     WELS_VERIFY_RETURN_IFNEQ(iReturn, ENC_RETURN_SUCCESS)
     pNalLen[iNalIdx] = iNalSize;
     iSliceSize += iNalSize;
     pDst += iNalSize;
->>>>>>> upstream/master
     ++ iNalIdx;
   }
   pSliceBs->uiBsPos	= iSliceSize;
