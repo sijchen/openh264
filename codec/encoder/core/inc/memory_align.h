@@ -41,16 +41,14 @@
 
 namespace WelsSVCEnc {
 
-#define MEMORY_REQUEST_ALIGN_BYTES	0 // or (1^n), i.e, 0x04
-
 class CMemoryAlign {
  public:
 CMemoryAlign (const uint32_t kuiCacheLineSize);
 virtual ~CMemoryAlign();
 
-void* WelsMallocz (const uint32_t kuiSize, const str_t* kpTag);
-void* WelsMalloc (const uint32_t kuiSize, const str_t* kpTag);
-void WelsFree (void* pPointer, const str_t* kpTag);
+void* WelsMallocz (const uint32_t kuiSize, const char* kpTag);
+void* WelsMalloc (const uint32_t kuiSize, const char* kpTag);
+void WelsFree (void* pPointer, const char* kpTag);
 const uint32_t WelsGetCacheLineSize() const;
 #if defined(MEMORY_MONITOR)
 const uint32_t WelsGetMemoryUsage() const;

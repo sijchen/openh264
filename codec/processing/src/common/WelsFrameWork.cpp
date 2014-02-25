@@ -31,12 +31,11 @@
  */
 
 #include "WelsFrameWork.h"
-#include "cpu.h"
 #include "../denoise/denoise.h"
 #include "../downsample/downsample.h"
 #include "../scenechangedetection/SceneChangeDetection.h"
 #include "../vaacalc/vaacalculation.h"
-#include "../backgounddetection/BackgroundDetection.h"
+#include "../backgrounddetection/BackgroundDetection.h"
 #include "../adaptivequantization/AdaptiveQuantization.h"
 #include "../complexityanalysis/ComplexityAnalysis.h"
 #include "../imagerotate/imagerotate.h"
@@ -44,7 +43,7 @@
 
 /* interface API implement */
 
-EResult WELSAPI CreateVpInterface (void** ppCtx, int iVersion) {
+EResult CreateVpInterface (void** ppCtx, int iVersion) {
   if (iVersion & 0x8000)
     return nsWelsVP::CreateSpecificVpInterface ((IWelsVP**)ppCtx);
   else if (iVersion & 0x7fff)
@@ -53,7 +52,7 @@ EResult WELSAPI CreateVpInterface (void** ppCtx, int iVersion) {
     return RET_INVALIDPARAM;
 }
 
-EResult WELSAPI DestroyVpInterface (void* pCtx, int iVersion) {
+EResult DestroyVpInterface (void* pCtx, int iVersion) {
   if (iVersion & 0x8000)
     return nsWelsVP::DestroySpecificVpInterface ((IWelsVP*)pCtx);
   else if (iVersion & 0x7fff)
@@ -221,8 +220,8 @@ EResult CVpFrameWork::SpecialFeature (int32_t iType, void* pIn, void* pOut) {
   return eReturn;
 }
 
-bool_t  CVpFrameWork::CheckValid (EMethods eMethod, SPixMap& pSrcPixMap, SPixMap& pDstPixMap) {
-  bool_t eReturn = FALSE;
+bool  CVpFrameWork::CheckValid (EMethods eMethod, SPixMap& pSrcPixMap, SPixMap& pDstPixMap) {
+  bool eReturn = false;
 
   if (eMethod == METHOD_NULL)
     goto exit;
@@ -254,7 +253,7 @@ bool_t  CVpFrameWork::CheckValid (EMethods eMethod, SPixMap& pSrcPixMap, SPixMap
         || pDstPixMap.sRect.iRectLeft >= pDstPixMap.sRect.iRectWidth || pDstPixMap.sRect.iRectWidth > pDstPixMap.iStride[0])
       goto exit;
   }
-  eReturn = TRUE;
+  eReturn = true;
 
 exit:
   return eReturn;

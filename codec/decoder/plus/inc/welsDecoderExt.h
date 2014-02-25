@@ -46,7 +46,7 @@
 #include "codec_app_def.h"
 #include "decoder_context.h"
 #include "welsCodecTrace.h"
-
+#include "cpu.h"
 
 class ISVCDecoder;
 
@@ -56,11 +56,11 @@ namespace WelsDec {
 
 class CWelsDecoder : public ISVCDecoder {
  public:
-CWelsDecoder (void_t);
+CWelsDecoder (void);
 virtual ~CWelsDecoder();
 
-virtual long Initialize (void_t* pParam, const INIT_TYPE keInitType);
-virtual long Uninitialize();
+virtual long EXTAPI Initialize (const SDecodingParam* pParam);
+virtual long EXTAPI Uninitialize();
 
 /***************************************************************************
 *	Description:
@@ -74,35 +74,37 @@ virtual long Uninitialize();
 *
 *	return: if decode frame success return 0, otherwise corresponding error returned.
 ***************************************************************************/
-virtual DECODING_STATE DecodeFrame (const unsigned char* kpSrc,
-                                    const int kiSrcLen,
-                                    unsigned char** ppDst,
-                                    int* pStride,
-                                    int& iWidth,
-                                    int& iHeight);
+virtual DECODING_STATE EXTAPI DecodeFrame (const unsigned char* kpSrc,
+                                           const int kiSrcLen,
+                                           unsigned char** ppDst,
+                                           int* pStride,
+                                           int& iWidth,
+                                           int& iHeight);
 
-virtual DECODING_STATE DecodeFrame (const unsigned char* kpSrc,
-                                    const int kiSrcLen,
-                                    void_t** ppDst,
-                                    SBufferInfo* pDstInfo);
-virtual DECODING_STATE DecodeFrameEx (const unsigned char* kpSrc,
-                                      const int kiSrcLen,
-                                      unsigned char* pDst,
-                                      int iDstStride,
-                                      int& iDstLen,
-                                      int& iWidth,
-                                      int& iHeight,
-                                      int& color_format);
+virtual DECODING_STATE EXTAPI DecodeFrame2 (const unsigned char* kpSrc,
+                                            const int kiSrcLen,
+                                            void** ppDst,
+                                            SBufferInfo* pDstInfo);
+virtual DECODING_STATE EXTAPI DecodeFrameEx (const unsigned char* kpSrc,
+                                             const int kiSrcLen,
+                                             unsigned char* pDst,
+                                             int iDstStride,
+                                             int& iDstLen,
+                                             int& iWidth,
+                                             int& iHeight,
+                                             int& color_format);
 
-virtual long SetOption (DECODER_OPTION eOptID, void_t* pOption);
-virtual long GetOption (DECODER_OPTION eOptID, void_t* pOption);
+virtual long EXTAPI SetOption (DECODER_OPTION eOptID, void* pOption);
+virtual long EXTAPI GetOption (DECODER_OPTION eOptID, void* pOption);
 
  private:
 PWelsDecoderContext 				m_pDecContext;
 IWelsTrace*							m_pTrace;
 
-void_t InitDecoder (void_t);
-void_t UninitDecoder (void_t);
+void InitDecoder (void);
+void UninitDecoder (void);
+
+XMMREG_PROTECT_DECLARE(CWelsH264Decoder);
 
 #ifdef OUTPUT_BIT_STREAM
 WelsFileHandle* m_pFBS;

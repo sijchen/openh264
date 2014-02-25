@@ -8,20 +8,34 @@ parser.add_argument("--directory", dest="directory", required=True)
 parser.add_argument("--library", dest="library", help="Make a library")
 parser.add_argument("--binary", dest="binary", help="Make a binary")
 parser.add_argument("--exclude", dest="exclude", help="Exclude file", action="append")
+parser.add_argument("--include", dest="include", help="Include file", action="append")
+parser.add_argument("--out", dest="out", help="Output file")
+parser.add_argument("--cpp-suffix", dest="cpp_suffix", help="C++ file suffix")
 PREFIX=None
 LIBRARY=None
 BINARY=None
 EXCLUDE=[]
+INCLUDE=[]
+OUTFILE="targets.mk"
+CPP_SUFFIX=".cpp"
 
 def make_o(x):
     return os.path.splitext(x)[0] + ".o"
 
 def write_cpp_rule_pattern(f):
-    src = "$(%s_SRCDIR)/%%.cpp"%(PREFIX)
+    src = "$(%s_SRCDIR)/%%%s"%(PREFIX, CPP_SUFFIX)
     dst = "$(%s_SRCDIR)/%%.o"%(PREFIX)
 
     f.write("%s: %s\n"%(dst, src))
-    f.write('\t$(CXX) $(CFLAGS) $(CXXFLAGS) $(INCLUDES) $(' + PREFIX + '_CFLAGS) $(' + PREFIX + '_INCLUDES) -c -o $@ $<\n');
+    f.write('\t$(QUIET_CXX)$(CXX) $(CFLAGS) $(CXXFLAGS) $(INCLUDES) $(' + PREFIX + '_CFLAGS) $(' + PREFIX + '_INCLUDES) -c $(CXX_O) $<\n')
+    f.write("\n")
+
+def write_c_rule_pattern(f):
+    src = "$(%s_SRCDIR)/%%.c"%(PREFIX)
+    dst = "$(%s_SRCDIR)/%%.o"%(PREFIX)
+
+    f.write("%s: %s\n"%(dst, src))
+    f.write('\t$(QUIET_CC)$(CC) $(CFLAGS) $(INCLUDES) $(' + PREFIX + '_CFLAGS) $(' + PREFIX + '_INCLUDES) -c $(CXX_O) $<\n')
     f.write("\n")
 
 def write_asm_rule_pattern(f):
@@ -29,22 +43,25 @@ def write_asm_rule_pattern(f):
     dst = "$(%s_SRCDIR)/%%.o"%(PREFIX)
 
     f.write("%s: %s\n"%(dst, src))
-    f.write('\t$(ASM) $(ASMFLAGS) $(ASM_INCLUDES) $(' + PREFIX + '_ASMFLAGS) $(' + PREFIX + '_ASM_INCLUDES) -o $@ $<\n');
+    f.write('\t$(QUIET_ASM)$(ASM) $(ASMFLAGS) $(ASM_INCLUDES) $(' + PREFIX + '_ASMFLAGS) $(' + PREFIX + '_ASM_INCLUDES) -o $@ $<\n')
     f.write("\n")
 
 
 def find_sources():
     cpp_files = []
     asm_files = []
+    c_files = []
     print EXCLUDE
     for dir in os.walk("."):
         for file in dir[2]:
-            if not file in EXCLUDE:
-                if os.path.splitext(file)[1] == '.cpp':
-                    cpp_files.append(os.path.join(dir[0], file))
+            if (len(INCLUDE) == 0 and not file in EXCLUDE) or file in INCLUDE:
+                if os.path.splitext(file)[1] == CPP_SUFFIX:
+                    cpp_files.append(os.path.join(dir[0].strip('./'), file))
                 if os.path.splitext(file)[1] == '.asm':
-                    asm_files.append(os.path.join(dir[0], file))
-    return [cpp_files, asm_files]
+                    asm_files.append(os.path.join(dir[0].strip('./'), file))
+                if os.path.splitext(file)[1] == '.c':
+                    c_files.append(os.path.join(dir[0].strip('./'), file))
+    return [cpp_files, asm_files, c_files]
 
 
 args = parser.parse_args()
@@ -59,44 +76,72 @@ else:
 
 if args.exclude is not None:
     EXCLUDE = args.exclude
-(cpp, asm) = find_sources()
+if args.include is not None:
+    INCLUDE = args.include
+if args.out is not None:
+    OUTFILE = args.out
+else:
+    OUTFILE = os.path.join(args.directory, OUTFILE)
+if args.cpp_suffix is not None:
+    CPP_SUFFIX = args.cpp_suffix
+
+OUTFILE = os.path.abspath(OUTFILE)
+try:
+    os.chdir(args.directory)
+except:
+    sys.exit(1)
+
+(cpp, asm, cfiles) = find_sources()
 
 
 
-f = open("targets.mk", "w")
-f.write("%s_PREFIX=%s\n"%(PREFIX, PREFIX))
+f = open(OUTFILE, "w")
 f.write("%s_SRCDIR=%s\n"%(PREFIX, args.directory))
 
 f.write("%s_CPP_SRCS=\\\n"%(PREFIX))
 for c in cpp:
     f.write("\t$(%s_SRCDIR)/%s\\\n"%(PREFIX, c))
 f.write("\n")
-f.write("%s_OBJS += $(%s_CPP_SRCS:.cpp=.o)\n"%(PREFIX, PREFIX))
+f.write("%s_OBJS += $(%s_CPP_SRCS:%s=.o)\n\n"%(PREFIX, PREFIX, CPP_SUFFIX))
 
-f.write("ifeq ($(USE_ASM), Yes)\n");
-f.write("%s_ASM_SRCS=\\\n"%(PREFIX))
-for c in asm:
-    f.write("\t$(%s_SRCDIR)/%s\\\n"%(PREFIX, c))
-f.write("\n")
-f.write("%s_OBJS += $(%s_ASM_SRCS:.asm=.o)\n"%(PREFIX, PREFIX))
-f.write("endif\n\n")
+if len(cfiles) > 0:
+    f.write("%s_C_SRCS=\\\n"%(PREFIX))
+    for cfile in cfiles:
+        f.write("\t$(%s_SRCDIR)/%s\\\n"%(PREFIX, cfile))
+    f.write("\n")
+    f.write("%s_OBJS += $(%s_C_SRCS:.c=.o)\n\n"%(PREFIX, PREFIX))
+
+if len(asm) > 0:
+    f.write("ifeq ($(USE_ASM), Yes)\n")
+    f.write("%s_ASM_SRCS=\\\n"%(PREFIX))
+    for c in asm:
+        f.write("\t$(%s_SRCDIR)/%s\\\n"%(PREFIX, c))
+    f.write("\n")
+    f.write("%s_OBJS += $(%s_ASM_SRCS:.asm=.o)\n"%(PREFIX, PREFIX))
+    f.write("endif\n\n")
 
 f.write("OBJS += $(%s_OBJS)\n"%PREFIX)
 
 write_cpp_rule_pattern(f)
 
-write_asm_rule_pattern(f)
+if len(cfiles) > 0:
+    write_c_rule_pattern(f)
+
+if len(asm) > 0:
+    write_asm_rule_pattern(f)
 
 if args.library is not None:
-    f.write("$(LIBPREFIX)%s.$(LIBSUFFIX): $(%s_OBJS)\n"%(args.library, PREFIX));
-    f.write("\trm -f $(LIBPREFIX)%s.$(LIBSUFFIX)\n"%args.library)
-    f.write("\t$(AR) cr $@ $(%s_OBJS)\n"%PREFIX);
-    f.write("\n");
-    f.write("libraries: $(LIBPREFIX)%s.$(LIBSUFFIX)\n"%args.library);
-    f.write("LIBRARIES += $(LIBPREFIX)%s.$(LIBSUFFIX)\n"%args.library);
+    f.write("$(LIBPREFIX)%s.$(LIBSUFFIX): $(%s_OBJS)\n"%(args.library, PREFIX))
+    f.write("\t$(QUIET)rm -f $@\n")
+    f.write("\t$(QUIET_AR)$(AR) $(AR_OPTS) $+\n")
+    f.write("\n")
+    f.write("libraries: $(LIBPREFIX)%s.$(LIBSUFFIX)\n"%args.library)
+    f.write("LIBRARIES += $(LIBPREFIX)%s.$(LIBSUFFIX)\n"%args.library)
 
 if args.binary is not None:
-    f.write("%s: $(%s_OBJS) $(LIBS) $(%s_LIBS) $(%s_DEPS)\n"%(args.binary, PREFIX, PREFIX, PREFIX))
-    f.write("\t$(CXX) -o $@  $(%s_OBJS) $(%s_LDFLAGS) $(%s_LIBS) $(LDFLAGS) $(LIBS)\n\n"%(PREFIX, PREFIX, PREFIX))
-    f.write("binaries: %s\n"%args.binary);
-    f.write("BINARIES += %s\n"%args.binary);
+    f.write("%s$(EXEEXT): $(%s_OBJS) $(LIBS) $(%s_LIBS) $(%s_DEPS)\n"%(args.binary, PREFIX, PREFIX, PREFIX))
+    f.write("\t$(QUIET_CXX)$(CXX) $(CXX_LINK_O) $(%s_OBJS) $(%s_LDFLAGS) $(%s_LIBS) $(LDFLAGS) $(LIBS)\n\n"%(PREFIX, PREFIX, PREFIX))
+    f.write("binaries: %s$(EXEEXT)\n"%args.binary)
+    f.write("BINARIES += %s$(EXEEXT)\n"%args.binary)
+
+f.close()

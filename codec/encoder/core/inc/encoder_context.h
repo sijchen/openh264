@@ -52,6 +52,7 @@
 #include "as264_common.h"
 #include "wels_preprocess.h"
 #include "wels_func_ptr_def.h"
+#include "crt_util_safe_x.h"
 
 #ifdef MT_ENABLED
 #include "mt_defs.h"	// for multiple threadin,
@@ -91,9 +92,9 @@ typedef struct TagLTRState {
   int32_t						iLastLtrIdx;
   uint32_t					uiLtrMarkInterval;// the interval from the last int32_t term pRef mark
 
-  bool_t						bLTRMarkingFlag;	//decide whether current frame marked as LTR
-  bool_t						bLTRMarkEnable; //when LTR is confirmed and the interval is no smaller than the marking period
-  bool_t						bReceivedT0LostFlag;	// indicate whether a t0 lost feedback is recieved, for LTR recovery
+  bool						bLTRMarkingFlag;	//decide whether current frame marked as LTR
+  bool						bLTRMarkEnable; //when LTR is confirmed and the interval is no smaller than the marking period
+  bool						bReceivedT0LostFlag;	// indicate whether a t0 lost feedback is recieved, for LTR recovery
 } SLTRState;
 
 typedef struct TagSpatialPicIndex {
@@ -161,8 +162,8 @@ typedef struct TagWelsEncCtx {
 
   uint8_t						uiDependencyId;	// Idc of dependecy layer to be coded
   uint8_t						uiTemporalId;	// Idc of temporal layer to be coded
-  bool_t						bNeedPrefixNalFlag;	// whether add prefix nal
-  bool_t                      bEncCurFrmAsIdrFlag;
+  bool						bNeedPrefixNalFlag;	// whether add prefix nal
+  bool                      bEncCurFrmAsIdrFlag;
 
   // Rate control routine
   SWelsSvcRc*					pWelsSvcRc;
@@ -189,15 +190,9 @@ typedef struct TagWelsEncCtx {
   int32_t						iFrameBsSize;	// count size of frame bs in bytes allocated
   int32_t						iPosBsBuffer;	// current writing position of frame bs pBuffer
 
-  /* For Downsampling & VAA I420 based source pictures */
-  SPicture*					pSpatialPic[MAX_DEPENDENCY_LAYER][MAX_TEMPORAL_LEVEL + 1 +
-      LONG_TERM_REF_NUM];	// need memory requirement with total number of (log2(uiGopSize)+1+1+long_term_ref_num)
-
   SSpatialPicIndex			sSpatialIndexMap[MAX_DEPENDENCY_LAYER];
-  uint8_t						uiSpatialLayersInTemporal[MAX_DEPENDENCY_LAYER];
 
-  uint8_t                     uiSpatialPicNum[MAX_DEPENDENCY_LAYER];
-  bool_t						bLongTermRefFlag[MAX_DEPENDENCY_LAYER][MAX_TEMPORAL_LEVEL + 1/*+LONG_TERM_REF_NUM*/];
+  bool						bLongTermRefFlag[MAX_DEPENDENCY_LAYER][MAX_TEMPORAL_LEVEL + 1/*+LONG_TERM_REF_NUM*/];
 
   int16_t						iMaxSliceCount;// maximal count number of slices for all layers observation
   int16_t						iActiveThreadsNum;	// number of threads active so far
@@ -214,7 +209,7 @@ typedef struct TagWelsEncCtx {
   CMemoryAlign*				pMemAlign;
 
 #ifdef ENABLE_TRACE_FILE
-  FILE*						pFileLog;		// log file for wels encoder
+  WelsFileHandle*				pFileLog;		// log file for wels encoder
   uint32_t					uiSizeLog;		// size of log have been written in file
 
 #endif//ENABLE_TRACE_FILE
@@ -224,6 +219,11 @@ typedef struct TagWelsEncCtx {
   SStatData					sStatData [ MAX_DEPENDENCY_LAYER ] [ MAX_QUALITY_LEVEL ];
   SStatSliceInfo				sPerInfo;
 #endif//STAT_OUTPUT
+
+  int32_t iEncoderError;
+#ifdef MT_ENABLED
+  WELS_MUTEX					mutexEncoderError;
+#endif
 
 } sWelsEncCtx/*, *PWelsEncCtx*/;
 }

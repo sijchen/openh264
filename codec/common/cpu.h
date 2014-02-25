@@ -41,7 +41,7 @@
 #define WELS_CPU_DETECTION_H__
 
 #include "typedefs.h"
-
+#include "cpu_core.h"
 
 
 #if defined(__cplusplus)
@@ -55,12 +55,12 @@ extern "C" {
  */
 int32_t  WelsCPUIdVerify();
 
-void_t WelsCPUId (uint32_t uiIndex, uint32_t* pFeatureA, uint32_t* pFeatureB, uint32_t* pFeatureC, uint32_t* pFeatureD);
+void WelsCPUId (uint32_t uiIndex, uint32_t* pFeatureA, uint32_t* pFeatureB, uint32_t* pFeatureC, uint32_t* pFeatureD);
 
 int32_t WelsCPUSupportAVX (uint32_t eax, uint32_t ecx);
 int32_t WelsCPUSupportFMA (uint32_t eax, uint32_t ecx);
 
-void_t WelsEmms();
+void WelsEmms();
 
 uint32_t WelsCPUFeatureDetect (int32_t* pNumberOfLogicProcessors);
 
@@ -69,12 +69,56 @@ uint32_t WelsCPUFeatureDetect (int32_t* pNumberOfLogicProcessors);
  */
 void     WelsCPURestore (const uint32_t kuiCPU);
 
+#ifdef  WIN64
+void     WelsXmmRegStore(void * src);
+void     WelsXmmRegLoad(void * src);
 #endif
+
+#endif
+
+void     WelsXmmRegEmptyOp(void * pSrc);
 
 #if defined(__cplusplus)
 }
 #endif//__cplusplus
 
+typedef  void (*WelsXmmRegProtectFunc)(void * pSrc);
 
+
+#if defined(WIN64) && defined(X86_ASM)
+#define   XMMREG_PROTECT_DECLARE(name) \
+  WelsXmmRegProtectFunc name##load;\
+  WelsXmmRegProtectFunc name##store;\
+  uint8_t               name##Buffer[160];
+
+#define   XMMREG_PROTECT_INIT(name) \
+  { \
+    uint32_t uiCpuFlag = WelsCPUFeatureDetect(NULL);\
+    if( uiCpuFlag & WELS_CPU_SSE2 ){\
+      name##load = WelsXmmRegLoad;\
+      name##store = WelsXmmRegStore; \
+    } else { \
+      name##load = WelsXmmRegEmptyOp; \
+      name##store = WelsXmmRegEmptyOp; \
+    } \
+  }
+
+#define   XMMREG_PROTECT_UNINIT(name) \
+
+#define   XMMREG_PROTECT_STORE(name) \
+  name##store(name##Buffer);
+
+#define   XMMREG_PROTECT_LOAD(name) \
+  name##load(name##Buffer);
+
+#else
+
+#define   XMMREG_PROTECT_DECLARE(name)
+#define   XMMREG_PROTECT_INIT(name)
+#define   XMMREG_PROTECT_UNINIT(name)
+#define   XMMREG_PROTECT_STORE(name)
+#define   XMMREG_PROTECT_LOAD(name)
+
+#endif
 
 #endif//WELS_CPU_DETECTION_H__

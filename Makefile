@@ -1,10 +1,17 @@
-UNAME=$(shell uname | tr A-Z a-z | tr -d \\-[:digit:].)
+OS=$(shell uname | tr A-Z a-z | tr -d \\-[:digit:].)
+ARCH=$(shell uname -m)
 LIBPREFIX=lib
 LIBSUFFIX=a
-CP=cp
-ROOTDIR=$(PWD)
-
-
+CXX_O=-o $@
+CXX_LINK_O=-o $@
+AR_OPTS=cr $@
+LINK_LIB=-l$(1)
+CFLAGS_OPT=-O3
+CFLAGS_DEBUG=-g
+BUILDTYPE=Release
+V=Yes
+PREFIX=/usr/local
+SHARED=-shared
 
 ifeq (,$(wildcard ./gtest))
 HAVE_GTEST=No
@@ -14,10 +21,10 @@ endif
 
 # Configurations
 ifeq ($(BUILDTYPE), Release)
-CFLAGS += -O3
+CFLAGS += $(CFLAGS_OPT)
 USE_ASM = Yes
 else
-CFLAGS = -g
+CFLAGS = $(CFLAGS_DEBUG)
 USE_ASM = No
 endif
 
@@ -26,34 +33,26 @@ CFLAGS += -fsanitize=address
 LDFLAGS += -fsanitize=address
 endif
 
-ifeq ($(ENABLE64BIT), Yes)
-CFLAGS += -m64
-LDFLAGS += -m64
-ASMFLAGS_PLATFORM = -DUNIX64
-else
-CFLAGS += -m32
-LDFLAGS += -m32
-ASMFLAGS_PLATFORM = -DX86_32
-endif
+include build/platform-$(OS).mk
 
-include build/platform-$(UNAME).mk
-
-ifeq ($(USE_ASM),Yes)
-CFLAGS += -DX86_ASM
-endif
 
 CFLAGS += -DNO_DYNAMIC_VP
 LDFLAGS +=
-ASMFLAGS += $(ASMFLAGS_PLATFORM) -DNO_DYNAMIC_VP
 
 
 #### No user-serviceable parts below this line
-INCLUDES = -Icodec/api/svc -Icodec/common -Igtest/include
+ifneq ($(V),Yes)
+    QUIET_CXX = @printf "CXX\t$@\n";
+    QUIET_CC  = @printf "CC\t$@\n";
+    QUIET_ASM = @printf "ASM\t$@\n";
+    QUIET_AR  = @printf "AR\t$@\n";
+    QUIET     = @
+endif
+
+
+INCLUDES = -Icodec/api/svc -Icodec/common
 #ASM_INCLUDES = -Iprocessing/src/asm/
 ASM_INCLUDES = -Icodec/common/
-
-COMMON_INCLUDES = \
-    -Icodec/decoder/core/inc
 
 DECODER_INCLUDES = \
     -Icodec/decoder/core/inc \
@@ -62,18 +61,25 @@ DECODER_INCLUDES = \
 ENCODER_INCLUDES = \
     -Icodec/encoder/core/inc \
     -Icodec/encoder/plus/inc \
-    -Icodec/WelsThreadLib/api
+    -Icodec/processing/interface
 
 PROCESSING_INCLUDES = \
-    -Icodec/encoder/core/inc \
-    -Icodec/encoder/plus/inc
+    -Icodec/processing/interface \
+    -Icodec/processing/src/common
+
+GTEST_INCLUDES += \
+    -Igtest \
+    -Igtest/include
+
+CODEC_UNITTEST_INCLUDES += \
+    -Igtest/include
 
 H264DEC_INCLUDES = $(DECODER_INCLUDES) -Icodec/console/dec/inc
-H264DEC_LDFLAGS = -L. -ldecoder -lcommon
+H264DEC_LDFLAGS = -L. $(call LINK_LIB,decoder) $(call LINK_LIB,common)
 H264DEC_DEPS = $(LIBPREFIX)decoder.$(LIBSUFFIX) $(LIBPREFIX)common.$(LIBSUFFIX)
 
 H264ENC_INCLUDES = $(ENCODER_INCLUDES) -Icodec/console/enc/inc
-H264ENC_LDFLAGS = -L. -lencoder -lprocessing -lcommon
+H264ENC_LDFLAGS = -L. $(call LINK_LIB,encoder) $(call LINK_LIB,processing) $(call LINK_LIB,common)
 H264ENC_DEPS = $(LIBPREFIX)encoder.$(LIBSUFFIX) $(LIBPREFIX)processing.$(LIBSUFFIX) $(LIBPREFIX)common.$(LIBSUFFIX)
 
 CODEC_UNITTEST_LDFLAGS = -L. -lgtest -ldecoder -lcrypto -lencoder -lprocessing -lcommon
@@ -84,16 +90,16 @@ CODEC_UNITTEST_DEPS = $(LIBPREFIX)gtest.$(LIBSUFFIX) $(LIBPREFIX)decoder.$(LIBSU
 all:	libraries binaries
 
 clean:
-	rm -f $(OBJS) $(LIBRARIES) $(BINARIES)
+	$(QUIET)rm -f $(OBJS) $(OBJS:.o=.d) $(LIBRARIES) $(BINARIES)
 
 gtest-bootstrap:
 	svn co https://googletest.googlecode.com/svn/trunk/ gtest
 
-test:
 ifeq ($(HAVE_GTEST),Yes)
-	$(MAKE) codec_unittest
+test: codec_unittest$(EXEEXT)
 	./codec_unittest
 else
+test:
 	@echo "./gtest : No such file or directory."
 	@echo "You do not have gtest. Run make gtest-bootstrap to get gtest"
 endif
@@ -102,10 +108,36 @@ include codec/common/targets.mk
 include codec/decoder/targets.mk
 include codec/encoder/targets.mk
 include codec/processing/targets.mk
+
+ifneq (android, $(OS))
 include codec/console/dec/targets.mk
 include codec/console/enc/targets.mk
+endif
+
+libraries: $(LIBPREFIX)wels.$(LIBSUFFIX) $(LIBPREFIX)wels.$(SHAREDLIBSUFFIX)
+LIBRARIES += $(LIBPREFIX)wels.$(LIBSUFFIX) $(LIBPREFIX)wels.$(SHAREDLIBSUFFIX)
+
+$(LIBPREFIX)wels.$(LIBSUFFIX): $(ENCODER_OBJS) $(DECODER_OBJS) $(PROCESSING_OBJS) $(COMMON_OBJS)
+	$(QUIET)rm -f $@
+	$(QUIET_AR)$(AR) $(AR_OPTS) $+
+
+$(LIBPREFIX)wels.$(SHAREDLIBSUFFIX): $(ENCODER_OBJS) $(DECODER_OBJS) $(PROCESSING_OBJS) $(COMMON_OBJS)
+	$(QUIET)rm -f $@
+	$(QUIET_CXX)$(CXX) $(SHARED) $(LDFLAGS) $(CXX_LINK_O) $+ $(SHLDFLAGS)
+
+install: $(LIBPREFIX)wels.$(LIBSUFFIX) $(LIBPREFIX)wels.$(SHAREDLIBSUFFIX)
+	mkdir -p $(PREFIX)/lib
+	mkdir -p $(PREFIX)/include/wels
+	install -m 644 $(LIBPREFIX)wels.$(LIBSUFFIX) $(PREFIX)/lib
+	install -m 755 $(LIBPREFIX)wels.$(SHAREDLIBSUFFIX) $(PREFIX)/lib
+ifneq ($(EXTRA_LIBRARY),)
+	install -m 644 $(EXTRA_LIBRARY) $(PREFIX)/lib
+endif
+	install -m 644 codec/api/svc/codec*.h $(PREFIX)/include/wels
 
 ifeq ($(HAVE_GTEST),Yes)
 include build/gtest-targets.mk
 include test/targets.mk
 endif
+
+-include $(OBJS:.o=.d)

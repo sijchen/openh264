@@ -44,7 +44,7 @@
 
 // Miscellaneous sizing infos
 #ifndef MAX_FNAME_LEN
-#define MAX_FNAME_LEN		256	// maximal length of file name in str_t size
+#define MAX_FNAME_LEN		256	// maximal length of file name in char size
 #endif//MAX_FNAME_LEN
 
 #ifndef WELS_LOG_BUF_SIZE
@@ -107,7 +107,11 @@
 
 #define I420_PLANES				3
 
+<<<<<<< HEAD
 #define COMPRESS_RATIO_THR (0.5f)	//set to size of the original data, which will be large enough considering MinCR
+=======
+#define COMPRESS_RATIO_THR (1.0f)	//set to size of the original data, which will be large enough considering MinCR
+>>>>>>> upstream/master
 
 #if !defined(SSEI_BUFFER_SIZE)
 #define SSEI_BUFFER_SIZE	128
@@ -181,11 +185,22 @@ enum {
   NON_AVC_REWRITE_ENHANCE_MB = 2
 };
 
+<<<<<<< HEAD
 typedef enum {
   ENC_RETURN_SUCCESS = 0,
   ENC_RETURN_MEMALLOCERR = -1, //will free memory and uninit
   ENC_RETURN_UNSUPPORTED_PARA = -2, //unsupported setting
   ENC_RETURN_UNEXPECTED = -3, //unexpected value
+=======
+enum {
+  ENC_RETURN_SUCCESS = 0,
+  ENC_RETURN_MEMALLOCERR = 0x01, //will free memory and uninit
+  ENC_RETURN_UNSUPPORTED_PARA = 0x02, //unsupported setting
+  ENC_RETURN_UNEXPECTED = 0x04, //unexpected value
+  ENC_RETURN_CORRECTED = 0x08, //unexpected value but corrected by encoder
+  ENC_RETURN_INVALIDINPUT = 0x10, //invalid input
+  ENC_RETURN_MEMOVERFLOWFOUND = 0x20,
+>>>>>>> upstream/master
 };
 //TODO: need to complete the return checking in encoder and fill in more types if needed
 

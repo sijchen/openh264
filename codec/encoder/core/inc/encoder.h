@@ -61,7 +61,12 @@ void FreeMemorySvc (sWelsEncCtx** ppCtx);
  * \brief	 allocate or reallocate the output bs buffer
  * \return:		successful - 0; otherwise none 0 for failed
  */
+<<<<<<< HEAD
 int32_t AllocateBsOutputBuffer(CMemoryAlign*pMa, const int32_t iNeededLen, int32_t iOrigLen, const str_t* kpTag, uint8_t*& pOutputBuffer );
+=======
+int32_t AllocateBsOutputBuffer(CMemoryAlign*pMa, const int32_t iNeededLen, int32_t iOrigLen, const char* kpTag, uint8_t*& pOutputBuffer );
+//TODO: to finish this function and call it
+>>>>>>> upstream/master
 
 /*!
  * \brief	initialize function pointers that potentially used in Wels encoding
@@ -87,12 +92,12 @@ EFrameType DecideFrameType (sWelsEncCtx* pEncCtx, const int8_t kiSpatialNum);
  * \brief	Dump reconstruction for dependency layer
  */
 
-extern "C" void DumpDependencyRec (SPicture* pSrcPic, const str_t* kpFileName, const int8_t kiDid);
+extern "C" void DumpDependencyRec (SPicture* pSrcPic, const char* kpFileName, const int8_t kiDid);
 
 /*!
  * \brief	Dump the reconstruction pictures
  */
-void DumpRecFrame (SPicture* pSrcPic, const str_t* kpFileName);
+void DumpRecFrame (SPicture* pSrcPic, const char* kpFileName);
 
 
 /*!

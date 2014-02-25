@@ -38,26 +38,10 @@
 
  **************************************************************************************
  */
-#include <assert.h>
-#include <string.h>
-#include "decode_mb_aux.h"
-#include "svc_enc_golomb.h"
-#include "ls_defines.h"
-#include "md.h"
-#include "mv_pred.h"
-#include "sample.h"
 #include "svc_base_layer_md.h"
-#include "svc_encode_mb.h"
-#include "svc_encode_slice.h"
-#include "mb_cache.h"
 
 #include "svc_mode_decision.h"
-#include "svc_motion_estimate.h"
 
-#include "svc_set_mb_syn_cavlc.h"
-#include "cpu_core.h"
-#include "encode_mb_aux.h"
-#include "utils.h"
 namespace WelsSVCEnc {
 
 //
@@ -71,15 +55,15 @@ void WelsMdSpatialelInterMbIlfmdNoilp (sWelsEncCtx* pEncCtx, SWelsMD* pWelsMd, S
   const uint32_t kuiNeighborAvail = pCurMb->uiNeighborAvail;
   const int32_t kiMbWidth = pCurDqLayer->iMbWidth;
   const  SMB* kpTopMb = pCurMb - kiMbWidth;
-  const bool_t kbMbLeftAvailPskip	= ((kuiNeighborAvail & LEFT_MB_POS) ? IS_SKIP ((pCurMb - 1)->uiMbType) : false);
-  const bool_t kbMbTopAvailPskip			= ((kuiNeighborAvail & TOP_MB_POS) ? IS_SKIP (kpTopMb->uiMbType) : false);
-  const bool_t kbMbTopLeftAvailPskip		= ((kuiNeighborAvail & TOPLEFT_MB_POS) ? IS_SKIP ((kpTopMb - 1)->uiMbType) : false);
-  const bool_t kbMbTopRightAvailPskip	= ((kuiNeighborAvail & TOPRIGHT_MB_POS) ? IS_SKIP ((
+  const bool kbMbLeftAvailPskip	= ((kuiNeighborAvail & LEFT_MB_POS) ? IS_SKIP ((pCurMb - 1)->uiMbType) : false);
+  const bool kbMbTopAvailPskip			= ((kuiNeighborAvail & TOP_MB_POS) ? IS_SKIP (kpTopMb->uiMbType) : false);
+  const bool kbMbTopLeftAvailPskip		= ((kuiNeighborAvail & TOPLEFT_MB_POS) ? IS_SKIP ((kpTopMb - 1)->uiMbType) : false);
+  const bool kbMbTopRightAvailPskip	= ((kuiNeighborAvail & TOPRIGHT_MB_POS) ? IS_SKIP ((
       kpTopMb + 1)->uiMbType) : false);
 
-  BOOL_T bTrySkip  = kbMbLeftAvailPskip | kbMbTopAvailPskip | kbMbTopLeftAvailPskip | kbMbTopRightAvailPskip;
-  BOOL_T bKeepSkip = kbMbLeftAvailPskip & kbMbTopAvailPskip & kbMbTopRightAvailPskip;
-  BOOL_T bSkip = FALSE;
+  bool bTrySkip  = kbMbLeftAvailPskip | kbMbTopAvailPskip | kbMbTopLeftAvailPskip | kbMbTopRightAvailPskip;
+  bool bKeepSkip = kbMbLeftAvailPskip & kbMbTopAvailPskip & kbMbTopRightAvailPskip;
+  bool bSkip = false;
 
   if (pEncCtx->pFuncList->pfInterMdBackgroundDecision (pEncCtx, pWelsMd, pSlice, pCurMb, pMbCache, &bKeepSkip)) {
     return;

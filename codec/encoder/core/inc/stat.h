@@ -40,14 +40,16 @@
 #if !defined(WELS_ENCODER_STATISTICAL_DATA_H__)
 #define WELS_ENCODER_STATISTICAL_DATA_H__
 
+namespace WelsSVCEnc {
+
 /*
  *	Stat quality
  */
 typedef struct TagStatQuality {
 
-  real32_t	rYPsnr[5];
-  real32_t	rUPsnr[5];
-  real32_t	rVPsnr[5];
+  float	rYPsnr[5];
+  float	rUPsnr[5];
+  float	rVPsnr[5];
 
 } SStatQuality;
 
@@ -94,5 +96,7 @@ typedef struct TagStatData {
   SStatSliceInfo		sSliceData;
 
 } SStatData;
+
+}
 
 #endif//WELS_ENCODER_STATISTICAL_DATA_H__

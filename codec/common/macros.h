@@ -45,16 +45,16 @@
 #include "typedefs.h"
 
 /*
-* FORCE_STACK_ALIGN_1D: force 1 dimension local data aligned in stack
+* ENFORCE_STACK_ALIGN_1D: force 1 dimension local data aligned in stack
 * _tp: type
 * _nm: var name
 * _sz: size
 * _al: align bytes
 * auxiliary var: _nm ## _tEmP
 */
-#define FORCE_STACK_ALIGN_1D(_tp, _nm, _sz, _al) \
+#define ENFORCE_STACK_ALIGN_1D(_tp, _nm, _sz, _al) \
 	_tp _nm ## _tEmP[(_sz)+(_al)-1]; \
-	_tp *_nm = _nm ## _tEmP + ((_al)-1) - (((uintptr_t)(_nm ## _tEmP + ((_al)-1)) & ((_al)-1))/sizeof(_tp))
+	_tp *_nm = _nm ## _tEmP + ((_al)-1) - (((uintptr_t)(_nm ## _tEmP + ((_al)-1)) & ((_al)-1))/sizeof(_tp));
 
 
 #define ENFORCE_STACK_ALIGN_2D(_tp, _nm, _cx, _cy, _al) \
@@ -65,77 +65,36 @@
 	_tp (*_nm)[(_cy)] = (_tp (*)[(_cy)])_nm ## _tEmP_al;
 
 
-///////////// from encoder
 #if defined(_MSC_VER)
 
 #if(_MSC_VER < 1700)
 #define inline	__inline
 #endif
 
-#define __FASTCALL   __fastcall
 #define ALIGNED_DECLARE( type, var, n ) __declspec(align(n)) type var
-#define __align8(t,v) __declspec(align(8)) t v
 #define __align16(t,v) __declspec(align(16)) t v
-#elif defined(__GNUC__)
-#if !defined(MAC_POWERPC)
-#define __FASTCALL    __attribute__ ((fastcall))
-#else
-#define __FASTCALL	// mean NULL for mac ppc
-#endif//MAC_POWERPC
-#define ALIGNED_DECLARE( type, var, n ) type var __attribute__((aligned(n)))
-#define __align8(t,v) t v __attribute__ ((aligned (8)))
-#define __align16(t,v) t v __attribute__ ((aligned (16)))
-#endif//_MSC_VER
-
-#if defined(_MACH_PLATFORM) || defined(__GNUC__)
-#define ALIGNED_DECLARE_MATRIX_2D(name,sizex,sizey,type,alignment) \
-	type name[(sizex)*(sizey)] __attribute__((aligned(alignment)))
-#else //_MSC_VER <= 1200
-#define ALIGNED_DECLARE_MATRIX_2D(name,sizex,sizey,type,alignment) \
-__declspec(align(alignment)) type name[(sizex)*(sizey)]
-#endif//#if _MACH_PLATFORM
-
-#if defined(_MACH_PLATFORM) || defined(__GNUC__)
-#define ALIGNED_DECLARE_MATRIX_1D(name,size,type,alignment) \
-	type name[size] __attribute__((aligned(alignment)))
-#else //_MSC_VER <= 1200
 #define ALIGNED_DECLARE_MATRIX_1D(name,size,type,alignment) \
 	__declspec(align(alignment)) type name[(size)]
-#endif//#if _MACH_PLATFORM
+#define ALIGNED_DECLARE_MATRIX_2D(name,sizex,sizey,type,alignment) \
+__declspec(align(alignment)) type name[(sizex)*(sizey)]
 
-#if defined(_MSC_VER)
-#define inline	__inline
-#define __FASTCALL   __fastcall
-//	#define __align8(t,v) __declspec(align(8)) t v
-#define __align16(t,v) __declspec(align(16)) t v
 #elif defined(__GNUC__)
-#if !defined(MAC_POWERPC) && !defined(UNIX) && !defined(ANDROID_NDK) && !defined(APPLE_IOS)
-#define __FASTCALL    __attribute__ ((fastcall))// linux, centos, mac_x86 can be used
-#else
-#define __FASTCALL	// mean NULL for mac_ppc, solaris(sparc/x86)
-#endif//MAC_POWERPC
-//	#define __align8(t,v) t v __attribute__ ((aligned (8)))
+
+#define ALIGNED_DECLARE( type, var, n ) type var __attribute__((aligned(n)))
 #define __align16(t,v) t v __attribute__ ((aligned (16)))
-
-#if defined(APPLE_IOS)
-#define inline  //For iOS platform
-#endif
-
+#define ALIGNED_DECLARE_MATRIX_1D(name,size,type,alignment) \
+	type name[size] __attribute__((aligned(alignment)))
+#define ALIGNED_DECLARE_MATRIX_2D(name,sizex,sizey,type,alignment) \
+	type name[(sizex)*(sizey)] __attribute__((aligned(alignment)))
 #endif//_MSC_VER
 
 
-#if !defined(SIZEOFRGB24)
-#define SIZEOFRGB24(cx, cy)	(3 * (cx) * (cy))
-#endif//SIZEOFRGB24
-
-#if !defined(SIZEOFRGB32)
-#define SIZEOFRGB32(cx, cy)	(4 * (cx) * (cy))
-#endif//SIZEOFRGB32
-#if 1
 #ifndef	WELS_ALIGN
 #define WELS_ALIGN(x, n)	(((x)+(n)-1)&~((n)-1))
 #endif//WELS_ALIGN
 
+
+#if 1 // Alternative implementation of WELS_MAX and WELS_MIN
 #ifndef WELS_MAX
 #define WELS_MAX(x, y)	((x) > (y) ? (x) : (y))
 #endif//WELS_MAX
@@ -143,12 +102,7 @@ __declspec(align(alignment)) type name[(sizex)*(sizey)]
 #ifndef WELS_MIN
 #define WELS_MIN(x, y)	((x) < (y) ? (x) : (y))
 #endif//WELS_MIN
-#else
-
-#ifndef	WELS_ALIGN
-#define WELS_ALIGN(x, n)	(((x)+(n)-1)&~((n)-1))
-#endif//WELS_ALIGN
-
+#else // Alternative implementation of WELS_MAX and WELS_MIN
 #ifndef WELS_MAX
 #define WELS_MAX(x, y)	((x) - (((x)-(y))&(((x)-(y))>>31)))
 #endif//WELS_MAX
@@ -156,8 +110,8 @@ __declspec(align(alignment)) type name[(sizex)*(sizey)]
 #ifndef WELS_MIN
 #define WELS_MIN(x, y)	((y) + (((x)-(y))&(((x)-(y))>>31)))
 #endif//WELS_MIN
+#endif // Alternative implementation of WELS_MAX and WELS_MIN
 
-#endif
 
 #ifndef WELS_CEIL
 #define WELS_CEIL(x)	ceil(x)	// FIXME: low complexity instead of math library used
@@ -177,7 +131,7 @@ __declspec(align(alignment)) type name[(sizex)*(sizey)]
 	nC += (uint8_t)(nA == -1 && nB == -1);           \
 }
 
-static __inline int32_t CeilLog2 (int32_t i) {
+static inline int32_t CeilLog2 (int32_t i) {
 int32_t s = 0;
 i--;
 while (i > 0) {
@@ -242,6 +196,18 @@ return iY;
 
 /*
  * Description: to check variable validation and return the specified result
+ *	iResult:	value to be checked
+ *	iExpected:	the expected value
+ */
+#ifndef WELS_VERIFY_RETURN_IFNEQ
+#define WELS_VERIFY_RETURN_IFNEQ(iResult, iExpected) \
+	if ( iResult != iExpected ){ \
+		return iResult; \
+	}
+#endif//#if WELS_VERIFY_RETURN_IF
+
+/*
+ * Description: to check variable validation and return the specified result
  *	iResult:	value to be return
  *	bCaseIf:	negative condition to be verified
  */
@@ -267,70 +233,6 @@ return iY;
 	}
 #endif//#if WELS_VERIFY_RETURN_PROC_IF
 
-/*
- * Description:	to check variable validation and return
- *	case_if:	negtive condition to be verified
- *	return:		NONE
- */
-#ifndef WELS_VERIFY_IF
-#define WELS_VERIFY_IF(bCaseIf) \
-	if ( bCaseIf ){ \
-		return; \
-	}
-#endif//#if WELS_VERIFY_IF
-
-/*
- * Description:	to check variable validation and return with correspoinding process advance.
- *	case_if:	negtive condition to be verified
- *	proc:		process need preform
- *	return:		NONE
- */
-#ifndef WELS_VERIFY_PROC_IF
-#define WELS_VERIFY_PROC_IF(bCaseIf, fProc) \
-	if ( bCaseIf ){ \
-		fProc; \
-		return; \
-	}
-#endif//#if WELS_VERIFY_IF
-
-/*
- * Description: to safe free a ptr with free function pointer
- *  p:			pointer to be destroyed
- *	free_fn:	free function pointer used
- */
-#ifndef WELS_SAFE_FREE_P
-#define WELS_SAFE_FREE_P(pPtr, fFreeFunc) \
-	do{ \
-		if ( NULL != (pPtr) ){ \
-			fFreeFunc( (pPtr) ); \
-			(pPtr) = NULL; \
-		} \
-	}while( 0 );
-#endif//#if WELS_SAFE_FREE_P
-
-/*
- * Description: to safe free an array ptr with free function pointer
- *	arr:		pointer to an array, something like "**p";
- *	num:		number of elements in array
- *  free_fn:	free function pointer
- */
-#ifndef WELS_SAFE_FREE_ARR
-#define WELS_SAFE_FREE_ARR(pArray, iNum, fFreeFunc) \
-	do{ \
-		if ( NULL != (pArray) ){ \
-			int32_t iIdx = 0; \
-			while( iIdx < iNum ){ \
-				if ( NULL != (pArray)[iIdx] ){ \
-					fFreeFunc( (pArray)[iIdx] ); \
-					(pArray)[iIdx] = NULL; \
-				} \
-				++ iIdx; \
-			} \
-			fFreeFunc((pArray)); \
-			(pArray) = NULL; \
-		} \
-	}while( 0 );
-#endif//#if WELS_SAFE_FREE_ARR
 static inline int32_t WELS_LOG2 (uint32_t v) {
 int32_t r = 0;
 while (v >>= 1) {
@@ -342,39 +244,10 @@ return r;
 
 #define CLIP3_QP_0_51(q)		WELS_CLIP3(q, 0, 51)	// ((q) < (0) ? (0) : ((q) > (51) ? (51) : (q)))
 #define   CALC_BI_STRIDE(width,bitcount)  ((((width * bitcount) + 31) & ~31) >> 3)
-#ifdef    WORDS_BIGENDIAN
-
-static inline uint32_t ENDIAN_FIX (uint32_t x) {
-return x;
-}
-
-#else
 
 
-#if defined(_MSC_VER) && defined(_M_IX86)
-static inline uint32_t ENDIAN_FIX (uint32_t x) {
-__asm {
-  mov   eax,  x
-  bswap   eax
-  mov   x,    eax
-}
-return x;
-}
-#else  // GCC
-static inline uint32_t ENDIAN_FIX (uint32_t x) {
-#ifdef X86_ARCH
-__asm__ __volatile__ ("bswap %0":"+r" (x));
-#else
-x = ((x & 0xff000000) >> 24) | ((x & 0xff0000) >> 8) |
-    ((x & 0xff00) << 8) | ((x & 0xff) << 24);
-#endif
-return x;
-}
 
 
-#endif
-
-#endif
 #ifndef BUTTERFLY1x2
 #define BUTTERFLY1x2(b) (((b)<<8) | (b))
 #endif//BUTTERFLY1x2
@@ -387,15 +260,7 @@ return x;
 #define BUTTERFLY4x8(dw) (((uint64_t)(dw)<<32) | (dw))
 #endif//BUTTERFLY4x8
 
-static inline int32_t WELS_MEDIAN (int32_t x,  int32_t y, int32_t z) {
-int32_t t = (x - y) & ((x - y) >> 31);
-x -= t;
-y += t;
-y -= (y - z) & ((y - z) >> 31);
-y += (x - y) & ((x - y) >> 31);
-return y;
-}
-static inline BOOL_T WELS_POWER2_IF (uint32_t v) {
+static inline bool WELS_POWER2_IF (uint32_t v) {
 return (v && ! (v & (v - 1)));
 }
 

@@ -39,16 +39,8 @@
  */
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 
 #include "svc_motion_estimate.h"
-#include "svc_enc_golomb.h"
-#include "macros.h"
-#include "sample.h"
-#include "array_stack_align.h"
-#include "cpu_core.h"	// WELS_CPU_SSE41
 
 namespace WelsSVCEnc {
 /*!
@@ -163,7 +155,7 @@ void WelsMotionEstimateInitialPoint (SWelsFuncPtrList* pFuncList, SWelsME* pMe, 
   }
 }
 
-bool_t WelsMeSadCostSelect (int32_t* iSadCost, const uint16_t* kpMvdCost, int32_t* pBestCost, const int32_t kiDx,
+bool WelsMeSadCostSelect (int32_t* iSadCost, const uint16_t* kpMvdCost, int32_t* pBestCost, const int32_t kiDx,
                             const int32_t kiDy, int32_t* pIx, int32_t* pIy) {
   int32_t iTempSadCost[4];
   int32_t iInputSadCost = *pBestCost;
@@ -221,7 +213,7 @@ void WelsMotionEstimateIterativeSearch (SWelsFuncPtrList* pFuncList, SWelsME* pM
 
     int32_t iX, iY;
 
-    const bool_t kbIsBestCostWorse = WelsMeSadCostSelect (iSadCosts, kpMvdCost, &iBestCost, iMvDx, iMvDy, &iX, &iY);
+    const bool kbIsBestCostWorse = WelsMeSadCostSelect (iSadCosts, kpMvdCost, &iBestCost, iMvDx, iMvDy, &iX, &iY);
     if (kbIsBestCostWorse)
       break;
 

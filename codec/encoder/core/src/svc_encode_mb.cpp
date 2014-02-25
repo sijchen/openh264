@@ -37,17 +37,11 @@
  *************************************************************************************
  */
 
-#include <stdio.h>	//test use for file operation
-#include <string.h>
 
 #include "svc_encode_mb.h"
 #include "encode_mb_aux.h"
 #include "decode_mb_aux.h"
 #include "ls_defines.h"
-#include "cpu_core.h"
-#include "as264_common.h"
-#include "mb_cache.h"
-#include "array_stack_align.h"
 
 namespace WelsSVCEnc {
 void WelsDctMb (int16_t* pRes, uint8_t* pEncMb, int32_t iEncStride, uint8_t* pBestPred, PDctFunc pfDctFourT4) {
@@ -331,7 +325,7 @@ void    WelsRecPskip (SDqLayer* pCurLayer, SWelsFuncPtrList* pFuncList, SMB* pCu
   pFuncList->pfSetMemZeroSize8 (pCurMb->pNonZeroCount,	24);
 }
 
-BOOL_T WelsTryPYskip (sWelsEncCtx* pEncCtx, SMB* pCurMb, SMbCache* pMbCache) {
+bool WelsTryPYskip (sWelsEncCtx* pEncCtx, SMB* pCurMb, SMbCache* pMbCache) {
   int32_t iSingleCtrMb	= 0;
   int16_t* pRes = pMbCache->pCoeffLevel;
   const uint8_t kuiQp = pCurMb->uiLumaQp;
@@ -345,20 +339,20 @@ BOOL_T WelsTryPYskip (sWelsEncCtx* pEncCtx, SMB* pCurMb, SMbCache* pMbCache) {
     pEncCtx->pFuncList->pfQuantizationFour4x4Max (pRes, pFF,  pMF, (int16_t*)aMax);
 
     for (j = 0; j < 4; j++) {
-      if (aMax[j] > 1) return FALSE;	// iSingleCtrMb += 9, can't be P_SKIP
+      if (aMax[j] > 1) return false;	// iSingleCtrMb += 9, can't be P_SKIP
       else if (aMax[j] == 1) {
         pEncCtx->pFuncList->pfScan4x4 (pBlock, pRes); //
         iSingleCtrMb += pEncCtx->pFuncList->pfCalculateSingleCtr4x4 (pBlock);
       }
-      if (iSingleCtrMb >= 6) 	return FALSE; //from JVT-O079
+      if (iSingleCtrMb >= 6) 	return false; //from JVT-O079
       pRes += 16;
       pBlock += 16;
     }
   }
-  return TRUE;
+  return true;
 }
 
-BOOL_T    WelsTryPUVskip (sWelsEncCtx* pEncCtx, SMB* pCurMb, SMbCache* pMbCache, int32_t iUV) {
+bool    WelsTryPUVskip (sWelsEncCtx* pEncCtx, SMB* pCurMb, SMbCache* pMbCache, int32_t iUV) {
   int16_t* pRes = ((iUV == 1) ? & (pMbCache->pCoeffLevel[256]) : & (pMbCache->pCoeffLevel[256 + 64]));
 
   const uint8_t kuiQp = g_kuiChromaQpTable[CLIP3_QP_0_51 (pCurMb->uiLumaQp +
@@ -368,7 +362,7 @@ BOOL_T    WelsTryPUVskip (sWelsEncCtx* pEncCtx, SMB* pCurMb, SMbCache* pMbCache,
   const int16_t* pFF = g_kiQuantInterFF[kuiQp];
 
   if (pEncCtx->pFuncList->pfQuantizationHadamard2x2Skip (pRes, pFF[0] << 1, pMF[0]>>1))
-    return FALSE;
+    return false;
   else {
     uint16_t aMax[4], j;
     int32_t iSingleCtrMb = 0;
@@ -376,16 +370,16 @@ BOOL_T    WelsTryPUVskip (sWelsEncCtx* pEncCtx, SMB* pCurMb, SMbCache* pMbCache,
     pEncCtx->pFuncList->pfQuantizationFour4x4Max (pRes, pFF,  pMF, (int16_t*)aMax);
 
     for (j = 0; j < 4; j++) {
-      if (aMax[j] > 1)		return FALSE;	// iSingleCtrMb += 9, can't be P_SKIP
+      if (aMax[j] > 1)		return false;	// iSingleCtrMb += 9, can't be P_SKIP
       else if (aMax[j] == 1) {
         pEncCtx->pFuncList->pfScan4x4Ac (pBlock, pRes);
         iSingleCtrMb += pEncCtx->pFuncList->pfCalculateSingleCtr4x4 (pBlock);
       }
-      if (iSingleCtrMb >= 7) return FALSE; //from JVT-O079
+      if (iSingleCtrMb >= 7) return false; //from JVT-O079
       pRes += 16;
       pBlock += 16;
     }
-    return TRUE;
+    return true;
   }
 }
 

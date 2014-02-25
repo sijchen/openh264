@@ -45,36 +45,41 @@
 #include "macros.h"
 //#include <assert.h>
 #include "ls_defines.h"
+#include "error_code.h"
 
 namespace WelsDec {
 
-#define GET_WORD(iCurBits, pBufPtr, iLeftBits) { \
-	iCurBits |= ((pBufPtr[0] << 8) | pBufPtr[1]) << (iLeftBits); \
+#define WELS_READ_VERIFY(uiRet) { \
+  if( uiRet != ERR_NONE ) \
+    return uiRet; \
+}
+#define GET_WORD(iCurBits, pBufPtr, iLeftBits, iAllowedBytes, iReadBytes) { \
+  if (iReadBytes > iAllowedBytes+1) { \
+    return ERR_INFO_READ_OVERFLOW; \
+  } \
+	iCurBits |= ((uint32_t)((pBufPtr[0] << 8) | pBufPtr[1])) << (iLeftBits); \
 	iLeftBits -= 16; \
 	pBufPtr +=2; \
 }
-#define NEED_BITS(iCurBits, pBufPtr, iLeftBits) { \
+#define NEED_BITS(iCurBits, pBufPtr, iLeftBits, iAllowedBytes, iReadBytes) { \
 	if( iLeftBits > 0 ) { \
-	GET_WORD(iCurBits, pBufPtr, iLeftBits); \
+	GET_WORD(iCurBits, pBufPtr, iLeftBits, iAllowedBytes, iReadBytes); \
 	} \
 }
 #define UBITS(iCurBits, iNumBits) (iCurBits>>(32-(iNumBits)))
-#define DUMP_BITS(iCurBits, pBufPtr, iLeftBits, iNumBits) { \
+#define DUMP_BITS(iCurBits, pBufPtr, iLeftBits, iNumBits, iAllowedBytes, iReadBytes) { \
 	iCurBits <<= (iNumBits); \
 	iLeftBits += (iNumBits); \
-	NEED_BITS(iCurBits, pBufPtr, iLeftBits); \
+	NEED_BITS(iCurBits, pBufPtr, iLeftBits, iAllowedBytes, iReadBytes); \
 }
 
-static inline int32_t ShowBits (PBitStringAux pBs, int32_t iNumBits) {
-return UBITS (pBs->uiCurBits, iNumBits);
-}
-static inline void_t FlushBits (PBitStringAux pBs, int32_t iNumBits) {
-DUMP_BITS (pBs->uiCurBits, pBs->pCurBuf, pBs->iLeftBits, iNumBits);
-}
-static inline int32_t BsGetBits (PBitStringAux pBs, int32_t iNumBits) {
-int32_t iRc = UBITS (pBs->uiCurBits, iNumBits);
-DUMP_BITS (pBs->uiCurBits, pBs->pCurBuf, pBs->iLeftBits, iNumBits);
-return iRc;
+static inline int32_t BsGetBits (PBitStringAux pBs, int32_t iNumBits, uint32_t* pCode) {
+  int32_t iRc = UBITS (pBs->uiCurBits, iNumBits);
+  int32_t iAllowedBytes = pBs->pEndBuf - pBs->pStartBuf; //actual stream bytes
+  int32_t iReadBytes = pBs->pCurBuf - pBs->pStartBuf;
+  DUMP_BITS (pBs->uiCurBits, pBs->pCurBuf, pBs->iLeftBits, iNumBits, iAllowedBytes, iReadBytes);
+  *pCode = iRc;
+  return ERR_NONE;
 }
 
 /*
@@ -88,110 +93,123 @@ extern const uint8_t g_kuiInterCbpTable[48];
 extern const uint8_t g_kuiLeadingZeroTable[256];
 
 static const uint32_t g_kuiPrefix8BitsTable[16] = {
-0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3
+  0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3
 };
 
 
 static inline uint32_t GetPrefixBits (uint32_t uiValue) {
-uint32_t iNumBit = 0;
+  uint32_t iNumBit = 0;
 
-if (uiValue & 0xffff0000) {
-  uiValue >>= 16;
-  iNumBit += 16;
-}
-if (uiValue & 0xff00) {
-  uiValue >>= 8;
-  iNumBit += 8;
-}
+  if (uiValue & 0xffff0000) {
+    uiValue >>= 16;
+    iNumBit += 16;
+  }
+  if (uiValue & 0xff00) {
+    uiValue >>= 8;
+    iNumBit += 8;
+  }
 
-if (uiValue & 0xf0) {
-  uiValue >>= 4;
-  iNumBit += 4;
-}
-iNumBit += g_kuiPrefix8BitsTable[uiValue];
+  if (uiValue & 0xf0) {
+    uiValue >>= 4;
+    iNumBit += 4;
+  }
+  iNumBit += g_kuiPrefix8BitsTable[uiValue];
 
-return (32 - iNumBit);
+  return (32 - iNumBit);
 }
 
 /*
  *	Read one bit from bit stream followed
  */
-static inline uint32_t BsGetOneBit (PBitStringAux pBs) {
-return (BsGetBits (pBs, 1));
+static inline uint32_t BsGetOneBit (PBitStringAux pBs, uint32_t* pCode) {
+  return (BsGetBits (pBs, 1, pCode));
 }
 
-static inline int32_t GetLeadingZeroBits (uint32_t iCurBits) { //<=16 bits
-int32_t  iValue;
+static inline int32_t GetLeadingZeroBits (uint32_t iCurBits) { //<=32 bits
+  uint32_t  uiValue;
 
-iValue = UBITS (iCurBits, 8); //ShowBits( bs, 8 );
-if (iValue) {
-  return g_kuiLeadingZeroTable[iValue];
+  uiValue = UBITS (iCurBits, 8); //ShowBits( bs, 8 );
+  if (uiValue) {
+    return g_kuiLeadingZeroTable[uiValue];
+  }
+
+  uiValue = UBITS (iCurBits, 16); //ShowBits( bs, 16 );
+  if (uiValue) {
+    return (g_kuiLeadingZeroTable[uiValue] + 8);
+  }
+
+  uiValue = UBITS (iCurBits, 24); //ShowBits( bs, 24 );
+  if (uiValue) {
+    return (g_kuiLeadingZeroTable[uiValue] + 16);
+  }
+
+  uiValue = iCurBits; //ShowBits( bs, 32 );
+  if (uiValue) {
+    return (g_kuiLeadingZeroTable[uiValue] + 24);
+  }
+//ASSERT(false);  // should not go here
+  return -1;
 }
 
-iValue = UBITS (iCurBits, 16); //ShowBits( bs, 16 );
-if (iValue) {
-  return (g_kuiLeadingZeroTable[iValue] + 8);
-}
+static inline uint32_t BsGetUe (PBitStringAux pBs, uint32_t* pCode) {
+  uint32_t iValue = 0;
+  int32_t  iLeadingZeroBits = GetLeadingZeroBits (pBs->uiCurBits);
+  int32_t iAllowedBytes, iReadBytes;
+  iAllowedBytes = pBs->pEndBuf - pBs->pStartBuf; //actual stream bytes
 
-//ASSERT(FALSE);  // should not go here
-return -1;
-}
+  if (iLeadingZeroBits == -1) { //bistream error
+    return ERR_INFO_READ_LEADING_ZERO;//-1
+  } else if (iLeadingZeroBits >
+             16) { //rarely into this condition (even may be bitstream error), prevent from 16-bit reading overflow
+    //using two-step reading instead of one time reading of >16 bits.
+    iReadBytes = pBs->pCurBuf - pBs->pStartBuf;
+    DUMP_BITS (pBs->uiCurBits, pBs->pCurBuf, pBs->iLeftBits, 16, iAllowedBytes, iReadBytes);
+    iReadBytes = pBs->pCurBuf - pBs->pStartBuf;
+    DUMP_BITS (pBs->uiCurBits, pBs->pCurBuf, pBs->iLeftBits, iLeadingZeroBits + 1 - 16, iAllowedBytes, iReadBytes);
+  } else {
+    iReadBytes = pBs->pCurBuf - pBs->pStartBuf;
+    DUMP_BITS (pBs->uiCurBits, pBs->pCurBuf, pBs->iLeftBits, iLeadingZeroBits + 1, iAllowedBytes, iReadBytes);
+  }
+  if (iLeadingZeroBits) {
+    iValue = UBITS (pBs->uiCurBits, iLeadingZeroBits);
+    iReadBytes = pBs->pCurBuf - pBs->pStartBuf;
+    DUMP_BITS (pBs->uiCurBits, pBs->pCurBuf, pBs->iLeftBits, iLeadingZeroBits, iAllowedBytes, iReadBytes);
+  }
 
-static inline uint32_t BsGetUe (PBitStringAux pBs) {
-uint32_t iValue = 0;
-int32_t  iLeadingZeroBits = GetLeadingZeroBits (pBs->uiCurBits);
-
-if (iLeadingZeroBits == -1) { //bistream error
-  return 0xffffffff;//-1
-}
-
-DUMP_BITS (pBs->uiCurBits, pBs->pCurBuf, pBs->iLeftBits, iLeadingZeroBits + 1);
-
-if (iLeadingZeroBits) {
-  iValue = UBITS (pBs->uiCurBits, iLeadingZeroBits);
-  DUMP_BITS (pBs->uiCurBits, pBs->pCurBuf, pBs->iLeftBits, iLeadingZeroBits);
-}
-
-return ((1 << iLeadingZeroBits) - 1 + iValue);
+  *pCode = ((1 << iLeadingZeroBits) - 1 + iValue);
+  return ERR_NONE;
 }
 
 
 /*
  *	Read signed exp golomb codes
  */
-static inline int32_t BsGetSe (PBitStringAux pBs) {
-uint32_t uiCodeNum;
+static inline int32_t BsGetSe (PBitStringAux pBs, int32_t* pCode) {
+  uint32_t uiCodeNum;
 
-uiCodeNum = BsGetUe (pBs);
+  WELS_READ_VERIFY (BsGetUe (pBs, &uiCodeNum));
 
-if (uiCodeNum & 0x01) {
-  return (int32_t) ((uiCodeNum + 1) >> 1);
-} else {
-  return NEG_NUM ((int32_t) (uiCodeNum >> 1));
-}
-}
-
-/*
- *	Read truncated exp golomb codes
- */
-static inline uint32_t BsGetTe (PBitStringAux pBs, uint8_t uiRange) {
-if (1 == uiRange) {
-  return BsGetOneBit (pBs) ^ 1;
-} else {
-  return BsGetUe (pBs);
-}
+  if (uiCodeNum & 0x01) {
+    *pCode = (int32_t) ((uiCodeNum + 1) >> 1);
+  } else {
+    *pCode = NEG_NUM ((int32_t) (uiCodeNum >> 1));
+  }
+  return ERR_NONE;
 }
 
 /*
  * Get unsigned truncated exp golomb code.
  */
-static inline int32_t BsGetTe0 (PBitStringAux pBs, int32_t iRange) {
-if (iRange == 1)
-  return 0;
-else if (iRange == 2)
-  return BsGetOneBit (pBs) ^ 1;
-else
-  return BsGetUe (pBs);
+static inline int32_t BsGetTe0 (PBitStringAux pBs, int32_t iRange, uint32_t* pCode) {
+  if (iRange == 1) {
+    *pCode = 0;
+  } else if (iRange == 2) {
+    WELS_READ_VERIFY (BsGetOneBit (pBs, pCode));
+    *pCode ^= 1;
+  } else {
+    WELS_READ_VERIFY (BsGetUe (pBs, pCode));
+  }
+  return ERR_NONE;
 }
 
 /*
@@ -199,19 +217,110 @@ else
  */
 static inline int32_t BsGetTrailingBits (uint8_t* pBuf) {
 // TODO
-uint32_t uiValue = *pBuf;
-int32_t iRetNum = 1;
+  uint32_t uiValue = *pBuf;
+  int32_t iRetNum = 1;
 
-do {
-  if (uiValue & 1)
-    return iRetNum;
-  uiValue >>= 1;
-  ++ iRetNum;
-} while (iRetNum < 9);
+  do {
+    if (uiValue & 1)
+      return iRetNum;
+    uiValue >>= 1;
+    ++ iRetNum;
+  } while (iRetNum < 9);
 
-return 0;
+  return 0;
 }
+//define macros to check syntax elements
+#define WELS_CHECK_SE_BOTH_ERROR(val, lower_bound, upper_bound, syntax_name, ret_code) do {\
+if ((val < lower_bound) || (val > upper_bound)) {\
+  WelsLog(pCtx, WELS_LOG_ERROR, "invalid syntax " syntax_name " %d\n", val);\
+  return ret_code;\
+}\
+}while(0)
 
+#define WELS_CHECK_SE_LOWER_ERROR(val, lower_bound, syntax_name, ret_code) do {\
+if (val < lower_bound) {\
+  WelsLog(pCtx, WELS_LOG_ERROR, "invalid syntax " syntax_name " %d\n", val);\
+  return ret_code;\
+}\
+}while(0)
+
+#define WELS_CHECK_SE_UPPER_ERROR(val, upper_bound, syntax_name, ret_code) do {\
+if (val > upper_bound) {\
+  WelsLog(pCtx, WELS_LOG_ERROR, "invalid syntax " syntax_name " %d\n", val);\
+  return ret_code;\
+}\
+}while(0)
+
+#define WELS_CHECK_SE_BOTH_ERROR_NOLOG(val, lower_bound, upper_bound, syntax_name, ret_code) do {\
+if ((val < lower_bound) || (val > upper_bound)) {\
+  return ret_code;\
+}\
+}while(0)
+
+#define WELS_CHECK_SE_LOWER_ERROR_NOLOG(val, lower_bound, syntax_name, ret_code) do {\
+if (val < lower_bound) {\
+  return ret_code;\
+}\
+}while(0)
+
+#define WELS_CHECK_SE_UPPER_ERROR_NOLOG(val, upper_bound, syntax_name, ret_code) do {\
+if (val > upper_bound) {\
+  return ret_code;\
+}\
+}while(0)
+
+
+#define WELS_CHECK_SE_BOTH_WARNING(val, lower_bound, upper_bound, syntax_name) do {\
+if ((val < lower_bound) || (val > upper_bound)) {\
+  WelsLog(pCtx, WELS_LOG_WARNING, "invalid syntax " syntax_name " %d\n", val);\
+}\
+}while(0)
+
+#define WELS_CHECK_SE_LOWER_WARNING(val, lower_bound, syntax_name) do {\
+if (val < lower_bound) {\
+  WelsLog(pCtx, WELS_LOG_WARNING, "invalid syntax " syntax_name " %d\n", val);\
+}\
+}while(0)
+
+#define WELS_CHECK_SE_UPPER_WARNING(val, upper_bound, syntax_name) do {\
+if (val > upper_bound) {\
+  WelsLog(pCtx, WELS_LOG_WARNING, "invalid syntax " syntax_name " %d\n", val);\
+}\
+}while(0)
+// below define syntax element offset
+// for bit_depth_luma_minus8 and bit_depth_chroma_minus8
+#define BIT_DEPTH_LUMA_OFFSET 8
+#define BIT_DEPTH_CHROMA_OFFSET 8
+// for log2_max_frame_num_minus4
+#define LOG2_MAX_FRAME_NUM_OFFSET 4
+// for log2_max_pic_order_cnt_lsb_minus4
+#define LOG2_MAX_PIC_ORDER_CNT_LSB_OFFSET 4
+// for pic_width_in_mbs_minus1
+#define PIC_WIDTH_IN_MBS_OFFSET 1
+// for pic_height_in_map_units_minus1
+#define PIC_HEIGHT_IN_MAP_UNITS_OFFSET 1
+// for bit_depth_aux_minus8
+#define BIT_DEPTH_AUX_OFFSET 8
+// for num_slice_groups_minus1
+#define NUM_SLICE_GROUPS_OFFSET 1
+// for run_length_minus1
+#define RUN_LENGTH_OFFSET 1
+// for slice_group_change_rate_minus1
+#define SLICE_GROUP_CHANGE_RATE_OFFSET 1
+// for pic_size_in_map_units_minus1
+#define PIC_SIZE_IN_MAP_UNITS_OFFSET 1
+// for num_ref_idx_l0_default_active_minus1 and num_ref_idx_l1_default_active_minus1
+#define NUM_REF_IDX_L0_DEFAULT_ACTIVE_OFFSET 1
+#define NUM_REF_IDX_L1_DEFAULT_ACTIVE_OFFSET 1
+// for pic_init_qp_minus26 and pic_init_qs_minus26
+#define PIC_INIT_QP_OFFSET 26
+#define PIC_INIT_QS_OFFSET 26
+// for num_ref_idx_l0_active_minus1 and num_ref_idx_l1_active_minus1
+#define NUM_REF_IDX_L0_ACTIVE_OFFSET 1
+#define NUM_REF_IDX_L1_ACTIVE_OFFSET 1
+
+// From Level 5.2
+#define MAX_MB_SIZE 36864
 } // namespace WelsDec
 
 #endif//WELS_EXPONENTIAL_GOLOMB_ENTROPY_CODING_H__

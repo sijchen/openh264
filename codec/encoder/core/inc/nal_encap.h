@@ -47,6 +47,7 @@
 //SBitStringAux
 namespace WelsSVCEnc {
 
+#define NAL_HEADER_SIZE (4)
 /*
  *	Raw payload pData for NAL unit, AVC/SVC compatible
  */
@@ -74,7 +75,7 @@ int32_t				iCountNals;			// count number of NAL in list
 // SVC: num_sps (MAX_D) + num_pps (MAX_D) + num_vcl (MAX_D * MAX_Q)
 int32_t				iNalIndex;			// coding NAL currently, 0 based
 
-//	BOOL_T				bAnnexBFlag;		// annexeb flag, to figure it pOut the packetization mode whether need 4 bytes (0 0 0 1) of start code prefix
+//	bool				bAnnexBFlag;		// annexeb flag, to figure it pOut the packetization mode whether need 4 bytes (0 0 0 1) of start code prefix
 } SWelsEncoderOutput;
 
 //#define MT_DEBUG_BS_WR	0	// for MT debugging if needed
@@ -92,9 +93,9 @@ SWelsNalRaw		sNalList[2];		// nal list, PREFIX NAL(if applicable) + SLICE NAL
 int32_t				iNalLen[2];
 int32_t				iNalIndex;			// coding NAL currently, 0 based
 
-//	BOOL_T				bAnnexBFlag;		// annexeb flag, to figure it pOut the packetization mode whether need 4 bytes (0 0 0 1) of start code prefix
+//	bool				bAnnexBFlag;		// annexeb flag, to figure it pOut the packetization mode whether need 4 bytes (0 0 0 1) of start code prefix
 #if MT_DEBUG_BS_WR
-BOOL_T				bSliceCodedFlag;
+bool				bSliceCodedFlag;
 #endif//MT_DEBUG_BS_WR
 } SWelsSliceBs;
 
@@ -126,8 +127,9 @@ void WelsUnloadNalForSlice (SWelsSliceBs* pSliceBs);
  * \param	pDstLen		length of pDst NAL output
  * \param	annexeb		annexeb flag
  * \param	pRawNal			pRawNal NAL pData
- * \return	length of pDst NAL
+ * \return	ERR_CODE
  */
+<<<<<<< HEAD
 int32_t WelsEncodeNal (SWelsNalRaw* pRawNal, void* pDst, int32_t* pDstLen);
 
 /*!
@@ -144,9 +146,13 @@ int32_t WelsEncodeNal (SWelsNalRaw* pRawNal, void* pDst, int32_t* pDstLen);
 //TODO: to merge the two after multithread refactoring
 int32_t WelsEncodeNalExt_wCheckAndRealloc(void* pCtx, SWelsNalRaw* pRawNal, void* pNalHeaderExt, const int32_t kiSourceLength, int32_t* pDstLen);
 int32_t WelsEncodeNalExt_OldNeedFix(SWelsNalRaw* pRawNal, void* pNalHeaderExt, void* pDst, int32_t* pDstLen);
+=======
+int32_t WelsEncodeNal (SWelsNalRaw* pRawNal, void* pNalHeaderExt, const int32_t kiDstBufferLen, void* pDst, int32_t* pDstLen);
+
+>>>>>>> upstream/master
 /*!
  * \brief	write prefix nal
  */
-int32_t WelsWriteSVCPrefixNal (SBitStringAux* pBitStringAux, const int32_t keNalRefIdc, const bool_t kbIdrFlag);
+int32_t WelsWriteSVCPrefixNal (SBitStringAux* pBitStringAux, const int32_t keNalRefIdc, const bool kbIdrFlag);
 }
 #endif//WELS_NAL_UNIT_ENCAPSULATION_H__

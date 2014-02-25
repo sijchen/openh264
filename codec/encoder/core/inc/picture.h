@@ -58,7 +58,7 @@ typedef struct TagPicture {
   int32_t		iPictureType;	// got from sSliceHeader(): eSliceType
   int32_t		iFramePoc;		// frame POC
 
-  real32_t	fFrameRate;   // MOVE
+  float			fFrameRate;   // MOVE
   int32_t		iFrameNum;		// frame number			//for pRef pic management
 
   uint32_t*	uiRefMbType;	// for iMbWidth*iMbHeight
@@ -72,8 +72,8 @@ typedef struct TagPicture {
   int32_t		iMarkFrameNum;
   int32_t		iLongTermPicNum;
 
-  bool_t		bUsedAsRef;						//for pRef pic management
-  bool_t		bIsLongRef;	// long term reference frame flag	//for pRef pic management
+  bool		bUsedAsRef;						//for pRef pic management
+  bool		bIsLongRef;	// long term reference frame flag	//for pRef pic management
   uint8_t		uiRecieveConfirmed;
   uint8_t		uiTemporalId;
   uint8_t		uiSpatialId;

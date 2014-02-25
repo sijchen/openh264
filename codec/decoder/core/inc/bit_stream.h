@@ -64,9 +64,7 @@ int32_t		iLeftBits;	// count number of available bits left ([1, 8]),
  */
 int32_t InitBits (PBitStringAux pBitString, const uint8_t* kpBuf, const int32_t kiSize);
 
-void_t InitReadBits (PBitStringAux pBitString);
-
-uint32_t EndianFix (uint32_t uiX);
+void InitReadBits (PBitStringAux pBitString);
 
 
 

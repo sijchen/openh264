@@ -42,10 +42,10 @@
 #ifndef WELSVP_DENOISE_H
 #define WELSVP_DENOISE_H
 
-#include "../common/util.h"
-#include "../common/memory.h"
-#include "../common/WelsFrameWork.h"
-#include "../../interface/IWelsVP.h"
+#include "util.h"
+#include "memory.h"
+#include "WelsFrameWork.h"
+#include "IWelsVP.h"
 
 
 #define DENOISE_GRAY_RADIUS (1)
@@ -96,11 +96,9 @@ class CDenoiser : public IStrategy {
   void WaverageDenoiseChroma (uint8_t* pSrcUV, int32_t width, int32_t height, int32_t stride);
 
  private:
-  float_t	 m_fSigmaGrey;			//sigma for grey scale similarity, suggestion 2.5-3
-  uint32_t  m_uiFilterWindow;				//filter window diameter
+  float		 m_fSigmaGrey;			//sigma for grey scale similarity, suggestion 2.5-3
   uint16_t	 m_uiSpaceRadius;			//filter windows radius: 1-3x3, 2-5x5,3-7x7. Larger size, slower speed
   uint16_t	 m_uiType;					//do denoising on which component 1-Y, 2-U, 4-V; 7-YUV, 3-YU, 5-YV, 6-UV
-  uint32_t*  m_pGreyWeightTable;		//weight table for grey scale
 
   SDenoiseFuncs m_pfDenoise;
   int32_t      m_CPUFlag;

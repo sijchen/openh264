@@ -38,7 +38,6 @@
  *************************************************************************************
  */
 
-#include "svc_enc_golomb.h"
 #include "vlc_encoder.h"
 #include "ls_defines.h"
 #include "svc_set_mb_syn_cavlc.h"
@@ -72,7 +71,7 @@ void WelsSpatialWriteMbPred (sWelsEncCtx* pEncCtx, SSlice* pSlice, SMB* pCurMb) 
   int32_t i = 0;
 
   SMVUnitXY sMvd[2];
-  bool_t* pPredFlag;
+  bool* pPredFlag;
   int8_t* pRemMode;
 
   int32_t iMbOffset = 0;
@@ -180,7 +179,7 @@ void WelsSpatialWriteSubMbPred (sWelsEncCtx* pEncCtx, SSlice* pSlice, SMB* pCurM
   int32_t iNumRefIdxl0ActiveMinus1 = pSliceHeadExt->sSliceHeader.uiNumRefIdxL0Active - 1;
   int32_t i;
 
-  bool_t bSubRef0 = false;
+  bool bSubRef0 = false;
   const uint8_t* kpScan4 = & (g_kuiMbCountScan4Idx[0]);
 
   /* mb type */
@@ -215,6 +214,7 @@ void WelsSpatialWriteSubMbPred (sWelsEncCtx* pEncCtx, SSlice* pSlice, SMB* pCurM
 int32_t CheckBitstreamBuffer(const uint8_t	kuiSliceIdx, sWelsEncCtx* pEncCtx,  SBitStringAux* pBs)
 {
   const int32_t iLeftLength = pBs->pBufEnd - pBs->pBufPtr - 1;
+<<<<<<< HEAD
   if (iLeftLength <= 0) {
     return ENC_RETURN_UNEXPECTED;
   }
@@ -255,6 +255,13 @@ int32_t CheckBitstreamBuffer(const uint8_t	kuiSliceIdx, sWelsEncCtx* pEncCtx,  S
     pBs->pBufPtr = pBs->pBuf +kiCurrentLength;
     pBs->uiCurBits = kuiCurBits;  
     pBs->iLeftBits = kiLeftBits;
+=======
+  assert(iLeftLength > 0);
+
+  if (iLeftLength < MAX_MACROBLOCK_SIZE_IN_BYTE) {
+    return ENC_RETURN_MEMALLOCERR;
+    //TODO: call the realloc&copy instead
+>>>>>>> upstream/master
   }
   return ENC_RETURN_SUCCESS;
 }
@@ -290,7 +297,11 @@ int32_t WelsSpatialWriteMbSyn (sWelsEncCtx* pEncCtx, SSlice* pSlice, SMB* pCurMb
     pCurMb->uiChromaQp = g_kuiChromaQpTable[CLIP3_QP_0_51 (pCurMb->uiLumaQp +
                                             pEncCtx->pCurDqLayer->sLayerInfo.pPpsP->uiChromaQpIndexOffset)];
   }
+<<<<<<< HEAD
  
+=======
+
+>>>>>>> upstream/master
   /* Step 4: Check the left buffer */
   return CheckBitstreamBuffer(pSlice->uiSliceIdx, pEncCtx, pBs);
 }

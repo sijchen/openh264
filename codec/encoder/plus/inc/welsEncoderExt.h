@@ -49,6 +49,7 @@
 #include "encoder_context.h"
 #include "param_svc.h"
 #include "extern.h"
+#include "cpu.h"
 
 //#define OUTPUT_BIT_STREAM
 //#define DUMP_SRC_PICTURE
@@ -65,31 +66,31 @@ class CWelsH264SVCEncoder : public ISVCEncoder {
   /*
    * return: CM_RETURN: 0 - success; otherwise - failed;
    */
-  virtual int Initialize (SVCEncodingParam* argv, const INIT_TYPE init_type);
-  virtual int Initialize (void* argv, const INIT_TYPE init_type);
+  virtual int EXTAPI Initialize (const SEncParamBase* argv);
+  virtual int EXTAPI InitializeExt (const SEncParamExt* argv);
 
-  virtual int Uninitialize();
+  virtual int EXTAPI Uninitialize();
 
   /*
    * return: EVideoFrameType [IDR: videoFrameTypeIDR; P: videoFrameTypeP; ERROR: videoFrameTypeInvalid]
    */
-  virtual int EncodeFrame (const unsigned char* kpSrc, SFrameBSInfo* pBsInfo);
-  virtual int EncodeFrame (const SSourcePicture** kppSrcPicList, int nSrcPicNum, SFrameBSInfo* pBsInfo);
+  virtual int EXTAPI EncodeFrame (const SSourcePicture* kpSrcPic, SFrameBSInfo* pBsInfo);
+  virtual int EXTAPI EncodeFrame2 (const SSourcePicture** kppSrcPicList, int nSrcPicNum, SFrameBSInfo* pBsInfo);
 
   /*
    * return: 0 - success; otherwise - failed;
    */
-  virtual int EncodeParameterSets (SFrameBSInfo* pBsInfo);
+  virtual int EXTAPI EncodeParameterSets (SFrameBSInfo* pBsInfo);
 
   /*
    * return: 0 - success; otherwise - failed;
    */
-  virtual int PauseFrame (const unsigned char* pSrc, SFrameBSInfo* pBsInfo);
+  virtual int EXTAPI PauseFrame (const SSourcePicture* kpSrcPic, SFrameBSInfo* pBsInfo);
 
   /*
    * return: 0 - success; otherwise - failed;
    */
-  virtual int ForceIntraFrame (bool bIDR);
+  virtual int EXTAPI ForceIntraFrame (bool bIDR);
 
   /************************************************************************
    * InDataFormat, IDRInterval, SVC Encode Param, Frame Rate, Bitrate,..
@@ -97,15 +98,15 @@ class CWelsH264SVCEncoder : public ISVCEncoder {
   /*
    * return: CM_RETURN: 0 - success; otherwise - failed;
    */
-  virtual int SetOption (ENCODER_OPTION opt_id, void* option);
-  virtual int GetOption (ENCODER_OPTION opt_id, void* option);
+  virtual int EXTAPI SetOption (ENCODER_OPTION opt_id, void* option);
+  virtual int EXTAPI GetOption (ENCODER_OPTION opt_id, void* option);
 
  private:
+  int Initialize2 (SWelsSvcCodingParam* argv);
+
   sWelsEncCtx*	m_pEncContext;
 
-#if defined(_WIN32)||defined(_MACH_PLATFORM)||defined(__GNUC__)
   welsCodecTrace*			m_pWelsTrace;
-#endif
   SSourcePicture**			m_pSrcPicList;
   int32_t						m_iSrcListSize;
 
@@ -113,12 +114,12 @@ class CWelsH264SVCEncoder : public ISVCEncoder {
   int32_t						m_iMaxPicHeight;
 
   int32_t						m_iCspInternal;
-  BOOL_T					m_bInitialFlag;
+  bool					m_bInitialFlag;
 
 #ifdef OUTPUT_BIT_STREAM
   FILE*				m_pFileBs;
   FILE*               m_pFileBsSize;
-  BOOL_T				m_bSwitch;
+  bool				m_bSwitch;
   int32_t					m_iSwitchTimes;
 #endif//OUTPUT_BIT_STREAM
 
@@ -129,6 +130,8 @@ class CWelsH264SVCEncoder : public ISVCEncoder {
   void    InitEncoder (void);
   int32_t RawData2SrcPic (const uint8_t* pSrc);
   void    DumpSrcPicture (const uint8_t* pSrc);
+
+  XMMREG_PROTECT_DECLARE(CWelsH264SVCEncoder);
 };
 }
 #endif // !defined(AFX_WELSH264ENCODER_H__D9FAA1D1_5403_47E1_8E27_78F11EE65F02__INCLUDED_)
