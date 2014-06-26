@@ -88,13 +88,16 @@ uint8_t* ParseNalHeader (PWelsDecoderContext pCtx, SNalUnitHeader* pNalUnitHeade
 
 int32_t ParseNonVclNal (PWelsDecoderContext pCtx, uint8_t* pRbsp, const int32_t kiSrcLen);
 
-void_t ParseRefBasePicMarking (PBitStringAux pBs, PRefBasePicMarking pRefBasePicMarking);
+int32_t ParseRefBasePicMarking (PBitStringAux pBs, PRefBasePicMarking pRefBasePicMarking);
 
-void_t ParsePrefixNalUnit (PWelsDecoderContext pCtx, PBitStringAux pBs);
+int32_t ParsePrefixNalUnit (PWelsDecoderContext pCtx, PBitStringAux pBs);
 
-bool_t CheckAccessUnitBoundary (const PNalUnit kpCurNal, const PNalUnit kpLastNal, const PSps kpSps);
-bool_t CheckAccessUnitBoundaryExt (PNalUnitHeaderExt pLastNalHdrExt, PNalUnitHeaderExt pCurNalHeaderExt,
-                                   PSliceHeader pLastSliceHeader, PSliceHeader pCurSliceHeader);
+bool CheckAccessUnitBoundary (PWelsDecoderContext pCtx, const PNalUnit kpCurNal, const PNalUnit kpLastNal,
+                              const PSps kpSps);
+bool CheckAccessUnitBoundaryExt (PNalUnitHeaderExt pLastNalHdrExt, PNalUnitHeaderExt pCurNalHeaderExt,
+                                 PSliceHeader pLastSliceHeader, PSliceHeader pCurSliceHeader);
+bool CheckNextAuNewSeq (PWelsDecoderContext pCtx, const PNalUnit kpCurNal, const PSps kpSps);
+
 /*!
  *************************************************************************************
  * \brief	to parse Sequence Parameter Set (SPS)
@@ -141,7 +144,7 @@ int32_t ParsePps (PWelsDecoderContext pCtx, PPps pPpsList, PBitStringAux pBsAux)
  * \note	Call it in case eNalUnitType is NAL_UNIT_SEI.
  *************************************************************************************
  */
-int32_t ParseSei (void_t* pSei, PBitStringAux pBsAux);	// reserved Sei_Msg type
+int32_t ParseSei (void* pSei, PBitStringAux pBsAux);	// reserved Sei_Msg type
 
 /*!
  *************************************************************************************

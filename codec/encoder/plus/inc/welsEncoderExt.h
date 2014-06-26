@@ -29,7 +29,6 @@
  *     POSSIBILITY OF SUCH DAMAGE.
  *
  *
- *  welsCodecTrace.h
  *
  *  Abstract
  *      Cisco OpenH264 encoder extension utilization interface for T26
@@ -39,8 +38,8 @@
  *
  *
  *************************************************************************/
-#if !defined(AFX_WELSH264ENCODER_H__D9FAA1D1_5403_47E1_8E27_78F11EE65F02__INCLUDED_)
-#define AFX_WELSH264ENCODER_H__D9FAA1D1_5403_47E1_8E27_78F11EE65F02__INCLUDED_
+#if !defined(WELS_PLUS_WELSENCODEREXT_H)
+#define WELS_PLUS_WELSENCODEREXT_H
 
 #include "codec_api.h"
 #include "codec_def.h"
@@ -49,6 +48,7 @@
 #include "encoder_context.h"
 #include "param_svc.h"
 #include "extern.h"
+#include "cpu.h"
 
 //#define OUTPUT_BIT_STREAM
 //#define DUMP_SRC_PICTURE
@@ -65,31 +65,33 @@ class CWelsH264SVCEncoder : public ISVCEncoder {
   /*
    * return: CM_RETURN: 0 - success; otherwise - failed;
    */
-  virtual int Initialize (SVCEncodingParam* argv, const INIT_TYPE init_type);
-  virtual int Initialize (void* argv, const INIT_TYPE init_type);
+  virtual int EXTAPI Initialize (const SEncParamBase* argv);
+  virtual int EXTAPI InitializeExt (const SEncParamExt* argv);
 
-  virtual int Uninitialize();
+  virtual int EXTAPI GetDefaultParams (SEncParamExt* argv);
 
-  /*
-   * return: EVideoFrameType [IDR: videoFrameTypeIDR; P: videoFrameTypeP; ERROR: videoFrameTypeInvalid]
-   */
-  virtual int EncodeFrame (const unsigned char* kpSrc, SFrameBSInfo* pBsInfo);
-  virtual int EncodeFrame (const SSourcePicture** kppSrcPicList, int nSrcPicNum, SFrameBSInfo* pBsInfo);
+  virtual int EXTAPI Uninitialize();
 
   /*
    * return: 0 - success; otherwise - failed;
    */
-  virtual int EncodeParameterSets (SFrameBSInfo* pBsInfo);
+  virtual int EXTAPI EncodeFrame (const SSourcePicture* kpSrcPic, SFrameBSInfo* pBsInfo);
+  virtual int        EncodeFrameInternal (const SSourcePicture* kpSrcPic, SFrameBSInfo* pBsInfo);
 
   /*
    * return: 0 - success; otherwise - failed;
    */
-  virtual int PauseFrame (const unsigned char* pSrc, SFrameBSInfo* pBsInfo);
+  virtual int EXTAPI EncodeParameterSets (SFrameBSInfo* pBsInfo);
 
   /*
    * return: 0 - success; otherwise - failed;
    */
-  virtual int ForceIntraFrame (bool bIDR);
+  virtual int EXTAPI PauseFrame (const SSourcePicture* kpSrcPic, SFrameBSInfo* pBsInfo);
+
+  /*
+   * return: 0 - success; otherwise - failed;
+   */
+  virtual int EXTAPI ForceIntraFrame (bool bIDR);
 
   /************************************************************************
    * InDataFormat, IDRInterval, SVC Encode Param, Frame Rate, Bitrate,..
@@ -97,28 +99,27 @@ class CWelsH264SVCEncoder : public ISVCEncoder {
   /*
    * return: CM_RETURN: 0 - success; otherwise - failed;
    */
-  virtual int SetOption (ENCODER_OPTION opt_id, void* option);
-  virtual int GetOption (ENCODER_OPTION opt_id, void* option);
+  virtual int EXTAPI SetOption (ENCODER_OPTION opt_id, void* option);
+  virtual int EXTAPI GetOption (ENCODER_OPTION opt_id, void* option);
 
  private:
+  int InitializeInternal (SWelsSvcCodingParam* argv);
+  void CheckProfileSetting (int32_t iLayer, EProfileIdc uiProfileIdc);
+  void CheckLevelSetting (int32_t iLayer, ELevelIdc uiLevelIdc);
+  void CheckReferenceNumSetting (int32_t iNumRef);
   sWelsEncCtx*	m_pEncContext;
 
-#if defined(_WIN32)||defined(_MACH_PLATFORM)||defined(__GNUC__)
   welsCodecTrace*			m_pWelsTrace;
-#endif
-  SSourcePicture**			m_pSrcPicList;
-  int32_t						m_iSrcListSize;
-
   int32_t						m_iMaxPicWidth;
   int32_t						m_iMaxPicHeight;
 
   int32_t						m_iCspInternal;
-  BOOL_T					m_bInitialFlag;
+  bool					m_bInitialFlag;
 
 #ifdef OUTPUT_BIT_STREAM
   FILE*				m_pFileBs;
   FILE*               m_pFileBsSize;
-  BOOL_T				m_bSwitch;
+  bool				m_bSwitch;
   int32_t					m_iSwitchTimes;
 #endif//OUTPUT_BIT_STREAM
 
@@ -127,8 +128,7 @@ class CWelsH264SVCEncoder : public ISVCEncoder {
 #endif//REC_FRAME_COUNT
 
   void    InitEncoder (void);
-  int32_t RawData2SrcPic (const uint8_t* pSrc);
   void    DumpSrcPicture (const uint8_t* pSrc);
 };
 }
-#endif // !defined(AFX_WELSH264ENCODER_H__D9FAA1D1_5403_47E1_8E27_78F11EE65F02__INCLUDED_)
+#endif // !defined(WELS_PLUS_WELSENCODEREXT_H)

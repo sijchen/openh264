@@ -30,14 +30,10 @@
  *
  */
 
-#include <string.h>
 
-#include "macros.h"
 #include "ls_defines.h"
 #include "encode_mb_aux.h"
 #include "cpu_core.h"
-#include "as264_common.h"
-#include "svc_encode_mb.h"
 namespace WelsSVCEnc {
 
 __align16 (const int16_t, g_kiQuantInterFF[58][8]) = {
@@ -438,65 +434,6 @@ int32_t WelsCalculateSingleCtr4x4_c (int16_t* pDct) {
   return iSingleCtr;
 }
 
-/****************************************************************************
- * Copy functions
- ****************************************************************************/
-void WelsCopy4x4 (uint8_t* pDst, int32_t iStrideD, uint8_t* pSrc, int32_t iStrideS) {
-  const int32_t kiSrcStride2 = iStrideS << 1;
-  const int32_t kiSrcStride3 = iStrideS + kiSrcStride2;
-  const int32_t kiDstStride2 = iStrideD << 1;
-  const int32_t kiDstStride3 = iStrideD + kiDstStride2;
-
-  ST32 (pDst,				LD32 (pSrc));
-  ST32 (pDst + iStrideD,	LD32 (pSrc + iStrideS));
-  ST32 (pDst + kiDstStride2, LD32 (pSrc + kiSrcStride2));
-  ST32 (pDst + kiDstStride3, LD32 (pSrc + kiSrcStride3));
-}
-void WelsCopy8x8_c (uint8_t* pDst, int32_t iStrideD, uint8_t* pSrc, int32_t iStrideS) {
-  int32_t i;
-  for (i = 0; i < 4; i++) {
-    ST32 (pDst,				LD32 (pSrc));
-    ST32 (pDst + 4 ,			LD32 (pSrc + 4));
-    ST32 (pDst + iStrideD,	LD32 (pSrc + iStrideS));
-    ST32 (pDst + iStrideD + 4 ,	LD32 (pSrc + iStrideS + 4));
-    pDst += iStrideD << 1;
-    pSrc += iStrideS << 1;
-  }
-}
-void WelsCopy8x16_c (uint8_t* pDst, int32_t iStrideD, uint8_t* pSrc, int32_t iStrideS) {
-  int32_t i;
-  for (i = 0; i < 8; ++i) {
-    ST32 (pDst,				LD32 (pSrc));
-    ST32 (pDst + 4 ,			LD32 (pSrc + 4));
-    ST32 (pDst + iStrideD,	LD32 (pSrc + iStrideS));
-    ST32 (pDst + iStrideD + 4 ,	LD32 (pSrc + iStrideS + 4));
-    pDst += iStrideD << 1;
-    pSrc += iStrideS << 1;
-  }
-}
-void WelsCopy16x8_c (uint8_t* pDst, int32_t iStrideD, uint8_t* pSrc, int32_t iStrideS) {
-  int32_t i;
-  for (i = 0; i < 8; i++) {
-    ST32 (pDst,		LD32 (pSrc));
-    ST32 (pDst + 4 ,	LD32 (pSrc + 4));
-    ST32 (pDst + 8 , LD32 (pSrc + 8));
-    ST32 (pDst + 12 ,	LD32 (pSrc + 12));
-    pDst += iStrideD ;
-    pSrc += iStrideS;
-  }
-}
-void WelsCopy16x16_c (uint8_t* pDst, int32_t iStrideD, uint8_t* pSrc, int32_t iStrideS) {
-  int32_t i;
-  for (i = 0; i < 16; i++) {
-    ST32 (pDst,		LD32 (pSrc));
-    ST32 (pDst + 4 ,	LD32 (pSrc + 4));
-    ST32 (pDst + 8 , LD32 (pSrc + 8));
-    ST32 (pDst + 12 ,	LD32 (pSrc + 12));
-    pDst += iStrideD ;
-    pSrc += iStrideS;
-  }
-}
-
 int32_t WelsGetNoneZeroCount_c (int16_t* pLevel) {
   int32_t iCnt = 0;
   int32_t iIdx = 0;
@@ -511,6 +448,13 @@ int32_t WelsGetNoneZeroCount_c (int16_t* pLevel) {
   }
   return (16 - iCnt);
 }
+
+#ifdef	HAVE_NEON
+int32_t WelsHadamardQuant2x2Skip_neon (int16_t* pRes, int16_t iFF,  int16_t iMF) {
+  int16_t iThreshold = ((1 << 16) - 1) / iMF - iFF;
+  return WelsHadamardQuant2x2SkipKernel_neon (pRes, iThreshold);
+}
+#endif
 
 void WelsInitEncodingFuncs (SWelsFuncPtrList* pFuncList, uint32_t  uiCpuFlag) {
   pFuncList->pfCopy8x8Aligned			= WelsCopy8x8_c;
@@ -575,5 +519,28 @@ void WelsInitEncodingFuncs (SWelsFuncPtrList* pFuncList, uint32_t  uiCpuFlag) {
 //#endif//MACOS
 
 #endif//X86_ASM
+
+#if defined(HAVE_NEON)
+  if (uiCpuFlag & WELS_CPU_NEON) {
+    pFuncList->pfQuantizationHadamard2x2		= WelsHadamardQuant2x2_neon;
+    pFuncList->pfQuantizationHadamard2x2Skip	= WelsHadamardQuant2x2Skip_neon;
+    pFuncList->pfDctT4					= WelsDctT4_neon;
+    pFuncList->pfCopy8x8Aligned			= WelsCopy8x8_neon;
+    pFuncList->pfCopy8x16Aligned		= WelsCopy8x16_neon;
+
+    pFuncList->pfGetNoneZeroCount		= WelsGetNoneZeroCount_neon;
+    pFuncList->pfTransformHadamard4x4Dc	= WelsHadamardT4Dc_neon;
+
+    pFuncList->pfQuantization4x4		= WelsQuant4x4_neon;
+    pFuncList->pfQuantizationDc4x4		= WelsQuant4x4Dc_neon;
+    pFuncList->pfQuantizationFour4x4	= WelsQuantFour4x4_neon;
+    pFuncList->pfQuantizationFour4x4Max	= WelsQuantFour4x4Max_neon;
+
+    pFuncList->pfCopy16x16Aligned		= WelsCopy16x16_neon;
+    pFuncList->pfCopy16x16NotAligned	= WelsCopy16x16NotAligned_neon;
+    pFuncList->pfCopy16x8NotAligned		= WelsCopy16x8NotAligned_neon;
+    pFuncList->pfDctFourT4				= WelsDctFourT4_neon;
+  }
+#endif
 }
 }

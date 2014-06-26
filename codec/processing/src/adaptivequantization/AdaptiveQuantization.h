@@ -41,10 +41,11 @@
 #ifndef WELSVP_ADAPTIVEQUANTIZATION_H
 #define WELSVP_ADAPTIVEQUANTIZATION_H
 
-#include "../common/util.h"
-#include "../common/memory.h"
-#include "../common/WelsFrameWork.h"
-#include "../../interface/IWelsVP.h"
+#include "util.h"
+#include "memory.h"
+#include "WelsFrameWork.h"
+#include "IWelsVP.h"
+#include "cpu.h"
 
 WELSVP_NAMESPACE_BEGIN
 
@@ -61,6 +62,11 @@ VarFunc      SampleVariance16x16_sse2;
 WELSVP_EXTERN_C_END
 #endif
 
+#ifdef HAVE_NEON
+WELSVP_EXTERN_C_BEGIN
+VarFunc      SampleVariance16x16_neon;
+WELSVP_EXTERN_C_END
+#endif
 
 class CAdaptiveQuantization : public IStrategy {
  public:

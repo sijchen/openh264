@@ -81,24 +81,19 @@
 
 #define ALIGN_RBSP_LEN_FIX		4
 
-#define PADDING_LENGTH			32 // reference extension
 
 #define BASE_QUALITY_ID			0
 //#define BASE_DEPENDENCY_ID		0
 #define BASE_DQ_ID				0
 #define MAX_DQ_ID				((uint8_t)-1)
-//#define MAX_LAYER_NUM			(MAX_DEPENDENCY_LAYER * MAX_TEMPORAL_LEVEL * MAX_QUALITY_LEVEL)	// Layer number of Three-tuple
+#define MAX_LAYER_NUM   8
 
 #define LAYER_NUM_EXCHANGEABLE	1
 
 #define MAX_NAL_UNIT_NUM_IN_AU	32	// predefined maximal number of NAL Units in an access unit
-#define MAX_ACCESS_UNIT_CAPACITY	1048576	// Maximal AU capacity in bytes: (1<<20) = 1024 KB predefined
-
-enum {
-  BASE_MB = 0,
-  NON_AVC_REWRITE_ENHANCE_MB = 1,
-  AVC_REWRITE_ENHANCE_MB = 2
-
-};
+#define MIN_ACCESS_UNIT_CAPACITY	1048576	// Min AU capacity in bytes: (1<<20) = 1024 KB predefined
+#define MAX_BUFFERED_NUM 3 //mamixum stored number of AU|packet to prevent overwrite
+#define MAX_ACCESS_UNIT_CAPACITY 7077888 //Maximum AU size in bytes for level 5.2 for single frame
+#define MAX_MACROBLOCK_CAPACITY 5000 //Maximal legal MB capacity, 15000 bits is enough
 
 #endif//WELS_CONSTANCE_H__

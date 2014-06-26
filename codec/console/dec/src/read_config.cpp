@@ -37,10 +37,10 @@
  *      08/18/2008 Created
  *
  *****************************************************************************/
-#if !defined(_WIN32) || !defined(_MSC_VER)
+
+#define _CRT_SECURE_NO_WARNINGS
 #include <string.h>
 #include <stdio.h>
-#endif
 
 
 

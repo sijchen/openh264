@@ -31,12 +31,12 @@
  */
 
 #include "WelsFrameWork.h"
-#include "cpu.h"
 #include "../denoise/denoise.h"
 #include "../downsample/downsample.h"
+#include "../scrolldetection/ScrollDetection.h"
 #include "../scenechangedetection/SceneChangeDetection.h"
 #include "../vaacalc/vaacalculation.h"
-#include "../backgounddetection/BackgroundDetection.h"
+#include "../backgrounddetection/BackgroundDetection.h"
 #include "../adaptivequantization/AdaptiveQuantization.h"
 #include "../complexityanalysis/ComplexityAnalysis.h"
 #include "../imagerotate/imagerotate.h"
@@ -44,7 +44,7 @@
 
 /* interface API implement */
 
-EResult WELSAPI CreateVpInterface (void** ppCtx, int iVersion) {
+EResult CreateVpInterface (void** ppCtx, int iVersion) {
   if (iVersion & 0x8000)
     return nsWelsVP::CreateSpecificVpInterface ((IWelsVP**)ppCtx);
   else if (iVersion & 0x7fff)
@@ -53,7 +53,7 @@ EResult WELSAPI CreateVpInterface (void** ppCtx, int iVersion) {
     return RET_INVALIDPARAM;
 }
 
-EResult WELSAPI DestroyVpInterface (void* pCtx, int iVersion) {
+EResult DestroyVpInterface (void* pCtx, int iVersion) {
   if (iVersion & 0x8000)
     return nsWelsVP::DestroySpecificVpInterface ((IWelsVP*)pCtx);
   else if (iVersion & 0x7fff)
@@ -88,11 +88,7 @@ EResult DestroySpecificVpInterface (IWelsVP* pCtx) {
 
 CVpFrameWork::CVpFrameWork (uint32_t uiThreadsNum, EResult& eReturn) {
   int32_t iCoreNum = 1;
-#ifndef X86_ASM
-  uint32_t uiCPUFlag = 0;
-#else
   uint32_t uiCPUFlag = WelsCPUFeatureDetect (&iCoreNum);
-#endif
 
   for (int32_t i = 0; i < MAX_STRATEGY_NUM; i++) {
     IStrategy* pStrategy = m_pStgChain[i];
@@ -221,8 +217,8 @@ EResult CVpFrameWork::SpecialFeature (int32_t iType, void* pIn, void* pOut) {
   return eReturn;
 }
 
-bool_t  CVpFrameWork::CheckValid (EMethods eMethod, SPixMap& pSrcPixMap, SPixMap& pDstPixMap) {
-  bool_t eReturn = FALSE;
+bool  CVpFrameWork::CheckValid (EMethods eMethod, SPixMap& pSrcPixMap, SPixMap& pDstPixMap) {
+  bool eReturn = false;
 
   if (eMethod == METHOD_NULL)
     goto exit;
@@ -254,7 +250,7 @@ bool_t  CVpFrameWork::CheckValid (EMethods eMethod, SPixMap& pSrcPixMap, SPixMap
         || pDstPixMap.sRect.iRectLeft >= pDstPixMap.sRect.iRectWidth || pDstPixMap.sRect.iRectWidth > pDstPixMap.iStride[0])
       goto exit;
   }
-  eReturn = TRUE;
+  eReturn = true;
 
 exit:
   return eReturn;
@@ -270,8 +266,12 @@ IStrategy* CVpFrameWork::CreateStrategy (EMethods m_eMethod, int32_t iCpuFlag) {
   case METHOD_DENOISE:
     pStrategy = WelsDynamicCast (IStrategy*, new CDenoiser (iCpuFlag));
     break;
-  case METHOD_SCENE_CHANGE_DETECTION:
-    pStrategy = WelsDynamicCast (IStrategy*, new CSceneChangeDetection (iCpuFlag));
+  case METHOD_SCROLL_DETECTION:
+    pStrategy = WelsDynamicCast (IStrategy*, new CScrollDetection (iCpuFlag));
+    break;
+  case METHOD_SCENE_CHANGE_DETECTION_VIDEO:
+  case METHOD_SCENE_CHANGE_DETECTION_SCREEN:
+    pStrategy = BuildSceneChangeDetection (m_eMethod, iCpuFlag);
     break;
   case METHOD_DOWNSAMPLE:
     pStrategy = WelsDynamicCast (IStrategy*, new CDownsampling (iCpuFlag));
@@ -287,6 +287,9 @@ IStrategy* CVpFrameWork::CreateStrategy (EMethods m_eMethod, int32_t iCpuFlag) {
     break;
   case METHOD_COMPLEXITY_ANALYSIS:
     pStrategy = WelsDynamicCast (IStrategy*, new CComplexityAnalysis (iCpuFlag));
+    break;
+  case METHOD_COMPLEXITY_ANALYSIS_SCREEN:
+    pStrategy = WelsDynamicCast (IStrategy*, new CComplexityAnalysisScreen (iCpuFlag));
     break;
   case METHOD_IMAGE_ROTATE:
     pStrategy = WelsDynamicCast (IStrategy*, new CImageRotating (iCpuFlag));

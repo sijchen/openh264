@@ -47,12 +47,6 @@
 #ifndef IWELSVP_H_
 #define IWELSVP_H_
 
-#ifdef _WIN32
-#define WELSAPI __stdcall
-#else
-#define WELSAPI
-#endif
-
 #define WELSVP_MAJOR_VERSION   1
 #define WELSVP_MINOR_VERSION   1
 #define WELSVP_VERSION         ((WELSVP_MAJOR_VERSION << 8) + WELSVP_MINOR_VERSION)
@@ -128,13 +122,16 @@ typedef enum {
   METHOD_NULL              = 0,
   METHOD_COLORSPACE_CONVERT    ,//not support yet
   METHOD_DENOISE              ,
-  METHOD_SCENE_CHANGE_DETECTION ,
+  METHOD_SCENE_CHANGE_DETECTION_VIDEO ,
+  METHOD_SCENE_CHANGE_DETECTION_SCREEN ,
   METHOD_DOWNSAMPLE			  ,
   METHOD_VAA_STATISTICS        ,
   METHOD_BACKGROUND_DETECTION  ,
   METHOD_ADAPTIVE_QUANT ,
   METHOD_COMPLEXITY_ANALYSIS   ,
+  METHOD_COMPLEXITY_ANALYSIS_SCREEN,
   METHOD_IMAGE_ROTATE		  ,
+  METHOD_SCROLL_DETECTION,
   METHOD_MASK
 } EMethods;
 
@@ -142,15 +139,34 @@ typedef enum {
 //  Algorithm parameters define
 //-----------------------------------------------------------------//
 
-typedef struct {
-  int bSceneChangeFlag; // 0:false ; 1:true
-} SSceneChangeResult;
+typedef enum {
+  SIMILAR_SCENE,   //similar scene
+  MEDIUM_CHANGED_SCENE,   //medium changed scene
+  LARGE_CHANGED_SCENE,    //large changed scene
+} ESceneChangeIdc;
 
 typedef enum {
-  SIMILAR_SCENE,      //similar scene
-  MEDIUM_CHANGED_SCENE,   //medium changed scene
-  LARGE_CHANGED_SCENE,   //large changed scene
-} ESceneChangeIdc;
+  NO_STATIC,  // motion block
+  COLLOCATED_STATIC, // collocated static block
+  SCROLLED_STATIC,  // scrolled static block
+  BLOCK_STATIC_IDC_ALL,
+} EStaticBlockIdc;
+
+typedef struct {
+  SRect sMaskRect;
+  bool bMaskInfoAvailable;
+  int iScrollMvX;
+  int iScrollMvY;
+  bool bScrollDetectFlag; // 0:false ; 1:ltr; 2: scene change
+} SScrollDetectionParam;
+
+typedef struct {
+  ESceneChangeIdc eSceneChangeIdc; // SIMILAR_SCENE, MEDIUM_CHANGED_SCENE, LARGE_CHANGED_SCENE
+  int             iMotionBlockNum; // Number of motion blocks
+  int             iFrameComplexity; // frame complexity
+  unsigned char* pStaticBlockIdc;   // static block idc
+  SScrollDetectionParam sScrollResult; //results from scroll detection
+} SSceneChangeResult;
 
 typedef struct {
   unsigned char* pCurY;					// Y data of current frame
@@ -193,7 +209,7 @@ typedef struct {
   SMotionTextureUnit*  pMotionTextureUnit;
 
   signed char*			pMotionTextureIndexToDeltaQp;
-  double				dAverMotionTextureIndexToDeltaQp;
+  int				iAverMotionTextureIndexToDeltaQp; // *AQ_STEP_INT_MULTIPLY
 } SAdaptiveQuantizationParam;
 
 typedef enum {
@@ -214,6 +230,14 @@ typedef struct {
   SVAACalcResult*  pCalcResult;
 } SComplexityAnalysisParam;
 
+typedef struct {
+  int  iMbRowInGom;
+  int*  pGomComplexity;
+  int  iGomNumInFrame;
+  int  iFrameComplexity;
+  int  iIdrFlag;
+  SScrollDetectionParam sScrollResult;
+} SComplexityAnalysisScreenParam;
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct {
@@ -276,8 +300,8 @@ class IWelsVP {
 #endif
 
 WELSVP_EXTERNC_BEGIN
-EResult WELSAPI CreateVpInterface (void** ppCtx, int iVersion /*= WELSVP_INTERFACE_VERION*/);
-EResult WELSAPI DestroyVpInterface (void* pCtx , int iVersion /*= WELSVP_INTERFACE_VERION*/);
+EResult CreateVpInterface (void** ppCtx, int iVersion /*= WELSVP_INTERFACE_VERION*/);
+EResult DestroyVpInterface (void* pCtx , int iVersion /*= WELSVP_INTERFACE_VERION*/);
 WELSVP_EXTERNC_END
 
 //////////////////////////////////////////////////////////////////////////////////////////////

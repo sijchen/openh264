@@ -33,39 +33,54 @@
 #ifndef WELS_VIDEO_CODEC_SVC_API_H__
 #define WELS_VIDEO_CODEC_SVC_API_H__
 
+#ifndef __cplusplus
+#ifdef _MSC_VER
+typedef unsigned char bool;
+#else
+#include <stdbool.h>
+#endif
+#endif
+
 #include "codec_app_def.h"
 #include "codec_def.h"
 
+#if defined(_WIN32) || defined(__cdecl)
+#define EXTAPI __cdecl
+#else
+#define EXTAPI
+#endif
+
+#ifdef __cplusplus
 class ISVCEncoder {
  public:
   /*
    * return: CM_RETURN: 0 - success; otherwise - failed;
    */
-  virtual int Initialize (SVCEncodingParam* pParam, const INIT_TYPE kiInitType = INIT_TYPE_PARAMETER_BASED) = 0;
-  virtual int Initialize (void* pParam, const INIT_TYPE kiInitType = INIT_TYPE_CONFIG_BASED) = 0;
+  virtual int EXTAPI Initialize (const SEncParamBase* pParam) = 0;
+  virtual int EXTAPI InitializeExt (const SEncParamExt* pParam) = 0;
 
-  virtual int Uninitialize() = 0;
+  virtual int EXTAPI GetDefaultParams (SEncParamExt* pParam) = 0;
+
+  virtual int EXTAPI Uninitialize() = 0;
 
   /*
-   * return: EVideoFrameType [IDR: videoFrameTypeIDR; P: videoFrameTypeP; ERROR: videoFrameTypeInvalid]
+   * return: 0 - success; otherwise -failed;
    */
-  virtual int EncodeFrame (const unsigned char* kpSrc, SFrameBSInfo* pBsInfo) = 0;
-  virtual int EncodeFrame (const SSourcePicture**   kppSrcPicList, int nSrcPicNum, SFrameBSInfo* pBsInfo) = 0;
+  virtual int EXTAPI EncodeFrame (const SSourcePicture* kpSrcPic, SFrameBSInfo* pBsInfo) = 0;
+  /*
+   * return: 0 - success; otherwise - failed;
+   */
+  virtual int EXTAPI EncodeParameterSets (SFrameBSInfo* pBsInfo) = 0;
 
   /*
    * return: 0 - success; otherwise - failed;
    */
-  virtual int EncodeParameterSets (SFrameBSInfo* pBsInfo) = 0;
+  virtual int EXTAPI PauseFrame (const SSourcePicture* kpSrcPic, SFrameBSInfo* pBsInfo) = 0;
 
   /*
    * return: 0 - success; otherwise - failed;
    */
-  virtual int PauseFrame (const unsigned char* kpSrc, SFrameBSInfo* pBsInfo) = 0;
-
-  /*
-   * return: 0 - success; otherwise - failed;
-   */
-  virtual int ForceIntraFrame (bool bIDR) = 0;
+  virtual int EXTAPI ForceIntraFrame (bool bIDR) = 0;
 
   /************************************************************************
    * InDataFormat, IDRInterval, SVC Encode Param, Frame Rate, Bitrate,..
@@ -73,58 +88,119 @@ class ISVCEncoder {
   /*
    * return: CM_RETURN: 0 - success; otherwise - failed;
    */
-  virtual int SetOption (ENCODER_OPTION eOptionId, void* pOption) = 0;
-  virtual int GetOption (ENCODER_OPTION eOptionId, void* pOption) = 0;
+  virtual int EXTAPI SetOption (ENCODER_OPTION eOptionId, void* pOption) = 0;
+  virtual int EXTAPI GetOption (ENCODER_OPTION eOptionId, void* pOption) = 0;
+  virtual ~ISVCEncoder() {}
 };
 
 class ISVCDecoder {
  public:
-  virtual long Initialize (void* pParam, const INIT_TYPE iInitType) = 0;
-  virtual long Uninitialize() = 0;
+  virtual long EXTAPI Initialize (const SDecodingParam* pParam) = 0;
+  virtual long EXTAPI Uninitialize() = 0;
 
-  virtual DECODING_STATE DecodeFrame (const unsigned char* pSrc,
-                                      const int iSrcLen,
-                                      unsigned char** ppDst,
-                                      int* pStride,
-                                      int& iWidth,
-                                      int& iHeight) = 0;
-
+  virtual DECODING_STATE EXTAPI DecodeFrame (const unsigned char* pSrc,
+      const int iSrcLen,
+      unsigned char** ppDst,
+      int* pStride,
+      int& iWidth,
+      int& iHeight) = 0;
   /*
-   *  src must be 4 byte aligned,   recommend 16 byte aligned.    the available src size must be multiple of 4.
+   * return: 0 - success; otherwise -failed;
    */
-  virtual DECODING_STATE DecodeFrame (const unsigned char* pSrc,
-                                      const int iSrcLen,
-                                      void** ppDst,
-                                      SBufferInfo* pDstInfo) = 0;
+  virtual DECODING_STATE EXTAPI DecodeFrame2 (const unsigned char* pSrc,
+      const int iSrcLen,
+      unsigned char** ppDst,
+      SBufferInfo* pDstInfo) = 0;
 
   /*
-   *  src must be 4 byte aligned,   recommend 16 byte aligned.    the available src size must be multiple of 4.
    *  this API does not work for now!! This is for future use to support non-I420 color format output.
    */
-  virtual DECODING_STATE DecodeFrameEx (const unsigned char* pSrc,
-                                        const int iSrcLen,
-                                        unsigned char* pDst,
-                                        int iDstStride,
-                                        int& iDstLen,
-                                        int& iWidth,
-                                        int& iHeight,
-                                        int& iColorFormat) = 0;
+  virtual DECODING_STATE EXTAPI DecodeFrameEx (const unsigned char* pSrc,
+      const int iSrcLen,
+      unsigned char* pDst,
+      int iDstStride,
+      int& iDstLen,
+      int& iWidth,
+      int& iHeight,
+      int& iColorFormat) = 0;
 
   /*************************************************************************
-   * OutDataFormat
+   * OutDataFormat, Eos Flag, EC method, ...
    *************************************************************************/
-  virtual long SetOption (DECODER_OPTION eOptionId, void* pOption) = 0;
-  virtual long GetOption (DECODER_OPTION eOptionId, void* pOption) = 0;
+  virtual long EXTAPI SetOption (DECODER_OPTION eOptionId, void* pOption) = 0;
+  virtual long EXTAPI GetOption (DECODER_OPTION eOptionId, void* pOption) = 0;
+  virtual ~ISVCDecoder() {}
 };
 
 
 extern "C"
 {
-  int  CreateSVCEncoder (ISVCEncoder** ppEncoder);
-  void DestroySVCEncoder (ISVCEncoder* pEncoder);
+#else
 
-  long CreateDecoder (ISVCDecoder** ppDecoder);
-  void DestroyDecoder (ISVCDecoder* pDecoder);
+typedef struct ISVCEncoderVtbl ISVCEncoderVtbl;
+typedef const ISVCEncoderVtbl* ISVCEncoder;
+struct ISVCEncoderVtbl {
+
+int (*Initialize) (ISVCEncoder*, const SEncParamBase* pParam);
+int (*InitializeExt) (ISVCEncoder*, const SEncParamExt* pParam);
+
+int (*GetDefaultParams) (ISVCEncoder*, SEncParamExt* pParam);
+
+int (*Uninitialize) (ISVCEncoder*);
+
+int (*EncodeFrame) (ISVCEncoder*, const SSourcePicture* kpSrcPic, SFrameBSInfo* pBsInfo);
+int (*EncodeParameterSets) (ISVCEncoder*, SFrameBSInfo* pBsInfo);
+
+int (*PauseFrame) (ISVCEncoder*, const SSourcePicture* kpSrcPic, SFrameBSInfo* pBsInfo);
+
+int (*ForceIntraFrame) (ISVCEncoder*, bool bIDR);
+
+int (*SetOption) (ISVCEncoder*, ENCODER_OPTION eOptionId, void* pOption);
+int (*GetOption) (ISVCEncoder*, ENCODER_OPTION eOptionId, void* pOption);
+};
+
+typedef struct ISVCDecoderVtbl ISVCDecoderVtbl;
+typedef const ISVCDecoderVtbl* ISVCDecoder;
+struct ISVCDecoderVtbl {
+long (*Initialize) (ISVCDecoder*, const SDecodingParam* pParam);
+long (*Uninitialize) (ISVCDecoder*);
+
+DECODING_STATE (*DecodeFrame) (ISVCDecoder*, const unsigned char* pSrc,
+                               const int iSrcLen,
+                               unsigned char** ppDst,
+                               int* pStride,
+                               int* iWidth,
+                               int* iHeight);
+
+DECODING_STATE (*DecodeFrame2) (ISVCDecoder*, const unsigned char* pSrc,
+                                const int iSrcLen,
+                                unsigned char** ppDst,
+                                SBufferInfo* pDstInfo);
+
+DECODING_STATE (*DecodeFrameEx) (ISVCDecoder*, const unsigned char* pSrc,
+                                 const int iSrcLen,
+                                 unsigned char* pDst,
+                                 int iDstStride,
+                                 int* iDstLen,
+                                 int* iWidth,
+                                 int* iHeight,
+                                 int* iColorFormat);
+
+long (*SetOption) (ISVCDecoder*, DECODER_OPTION eOptionId, void* pOption);
+long (*GetOption) (ISVCDecoder*, DECODER_OPTION eOptionId, void* pOption);
+};
+#endif
+
+typedef void (*WelsTraceCallback) (void* ctx, int level, const char* string);
+
+int  WelsCreateSVCEncoder (ISVCEncoder** ppEncoder);
+void WelsDestroySVCEncoder (ISVCEncoder* pEncoder);
+
+long WelsCreateDecoder (ISVCDecoder** ppDecoder);
+void WelsDestroyDecoder (ISVCDecoder* pDecoder);
+
+#ifdef __cplusplus
 }
+#endif
 
 #endif//WELS_VIDEO_CODEC_SVC_API_H__

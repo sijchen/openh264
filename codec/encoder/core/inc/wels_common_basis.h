@@ -46,22 +46,6 @@ namespace WelsSVCEnc {
 extern const  ALIGNED_DECLARE (uint16_t, g_kuiDequantCoeff[52][8], 16);
 extern const uint8_t g_kuiChromaQpTable[52];
 
-/* Profile IDC */
-
-enum EProfileIdc {
-PRO_BASELINE	= 66,
-PRO_MAIN		= 77,
-PRO_EXTENDED	= 88,
-PRO_HIGH		= 100,
-PRO_HIGH10		= 110,
-PRO_HIGH422		= 122,
-PRO_HIGH444		= 144,
-PRO_CAVLC444	= 244,
-
-PRO_SCALABLE_BASELINE	= 83,
-PRO_SCALABLE_HIGH		= 86,
-};
-
 /*
  *	NAL Unit Type (5 Bits)
  */
@@ -137,17 +121,6 @@ extern const EVclType g_keTypeMap[32][2];
 #define IS_VCL_NAL_AVC_BASE(t)			( (t) == NAL_UNIT_CODED_SLICE || (t) == NAL_UNIT_CODED_SLICE_IDR )
 #define IS_NEW_INTRODUCED_SVC_NAL(t)	( (t) == NAL_UNIT_PREFIX || (t) == NAL_UNIT_CODED_SLICE_EXT )
 
-/*
- *	Frame types used in internal encoder (logic level based)
- */
-enum EFrameType {
-WELS_FRAME_TYPE_AUTO	= 0x0000,	/* Let encoder engine choose the proper type, RDO or scene change based */
-WELS_FRAME_TYPE_IDR		= 0x0001,	/* IDR, I frame with parameter sets */
-WELS_FRAME_TYPE_I		= 0x0002,	/* I Frame */
-WELS_FRAME_TYPE_P		= 0x0003,	/* P Frame */
-WELS_FRAME_TYPE_B		= 0x0004,	/* B Frame */
-WELS_FRAME_TYPE_SKIP	= 0x0008
-};
 
 /* Base SSlice Types
  * Invalid in case of eSliceType exceeds 9,
@@ -199,7 +172,7 @@ int8_t		iRefIndexCache[5 * 6];			// Luma only: 5 x 6 = 30 bytes
 typedef struct TagParaSetOffsetVariable {
 int32_t 	iParaSetIdDelta[MAX_DQ_LAYER_NUM/*+1*/];	//mark delta between SPS_ID_in_bs and sps_id_in_encoder, can be minus, for each dq-layer
 //need not extra +1 due no MGS and FMO case so far
-bool_t		bUsedParaSetIdInBs[MAX_PPS_COUNT];	//mark the used SPS_ID with 1
+bool		bUsedParaSetIdInBs[MAX_PPS_COUNT];	//mark the used SPS_ID with 1
 uint32_t	uiNextParaSetIdToUseInBs;					//mark the next SPS_ID_in_bs, for all layers
 } SParaSetOffsetVariable;
 
@@ -208,12 +181,12 @@ typedef struct TagParaSetOffset {
 SParaSetOffsetVariable
 sParaSetOffsetVariable[PARA_SET_TYPE]; //PARA_SET_TYPE=3; paraset_type = 0: AVC_SPS; =1: Subset_SPS; =2: PPS
 //in PSO design, "bPpsIdMappingIntoSubsetsps" uses the current para of current IDR period
-bool_t
+bool
 bPpsIdMappingIntoSubsetsps[MAX_DQ_LAYER_NUM/*+1*/];	// need not extra +1 due no MGS and FMO case so far
 uint16_t
 uiIdrPicId;		// IDR picture id: [0, 65535], this one is used for LTR!! Can we just NOT put this into the SParaSetOffset structure?!!
 #if _DEBUG
-bool_t                  bEnableSpsPpsIdAddition;
+bool                  bEnableSpsPpsIdAddition;
 #endif
 } SParaSetOffset;
 
@@ -311,7 +284,7 @@ typedef uint32_t Mb_Type;
 #define MB_TYPE_UNAVAILABLE		0xFF000000
 #define REF_NOT_AVAIL    -2
 #define REF_NOT_IN_LIST -1    //intra
-#define	REF_PIC_REORDER_DEFAULT	TRUE
+#define	REF_PIC_REORDER_DEFAULT	true
 
 #define IS_INTRA4x4(type) ( MB_TYPE_INTRA4x4 == (type) )
 #define IS_INTRA16x16(type) ( MB_TYPE_INTRA16x16 == (type) )

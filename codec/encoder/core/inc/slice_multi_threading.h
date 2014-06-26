@@ -40,7 +40,6 @@
 #ifndef SVC_SLICE_MULTIPLE_THREADING_H__
 #define SVC_SLICE_MULTIPLE_THREADING_H__
 
-#if defined(MT_ENABLED)
 
 #include "typedefs.h"
 #include "codec_app_def.h"
@@ -58,21 +57,12 @@ void UpdateMbListNeighborParallel (SSliceCtx* pSliceCtx,
 
 void CalcSliceComplexRatio (void* pRatio, SSliceCtx* pSliceCtx, uint32_t* pSliceConsume);
 
-#if defined(MT_ENABLED) && defined(DYNAMIC_SLICE_ASSIGN) && defined(NOT_ABSOLUTE_BALANCING)
 int32_t NeedDynamicAdjust (void* pConsumeTime, const int32_t kiSliceNum);
-#endif//..
 
-#if defined(DYNAMIC_SLICE_ASSIGN) && defined(TRY_SLICING_BALANCE)
 void DynamicAdjustSlicing (sWelsEncCtx* pCtx,
                            SDqLayer* pCurDqLayer,
                            void* pComplexRatio,
                            int32_t iCurDid);
-#endif//#if defined(DYNAMIC_SLICE_ASSIGN) && defined(TRY_SLICING_BALANCE)
-
-#ifdef PACKING_ONE_SLICE_PER_LAYER
-void reset_env_mt (sWelsEncCtx* pCtx);
-#endif//PACKING_ONE_SLICE_PER_LAYER
-
 
 int32_t RequestMtResource (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pParam, const int32_t kiCountBsLen,
                            const int32_t kiTargetSpatialBsSize);
@@ -80,51 +70,37 @@ int32_t RequestMtResource (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pParam, con
 void ReleaseMtResource (sWelsEncCtx** ppCtx);
 
 int32_t AppendSliceToFrameBs (sWelsEncCtx* pCtx, SLayerBSInfo* pLbi, const int32_t kiSliceCount);
-int32_t WriteSliceToFrameBs (sWelsEncCtx* pCtx, SLayerBSInfo* pLbi, uint8_t* pFrameBsBuffer, const int32_t kiSliceIdx);
+int32_t WriteSliceToFrameBs (sWelsEncCtx* pCtx, SLayerBSInfo* pLbi, uint8_t* pFrameBsBuffer, const int32_t iSliceIdx,
+                             int32_t& iSliceSize);
 
-#if defined(DYNAMIC_SLICE_ASSIGN) && defined(TRY_SLICING_BALANCE)
-#if defined(__GNUC__)
+#if !defined(_WIN32)
 WELS_THREAD_ROUTINE_TYPE UpdateMbListThreadProc (void* arg);
-#endif//__GNUC__
-#endif//#if defined(DYNAMIC_SLICE_ASSIGN) && defined(TRY_SLICING_BALANCE)
+#endif//!_WIN32
 
 WELS_THREAD_ROUTINE_TYPE CodingSliceThreadProc (void* arg);
 
 int32_t CreateSliceThreads (sWelsEncCtx* pCtx);
 
-#ifdef PACKING_ONE_SLICE_PER_LAYER
-void ResetCountBsSizeInPartitions (uint32_t* pCountBsSizeList, const int32_t kiPartitionCnt);
-#endif//PACKING_ONE_SLICE_PER_LAYER
-
-#ifdef _WIN32
-int32_t FiredSliceThreads (SSliceThreadPrivateData* pPriData, WELS_EVENT* pEventsList, SLayerBSInfo* pLayerBsInfo,
-                           const uint32_t kuiNumThreads/*, int32_t *iLayerNum*/, SSliceCtx* pSliceCtx, const BOOL_T kbIsDynamicSlicingMode);
-#else
-int32_t FiredSliceThreads (SSliceThreadPrivateData* pPriData, WELS_EVENT** ppEventsList, SLayerBSInfo* pLayerBsInfo,
-                           const uint32_t kuiNumThreads/*, int32_t *iLayerNum*/, SSliceCtx* pSliceCtx, const BOOL_T kbIsDynamicSlicingMode);
-#endif//_WIN32
+int32_t FiredSliceThreads (sWelsEncCtx* pCtx, SSliceThreadPrivateData* pPriData, WELS_EVENT* pEventsList,
+                           WELS_EVENT* pMasterEventsList, SLayerBSInfo* pLayerBsInfo,
+                           const uint32_t kuiNumThreads/*, int32_t *iLayerNum*/, SSliceCtx* pSliceCtx, const bool kbIsDynamicSlicingMode);
 
 int32_t DynamicDetectCpuCores();
 
-#if defined(MT_ENABLED) && defined(DYNAMIC_SLICE_ASSIGN)
 
 int32_t AdjustBaseLayer (sWelsEncCtx* pCtx);
 int32_t AdjustEnhanceLayer (sWelsEncCtx* pCtx, int32_t iCurDid);
 
-#endif//MT_ENABLED && DYNAMIC_SLICE_ASSIGN
 
-#if defined(MT_ENABLED)
 
-#if defined(DYNAMIC_SLICE_ASSIGN) && defined(TRY_SLICING_BALANCE) && defined(MT_DEBUG)
+#if defined(MT_DEBUG)
 void TrackSliceComplexities (sWelsEncCtx* pCtx, const int32_t kiCurDid);
-#endif//#if defined(DYNAMIC_SLICE_ASSIGN) && defined(TRY_SLICING_BALANCE)
-#if defined(DYNAMIC_SLICE_ASSIGN) && defined(MT_DEBUG)
+#endif
+#if defined(MT_DEBUG)
 void TrackSliceConsumeTime (sWelsEncCtx* pCtx, int32_t* pDidList, const int32_t kiSpatialNum);
-#endif//#if defined(DYNAMIC_SLICE_ASSIGN) && defined(MT_DEBUG)
+#endif//defined(MT_DEBUG)
 
-#endif//MT_ENABLED
 }
-#endif//MT_ENABLED
 
 #endif//SVC_SLICE_MULTIPLE_THREADING_H__
 

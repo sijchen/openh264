@@ -30,28 +30,28 @@
  *
  */
 
-#include "../common/typedef.h"
-#include "../common/util.h"
+#include "util.h"
 
 WELSVP_NAMESPACE_BEGIN
 
-void VAACalcSadSsd_c (uint8_t* pCurData, uint8_t* pRefData, int32_t iPicWidth, int32_t iPicHeight, int32_t iPicStride,
+void VAACalcSadSsd_c (const uint8_t* pCurData, const uint8_t* pRefData, int32_t iPicWidth, int32_t iPicHeight,
+                      int32_t iPicStride,
                       int32_t* pFrameSad, int32_t* pSad8x8, int32_t* pSum16x16, int32_t* psqsum16x16, int32_t* psqdiff16x16) {
-  uint8_t* tmp_ref = pRefData;
-  uint8_t* tmp_cur = pCurData;
+  const uint8_t* tmp_ref = pRefData;
+  const uint8_t* tmp_cur = pCurData;
   int32_t iMbWidth = (iPicWidth >> 4);
-  int32_t mb_heigth = (iPicHeight >> 4);
+  int32_t mb_height = (iPicHeight >> 4);
   int32_t mb_index = 0;
   int32_t pic_stride_x8 = iPicStride << 3;
   int32_t step = (iPicStride << 4) - iPicWidth;
 
   *pFrameSad = 0;
-  for (int32_t i = 0; i < mb_heigth; i ++) {
+  for (int32_t i = 0; i < mb_height; i ++) {
     for (int32_t j = 0; j < iMbWidth; j ++) {
       int32_t k, l;
       int32_t l_sad, l_sqdiff, l_sum, l_sqsum;
-      uint8_t* tmp_cur_row;
-      uint8_t* tmp_ref_row;
+      const uint8_t* tmp_cur_row;
+      const uint8_t* tmp_ref_row;
 
       pSum16x16[mb_index] = 0;
       psqsum16x16[mb_index] = 0;
@@ -146,23 +146,24 @@ void VAACalcSadSsd_c (uint8_t* pCurData, uint8_t* pRefData, int32_t iPicWidth, i
     tmp_cur += step;
   }
 }
-void VAACalcSadVar_c (uint8_t* pCurData, uint8_t* pRefData, int32_t iPicWidth, int32_t iPicHeight, int32_t iPicStride,
+void VAACalcSadVar_c (const uint8_t* pCurData, const uint8_t* pRefData, int32_t iPicWidth, int32_t iPicHeight,
+                      int32_t iPicStride,
                       int32_t* pFrameSad, int32_t* pSad8x8, int32_t* pSum16x16, int32_t* psqsum16x16) {
-  uint8_t* tmp_ref = pRefData;
-  uint8_t* tmp_cur = pCurData;
+  const uint8_t* tmp_ref = pRefData;
+  const uint8_t* tmp_cur = pCurData;
   int32_t iMbWidth = (iPicWidth >> 4);
-  int32_t mb_heigth = (iPicHeight >> 4);
+  int32_t mb_height = (iPicHeight >> 4);
   int32_t mb_index = 0;
   int32_t pic_stride_x8 = iPicStride << 3;
   int32_t step = (iPicStride << 4) - iPicWidth;
 
   *pFrameSad = 0;
-  for (int32_t i = 0; i < mb_heigth; i ++) {
+  for (int32_t i = 0; i < mb_height; i ++) {
     for (int32_t j = 0; j < iMbWidth; j ++) {
       int32_t k, l;
       int32_t l_sad, l_sum, l_sqsum;
-      uint8_t* tmp_cur_row;
-      uint8_t* tmp_ref_row;
+      const uint8_t* tmp_cur_row;
+      const uint8_t* tmp_ref_row;
 
       pSum16x16[mb_index] = 0;
       psqsum16x16[mb_index] = 0;
@@ -250,23 +251,24 @@ void VAACalcSadVar_c (uint8_t* pCurData, uint8_t* pRefData, int32_t iPicWidth, i
 }
 
 
-void VAACalcSad_c (uint8_t* pCurData, uint8_t* pRefData, int32_t iPicWidth, int32_t iPicHeight, int32_t iPicStride,
+void VAACalcSad_c (const uint8_t* pCurData, const uint8_t* pRefData, int32_t iPicWidth, int32_t iPicHeight,
+                   int32_t iPicStride,
                    int32_t* pFrameSad, int32_t* pSad8x8) {
-  uint8_t* tmp_ref = pRefData;
-  uint8_t* tmp_cur = pCurData;
+  const uint8_t* tmp_ref = pRefData;
+  const uint8_t* tmp_cur = pCurData;
   int32_t iMbWidth = (iPicWidth >> 4);
-  int32_t mb_heigth = (iPicHeight >> 4);
+  int32_t mb_height = (iPicHeight >> 4);
   int32_t mb_index = 0;
   int32_t pic_stride_x8 = iPicStride << 3;
   int32_t step = (iPicStride << 4) - iPicWidth;
 
   *pFrameSad = 0;
-  for (int32_t i = 0; i < mb_heigth; i ++) {
+  for (int32_t i = 0; i < mb_height; i ++) {
     for (int32_t j = 0; j < iMbWidth; j ++) {
       int32_t k, l;
       int32_t l_sad;
-      uint8_t* tmp_cur_row;
-      uint8_t* tmp_ref_row;
+      const uint8_t* tmp_cur_row;
+      const uint8_t* tmp_ref_row;
 
       l_sad =  0;
       tmp_cur_row = tmp_cur;
@@ -333,27 +335,27 @@ void VAACalcSad_c (uint8_t* pCurData, uint8_t* pRefData, int32_t iPicWidth, int3
   }
 }
 
-void VAACalcSadSsdBgd_c (uint8_t* pCurData, uint8_t* pRefData, int32_t iPicWidth, int32_t iPicHeight,
+void VAACalcSadSsdBgd_c (const uint8_t* pCurData, const uint8_t* pRefData, int32_t iPicWidth, int32_t iPicHeight,
                          int32_t iPicStride,
                          int32_t* pFrameSad, int32_t* pSad8x8, int32_t* pSum16x16, int32_t* psqsum16x16, int32_t* psqdiff16x16, int32_t* pSd8x8,
                          uint8_t* pMad8x8)
 
 {
-  uint8_t* tmp_ref = pRefData;
-  uint8_t* tmp_cur = pCurData;
+  const uint8_t* tmp_ref = pRefData;
+  const uint8_t* tmp_cur = pCurData;
   int32_t iMbWidth = (iPicWidth >> 4);
-  int32_t mb_heigth = (iPicHeight >> 4);
+  int32_t mb_height = (iPicHeight >> 4);
   int32_t mb_index = 0;
   int32_t pic_stride_x8 = iPicStride << 3;
   int32_t step = (iPicStride << 4) - iPicWidth;
 
   *pFrameSad = 0;
-  for (int32_t i = 0; i < mb_heigth; i ++) {
+  for (int32_t i = 0; i < mb_height; i ++) {
     for (int32_t j = 0; j < iMbWidth; j ++) {
       int32_t k, l;
       int32_t l_sad, l_sqdiff, l_sum, l_sqsum, l_sd, l_mad;
-      uint8_t* tmp_cur_row;
-      uint8_t* tmp_ref_row;
+      const uint8_t* tmp_cur_row;
+      const uint8_t* tmp_ref_row;
 
       pSum16x16[mb_index] = 0;
       psqsum16x16[mb_index] = 0;
@@ -481,23 +483,24 @@ void VAACalcSadSsdBgd_c (uint8_t* pCurData, uint8_t* pRefData, int32_t iPicWidth
   }
 }
 
-void VAACalcSadBgd_c (uint8_t* pCurData, uint8_t* pRefData, int32_t iPicWidth, int32_t iPicHeight, int32_t iPicStride,
+void VAACalcSadBgd_c (const uint8_t* pCurData, const uint8_t* pRefData, int32_t iPicWidth, int32_t iPicHeight,
+                      int32_t iPicStride,
                       int32_t* pFrameSad, int32_t* pSad8x8, int32_t* pSd8x8, uint8_t* pMad8x8) {
-  uint8_t* tmp_ref = pRefData;
-  uint8_t* tmp_cur = pCurData;
+  const uint8_t* tmp_ref = pRefData;
+  const uint8_t* tmp_cur = pCurData;
   int32_t iMbWidth = (iPicWidth >> 4);
-  int32_t mb_heigth = (iPicHeight >> 4);
+  int32_t mb_height = (iPicHeight >> 4);
   int32_t mb_index = 0;
   int32_t pic_stride_x8 = iPicStride << 3;
   int32_t step = (iPicStride << 4) - iPicWidth;
 
   *pFrameSad = 0;
-  for (int32_t i = 0; i < mb_heigth; i ++) {
+  for (int32_t i = 0; i < mb_height; i ++) {
     for (int32_t j = 0; j < iMbWidth; j ++) {
       int32_t k, l;
       int32_t l_sad, l_sd, l_mad;
-      uint8_t* tmp_cur_row;
-      uint8_t* tmp_ref_row;
+      const uint8_t* tmp_cur_row;
+      const uint8_t* tmp_ref_row;
 
       l_mad = l_sd = l_sad =  0;
       tmp_cur_row = tmp_cur;

@@ -32,13 +32,7 @@
 
 // exp_data.c
 // export date cross various modules (.c)
-#include "typedefs.h"
-#include "wels_common_basis.h"
-#include "mb_cache.h"
-#include "utils.h"
 #include "md.h"
-#include "sample.h"
-#include "svc_enc_golomb.h"
 #include "vlc_encoder.h"
 namespace WelsSVCEnc {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -92,7 +86,7 @@ const uint8_t g_kuiCache12_8x8RefIdx[4] = { //mv or uiRefIndex cache scan index,
 
 // extern at mb_cache.h
 
-const str_t* g_sWelsLogTags[] = {
+const char* g_sWelsLogTags[] = {
   "ERR",
   "WARN",
   "INFO",
@@ -469,30 +463,22 @@ const ALIGNED_DECLARE (uint8_t, g_kuiEncNcMapTable[18], 16) = {
 const uint8_t   g_kuiTemporalIdListTable[MAX_TEMPORAL_LEVEL][MAX_GOP_SIZE + 1] = {
   {
     0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0,
     0
-  },  // gop size = 1
+  },  // uiGopSize = 1
   {
     0, 1, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0,
     0
   },  // uiGopSize = 2
   {
     0, 2, 1, 2, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0,
     0
   },  // uiGopSize = 4
   {
     0, 3, 2, 3, 1, 3, 2, 3,
-    0, 0, 0, 0, 0, 0, 0, 0,
     0
-  },  // uiGopSize = 8
-  {
-    0, 4, 3, 4, 2, 4, 3, 4,
-    1, 4, 3, 4, 2, 4, 3, 4,
-    0
-  }  //  uiGopSize = 16
+  }  //uiGopSize = 8
 };
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // extern at svc_encode_slice.h

@@ -44,7 +44,7 @@
 
 // Miscellaneous sizing infos
 #ifndef MAX_FNAME_LEN
-#define MAX_FNAME_LEN		256	// maximal length of file name in str_t size
+#define MAX_FNAME_LEN		256	// maximal length of file name in char size
 #endif//MAX_FNAME_LEN
 
 #ifndef WELS_LOG_BUF_SIZE
@@ -87,6 +87,7 @@
 #define PARA_SET_TYPE_SUBSETSPS	1
 #define PARA_SET_TYPE_PPS		2
 
+#define MAX_VERTICAL_MV_RANGE   1024  //TODO, for allocate enough memory for transpose
 #define MAX_FRAME_RATE			30	// maximal frame rate to support
 #define MIN_FRAME_RATE			1	// minimal frame rate need support
 
@@ -102,23 +103,12 @@
 
 #define ALIGN_RBSP_LEN_FIX		4
 
-#define PADDING_LENGTH			32 // reference extension
+
 #define INTPEL_NEEDED_MARGIN	(3)  // for safe sub-pel MC
 
 #define I420_PLANES				3
 
-// Condition of fix unexpected coding violation in case actual compress ratio of coding is less than 2:1 (compress_ratio=i420_base_picture_size/actual_size_of_coded_bs).
-// Coding picture resolution as SubQcif or above size compress ration using 2:1 by default, such normal case regards as ratio can meet 2:1 requirement.
-// Per specific cases, i.e, 16x16 picture size, the compress ration usually less than 2:1, so which results in unexpected violation due not large enough of frame bs pBuffer size.
-// Here SubQcif just like thredshold to distinguish between normal cases and abnormal cases by resolution size from products usage.
-#define COMPRESS_RATION_NORMAL_THR			(0.5f)	// 0.5f, 0.375f, 0.25f
-#define COMPRESS_RATION_ABNORMAL_THR		(1.0f)	// ensure (1.0f >= COMPRESS_RATION_ABNORMAL_THR > COMPRESS_RATION_NORMAL_THR)
-#define RESOLUTION_NORMAL_CX_THR			(128)
-#define RESOLUTION_NORMAL_CY_THR			(96)
-#define COMPRESS_RATIO_DECIDED_BY_RESOLUTION(_cx, _cy)	\
-	(((_cx) >= RESOLUTION_NORMAL_CX_THR && (_cy) >= RESOLUTION_NORMAL_CY_THR) ? \
-	COMPRESS_RATION_NORMAL_THR :	\
-	COMPRESS_RATION_ABNORMAL_THR)
+#define COMPRESS_RATIO_THR (1.0f)	//set to size of the original data, which will be large enough considering MinCR
 
 #if !defined(SSEI_BUFFER_SIZE)
 #define SSEI_BUFFER_SIZE	128
@@ -132,6 +122,9 @@
 #define PPS_BUFFER_SIZE		16
 #endif//PPS_BUFFER_SIZE
 
+#if !defined(MAX_MACROBLOCK_SIZE_IN_BYTE)
+#define MAX_MACROBLOCK_SIZE_IN_BYTE		800 //3200*2/8
+#endif
 
 #if defined(NUM_SPATIAL_LAYERS_CONSTRAINT)
 #define MAX_DEPENDENCY_LAYER		MAX_SPATIAL_LAYER_NUM	// Maximal dependency layer
@@ -155,9 +148,11 @@
 
 #define MAX_SHORT_REF_COUNT		(MAX_GOP_SIZE>>1) // 16 in standard, maximal count number of short reference pictures
 #define LONG_TERM_REF_NUM       2
+#define LONG_TERM_REF_NUM_SCREEN 4
 #define MAX_LONG_REF_COUNT		2 // 16 in standard, maximal count number of long reference pictures
 #define MAX_REF_PIC_COUNT		16 // 32 in standard, maximal Short + Long reference pictures
 #define MIN_REF_PIC_COUNT		1		// minimal count number of reference pictures, 1 short + 2 key reference based?
+#define MAX_MULTI_REF_PIC_COUNT	1	//maximum multi-reference number
 //#define TOTAL_REF_MINUS_HALF_GOP	1	// last t0 in last gop
 #define MAX_MMCO_COUNT			66
 
@@ -175,18 +170,40 @@
 #define UNAVAILABLE_DQ_ID		((uint8_t)(-1))
 #define LAYER_NUM_EXCHANGEABLE	2
 
+#define NAL_HEADER_ADD_0X30BYTES 50
+
 #define MAX_NAL_UNIT_NUM_IN_AU	256	// predefined maximal number of NAL Units in an access unit
 #define MAX_ACCESS_UINT_CAPACITY	(1<<20)	// Maximal AU capacity in bytes: 1024 KB predefined
 #define MAX_ACCESS_UNIT_CACHE_NUM	2	// Maximal Access Unit(AU) cache number to be processed, denote current AU and the next coming AU.
+
+#define SLICE_NUM_EXPAND_COEF 2
+
+enum {
+BLOCK_16x16 = 0,
+BLOCK_16x8  = 1,
+BLOCK_8x16  = 2,
+BLOCK_8x8   = 3,
+BLOCK_4x4   = 4,
+//    BLOCK_8x4   = 5,
+//    BLOCK_4x8   = 6,
+BLOCK_SIZE_ALL = 5
+};
+
 enum {
   CUR_AU_IDX	= 0,			// index symbol for current access unit
   SUC_AU_IDX	= 1				// index symbol for successive access unit
 };
 
 enum {
-  BASE_MB = 0,
-  AVC_REWRITE_ENHANCE_MB = 1,
-  NON_AVC_REWRITE_ENHANCE_MB = 2
+  ENC_RETURN_SUCCESS = 0,
+  ENC_RETURN_MEMALLOCERR = 0x01, //will free memory and uninit
+  ENC_RETURN_UNSUPPORTED_PARA = 0x02, //unsupported setting
+  ENC_RETURN_UNEXPECTED = 0x04, //unexpected value
+  ENC_RETURN_CORRECTED = 0x08, //unexpected value but corrected by encoder
+  ENC_RETURN_INVALIDINPUT = 0x10, //invalid input
+  ENC_RETURN_MEMOVERFLOWFOUND = 0x20,
+  ENC_RETURN_VLCOVERFLOWFOUND = 0x40
 };
+//TODO: need to complete the return checking in encoder and fill in more types if needed
 
 #endif//WELS_CONSTANCE_H__

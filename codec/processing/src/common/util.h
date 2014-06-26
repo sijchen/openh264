@@ -50,7 +50,7 @@
 
 #include "typedef.h"
 #include "memory.h"
-#include "../../interface/IWelsVP.h"
+#include "IWelsVP.h"
 
 WELSVP_NAMESPACE_BEGIN
 
@@ -58,6 +58,10 @@ WELSVP_NAMESPACE_BEGIN
 #define MAX_HEIGHT     (2304)//MAX_FS_LEVEL51 (36864); MAX_FS_LEVEL51*256/4096 = 2304
 #define MB_WIDTH_LUMA  (16)
 #define PESN		   (1e-6)	// desired float precision
+#define AQ_INT_MULTIPLY                   10000000
+#define AQ_TIME_INT_MULTIPLY                   10000
+#define AQ_QSTEP_INT_MULTIPLY                   100
+#define AQ_PESN 10 // (1e-6)*AQ_INT_MULTIPLY
 
 #define MB_TYPE_INTRA4x4		0x00000001
 #define MB_TYPE_INTRA16x16	0x00000002
@@ -67,8 +71,15 @@ WELSVP_NAMESPACE_BEGIN
 
 #define WELS_MAX(x, y)	((x) > (y) ? (x) : (y))
 #define WELS_MIN(x, y)	((x) < (y) ? (x) : (y))
-#define WELS_SIGN(a)	((long_t)(a) >> 31)
-#define WELS_ABS(a)		((WELS_SIGN(a) ^ (long_t)(a)) - WELS_SIGN(a))
+
+#ifndef WELS_SIGN
+#define WELS_SIGN(a)	((int32_t)(a) >> 31)
+#endif
+
+#ifndef WELS_ABS
+#define WELS_ABS(a)		((WELS_SIGN(a) ^ (int32_t)(a)) - WELS_SIGN(a))
+#endif
+
 #define WELS_CLAMP(x, minv, maxv)  WELS_MIN(WELS_MAX(x, minv), maxv)
 
 #define ALIGNBYTES         (16)       /* Worst case is requiring alignment to an 16 byte boundary */
@@ -84,7 +95,7 @@ WELSVP_NAMESPACE_BEGIN
 #define GET_METHOD(x)  ((x) & 0xff)          // mask method as the lowest 8bits
 #define GET_SPECIAL(x) (((x) >> 8) & 0xff)   // mask special flag as 8bits
 
-inline_t EMethods WelsVpGetValidMethod (int32_t a) {
+inline EMethods WelsVpGetValidMethod (int32_t a) {
   int32_t iMethod = GET_METHOD (a);
   return WelsStaticCast (EMethods, WELS_CLAMP (iMethod, METHOD_NULL + 1, METHOD_MASK - 1));
 }
@@ -94,12 +105,6 @@ inline_t EMethods WelsVpGetValidMethod (int32_t a) {
 #define _SafeDelete(p)		if (p) { delete (p); (p) = NULL; }
 
 
-//////////////////////////////////////////////////////////////////////////////////////
-
-int32_t   WelsStrCmp (const str_t* kpStr1, const str_t* kpStr2);
-
-
-//////////////////////////////////////////////////////////////////////////////////////
 WELSVP_NAMESPACE_END
 
 #endif

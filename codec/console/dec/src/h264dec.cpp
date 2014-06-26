@@ -32,6 +32,7 @@
  */
 
 #if defined (_WIN32)
+#define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #include <tchar.h>
 #else
@@ -40,28 +41,31 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-
+#if defined (ANDROID_NDK)
+#include <android/log.h>
+#endif
 #include "codec_def.h"
 #include "codec_app_def.h"
 #include "codec_api.h"
 #include "read_config.h"
 #include "typedefs.h"
-#include "../../decoder/core/inc/measure_time.h"
+#include "measure_time.h"
 #include "d3d9_utils.h"
-#include "logging.h"
-
-typedef long (*PCreateDecoderFunc) (ISVCDecoder** ppDecoder);
-typedef void_t (*PDestroyDecoderFunc) (ISVCDecoder* pDecoder);
 
 
 using namespace std;
-
+#if defined(ANDROID_NDK)
+#define LOG_TAG "welsdec"
+#define LOGI(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+#define printf LOGI
+#define fprintf(a, ...) LOGI(__VA_ARGS__)
+#endif
 //using namespace WelsDec;
 
 //#define STICK_STREAM_SIZE	// For Demo interfaces test with track file of integrated frames
 
-void_t H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, const char* kpOuputFileName,
-                           int32_t& iWidth, int32_t& iHeight, void_t* pOptionFileName) {
+void H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, const char* kpOuputFileName,
+                         int32_t& iWidth, int32_t& iHeight, const char* pOptionFileName) {
   FILE* pH264File	  = NULL;
   FILE* pYuvFile	  = NULL;
   FILE* pOptionFile = NULL;
@@ -71,7 +75,7 @@ void_t H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, co
   uint8_t* pBuf = NULL;
   uint8_t uiStartCode[4] = {0, 0, 0, 1};
 
-  void_t* pData[3] = {NULL};
+  uint8_t* pData[3] = {NULL};
   uint8_t* pDst[3] = {NULL};
   SBufferInfo sDstBufInfo;
 
@@ -82,10 +86,6 @@ void_t H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, co
   int32_t iFrameCount = 0;
   int32_t iEndOfStreamFlag = 0;
   int32_t iColorFormat = videoFormatInternal;
-  static int32_t iFrameNum = 0;
-
-  EDecodeMode     eDecoderMode    = AUTO_MODE;
-  EBufferProperty	eOutputProperty = BUFFER_DEVICE;
 
   CUtils cOutputModule;
   double dElapsed = 0;
@@ -118,11 +118,11 @@ void_t H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, co
   }
 
   if (pOptionFileName) {
-    pOptionFile = fopen ((char*)pOptionFileName, "wb");
+    pOptionFile = fopen (pOptionFileName, "wb");
     if (pOptionFile == NULL) {
       fprintf (stderr, "Can not open optional file for write..\n");
     } else
-      fprintf (stderr, "Extra optional file: %s..\n", (char*)pOptionFileName);
+      fprintf (stderr, "Extra optional file: %s..\n", pOptionFileName);
   }
 
   printf ("------------------------------------------------------\n");
@@ -141,7 +141,7 @@ void_t H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, co
     goto label_exit;
   }
 
-  if (fread (pBuf, 1, iFileSize, pH264File) != iFileSize) {
+  if (fread (pBuf, 1, iFileSize, pH264File) != (uint32_t)iFileSize) {
     fprintf (stderr, "Unable to read whole file\n");
     goto label_exit;
   }
@@ -151,16 +151,6 @@ void_t H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, co
   if (pDecoder->SetOption (DECODER_OPTION_DATAFORMAT,  &iColorFormat)) {
     fprintf (stderr, "SetOption() failed, opt_id : %d  ..\n", DECODER_OPTION_DATAFORMAT);
     goto label_exit;
-  }
-
-  if (pDecoder->SetOption (DECODER_OPTION_MODE,  &eDecoderMode)) {
-    fprintf (stderr, "SetOption() failed, opt_id : %d  ..\n", DECODER_OPTION_MODE);
-    goto label_exit;
-  }
-
-  // set the output buffer property
-  if (pYuvFile) {
-    pDecoder->SetOption (DECODER_OPTION_OUTPUT_PROPERTY,  &eOutputProperty);
   }
 
 #if defined ( STICK_STREAM_SIZE )
@@ -174,7 +164,7 @@ void_t H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, co
     if (iBufPos >= iFileSize) {
       iEndOfStreamFlag = true;
       if (iEndOfStreamFlag)
-        pDecoder->SetOption (DECODER_OPTION_END_OF_STREAM, (void_t*)&iEndOfStreamFlag);
+        pDecoder->SetOption (DECODER_OPTION_END_OF_STREAM, (void*)&iEndOfStreamFlag);
       break;
     }
 
@@ -183,8 +173,8 @@ void_t H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, co
       fread (&iSliceSize, 1, sizeof (int32_t), fpTrack);
 #else
     for (i = 0; i < iFileSize; i++) {
-      if (pBuf[iBufPos + i] == 0 && pBuf[iBufPos + i + 1] == 0 && pBuf[iBufPos + i + 2] == 0 &&
-          pBuf[iBufPos + i + 3] == 1 && i > 0) {
+      if ((pBuf[iBufPos + i] == 0 && pBuf[iBufPos + i + 1] == 0 && pBuf[iBufPos + i + 2] == 0 && pBuf[iBufPos + i + 3] == 1
+           && i > 0) || (pBuf[iBufPos + i] == 0 && pBuf[iBufPos + i + 1] == 0 && pBuf[iBufPos + i + 2] == 1 && i > 0)) {
         break;
       }
     }
@@ -208,10 +198,8 @@ void_t H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, co
     pDecoder->GetOption (DECODER_OPTION_VCL_NAL, &iFeedbackVclNalInAu);
     int32_t iFeedbackTidInAu;
     pDecoder->GetOption (DECODER_OPTION_TEMPORAL_ID, &iFeedbackTidInAu);
-    int32_t iSetMode;
-    pDecoder->GetOption (DECODER_OPTION_MODE, &iSetMode);
-    int32_t iDeviceInfo;
-    pDecoder->GetOption (DECODER_OPTION_DEVICE_INFO, &iDeviceInfo);
+    int32_t iErrorConMethod = ERROR_CON_SLICE_COPY;
+    pDecoder->SetOption (DECODER_OPTION_ERROR_CON_IDC, &iErrorConMethod);
 //~end for
 
     iStart = WelsTime();
@@ -220,25 +208,19 @@ void_t H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, co
     pData[2] = NULL;
     memset (&sDstBufInfo, 0, sizeof (SBufferInfo));
 
-    pDecoder->DecodeFrame (pBuf + iBufPos, iSliceSize, pData, &sDstBufInfo);
+    pDecoder->DecodeFrame2 (pBuf + iBufPos, iSliceSize, pData, &sDstBufInfo);
 
     if (sDstBufInfo.iBufferStatus == 1) {
-      pDst[0] = (uint8_t*)pData[0];
-      pDst[1] = (uint8_t*)pData[1];
-      pDst[2] = (uint8_t*)pData[2];
+      pDst[0] = pData[0];
+      pDst[1] = pData[1];
+      pDst[2] = pData[2];
     }
     iEnd	= WelsTime();
     iTotal	+= iEnd - iStart;
     if (sDstBufInfo.iBufferStatus == 1) {
-      iFrameNum++;
-      cOutputModule.Process ((void_t**)pDst, &sDstBufInfo, pYuvFile);
-      if (sDstBufInfo.eBufferProperty == BUFFER_HOST) {
-        iWidth  = sDstBufInfo.UsrData.sSystemBuffer.iWidth;
-        iHeight = sDstBufInfo.UsrData.sSystemBuffer.iHeight;
-      } else {
-        iWidth  = sDstBufInfo.UsrData.sVideoBuffer.iSurfaceWidth;
-        iHeight = sDstBufInfo.UsrData.sVideoBuffer.iSurfaceHeight;
-      }
+      cOutputModule.Process ((void**)pDst, &sDstBufInfo, pYuvFile);
+      iWidth  = sDstBufInfo.UsrData.sSystemBuffer.iWidth;
+      iHeight = sDstBufInfo.UsrData.sSystemBuffer.iHeight;
 
       if (pOptionFile != NULL) {
         if (iWidth != iLastWidth && iHeight != iLastHeight) {
@@ -262,22 +244,17 @@ void_t H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, co
   pData[2] = NULL;
   memset (&sDstBufInfo, 0, sizeof (SBufferInfo));
 
-  pDecoder->DecodeFrame (NULL, 0, pData, &sDstBufInfo);
+  pDecoder->DecodeFrame2 (NULL, 0, pData, &sDstBufInfo);
   if (sDstBufInfo.iBufferStatus == 1) {
-    pDst[0] = (uint8_t*)pData[0];
-    pDst[1] = (uint8_t*)pData[1];
-    pDst[2] = (uint8_t*)pData[2];
+    pDst[0] = pData[0];
+    pDst[1] = pData[1];
+    pDst[2] = pData[2];
   }
 
   if (sDstBufInfo.iBufferStatus == 1) {
-    cOutputModule.Process ((void_t**)pDst, &sDstBufInfo, pYuvFile);
-    if (sDstBufInfo.eBufferProperty == BUFFER_HOST) {
-      iWidth  = sDstBufInfo.UsrData.sSystemBuffer.iWidth;
-      iHeight = sDstBufInfo.UsrData.sSystemBuffer.iHeight;
-    } else {
-      iWidth  = sDstBufInfo.UsrData.sVideoBuffer.iSurfaceWidth;
-      iHeight = sDstBufInfo.UsrData.sVideoBuffer.iSurfaceHeight;
-    }
+    cOutputModule.Process ((void**)pDst, &sDstBufInfo, pYuvFile);
+    iWidth  = sDstBufInfo.UsrData.sSystemBuffer.iWidth;
+    iHeight = sDstBufInfo.UsrData.sSystemBuffer.iHeight;
 
     if (pOptionFile != NULL) {
       /* Anyway, we need write in case of final frame decoding */
@@ -324,12 +301,16 @@ label_exit:
   }
 }
 
-
+#if (defined(ANDROID_NDK)||defined(APPLE_IOS))
+int32_t DecMain (int32_t iArgC, char* pArgV[]) {
+#else
 int32_t main (int32_t iArgC, char* pArgV[]) {
+#endif
   ISVCDecoder* pDecoder = NULL;
 
   SDecodingParam sDecParam = {0};
   string strInputFile (""), strOutputFile (""), strOptionFile ("");
+  int iLevelSetting = -1;
 
   sDecParam.sVideoProperty.size = sizeof (sDecParam.sVideoProperty);
 
@@ -358,7 +339,7 @@ int32_t main (int32_t iArgC, char* pArgV[]) {
             strOutputFile	= strTag[1];
           } else if (strTag[0].compare ("RestructionFile") == 0) {
             strReconFile	= strTag[1];
-            int32_t iLen = strReconFile.length();
+            int32_t iLen = (int32_t)strReconFile.length();
             sDecParam.pFileNameRestructed	= new char[iLen + 1];
             if (sDecParam.pFileNameRestructed != NULL) {
               sDecParam.pFileNameRestructed[iLen] = 0;
@@ -403,14 +384,14 @@ int32_t main (int32_t iArgC, char* pArgV[]) {
 
         if (!strcmp (cmd, "-options")) {
           if (i + 1 < iArgC)
-            strOptionFile = pArgV[i++];
+            strOptionFile = pArgV[++i];
           else {
             printf ("options file not specified.\n");
             return 1;
           }
         } else if (!strcmp (cmd, "-trace")) {
           if (i + 1 < iArgC)
-            WelsStderrSetTraceLevel (atoi (pArgV[i++]));
+            iLevelSetting = atoi (pArgV[++i]);
           else {
             printf ("trace level not specified.\n");
             return 1;
@@ -433,42 +414,15 @@ int32_t main (int32_t iArgC, char* pArgV[]) {
 
 
 
-#if defined(_MSC_VER)
-
-  HMODULE hModule = LoadLibraryA (".\\welsdec.dll");
-
-  PCreateDecoderFunc  pCreateDecoderFunc				= NULL;
-  PDestroyDecoderFunc pDestroyDecoderFunc				= NULL;
-
-
-  pCreateDecoderFunc  = (PCreateDecoderFunc)::GetProcAddress (hModule, "CreateDecoder");
-  pDestroyDecoderFunc = (PDestroyDecoderFunc)::GetProcAddress (hModule, "DestroyDecoder");
-
-  if ((hModule != NULL) && (pCreateDecoderFunc != NULL) && (pDestroyDecoderFunc != NULL)) {
-    printf ("load library sw function successfully\n");
-
-    if (pCreateDecoderFunc (&pDecoder)  || (NULL == pDecoder)) {
-      printf ("Create Decoder failed.\n");
-      return 1;
-    }
-  } else {
-    printf ("load library sw function failed\n");
-    return 1;
-  }
-
-
-#else
-
-
-  if (CreateDecoder (&pDecoder)  || (NULL == pDecoder)) {
+  if (WelsCreateDecoder (&pDecoder)  || (NULL == pDecoder)) {
     printf ("Create Decoder failed.\n");
     return 1;
   }
+  if (iLevelSetting >= 0) {
+    pDecoder->SetOption (DECODER_OPTION_TRACE_LEVEL, &iLevelSetting);
+  }
 
-#endif
-
-
-  if (pDecoder->Initialize (&sDecParam, INIT_TYPE_PARAMETER_BASED)) {
+  if (pDecoder->Initialize (&sDecParam)) {
     printf ("Decoder initialization failed.\n");
     return 1;
   }
@@ -478,8 +432,9 @@ int32_t main (int32_t iArgC, char* pArgV[]) {
   int32_t iHeight = 0;
 
 
-  H264DecodeInstance (pDecoder, strInputFile.c_str(), strOutputFile.c_str(), iWidth, iHeight,
-                      (!strOptionFile.empty() ? (void_t*) (const_cast<char*> (strOptionFile.c_str())) : NULL));
+  H264DecodeInstance (pDecoder, strInputFile.c_str(), !strOutputFile.empty() ? strOutputFile.c_str() : NULL, iWidth,
+                      iHeight,
+                      (!strOptionFile.empty() ? strOptionFile.c_str() : NULL));
 
   if (sDecParam.pFileNameRestructed != NULL) {
     delete []sDecParam.pFileNameRestructed;
@@ -489,11 +444,7 @@ int32_t main (int32_t iArgC, char* pArgV[]) {
   if (pDecoder) {
     pDecoder->Uninitialize();
 
-#if defined(_MSC_VER)
-    pDestroyDecoderFunc (pDecoder);
-#else
-    DestroyDecoder (pDecoder);
-#endif
+    WelsDestroyDecoder (pDecoder);
   }
 
   return 0;

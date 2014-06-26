@@ -3,29 +3,48 @@
 
 #include <stddef.h>
 #include <stdlib.h>
+#include "../test_stdint.h"
+#include <algorithm>
 
 class BufferedData {
  public:
-  BufferedData() : data_(NULL), capacity_(0), length_(0) {}
+  BufferedData() : data_ (NULL), capacity_ (0), length_ (0) {}
 
   ~BufferedData() {
-    free(data_);
+    free (data_);
   }
 
-  bool Push(uint8_t c) {
-    if (!EnsureCapacity(length_ + 1)) {
+  bool PushBack (uint8_t c) {
+    if (!EnsureCapacity (length_ + 1)) {
       return false;
     }
     data_[length_++] = c;
     return true;
   }
 
+  bool PushBack (const uint8_t* data, size_t len) {
+    if (!EnsureCapacity (length_ + len)) {
+      return false;
+    }
+    memcpy (data_ + length_, data, len);
+    length_ += len;
+    return true;
+  }
+
+  size_t PopFront (uint8_t* ptr, size_t len) {
+    len = std::min (length_, len);
+    memcpy (ptr, data_, len);
+    memmove (data_, data_ + len, length_ - len);
+    SetLength (length_ - len);
+    return len;
+  }
+
   void Clear() {
     length_ = 0;
   }
 
-  void SetLength(size_t newLen) {
-    if (EnsureCapacity(newLen)) {
+  void SetLength (size_t newLen) {
+    if (EnsureCapacity (newLen)) {
       length_ = newLen;
     }
   }
@@ -39,11 +58,11 @@ class BufferedData {
   }
 
  private:
-  bool EnsureCapacity(size_t capacity) {
+  bool EnsureCapacity (size_t capacity) {
     if (capacity > capacity_) {
       size_t newsize = capacity * 2;
 
-      uint8_t* data = static_cast<uint8_t*>(realloc(data_, newsize));
+      uint8_t* data = static_cast<uint8_t*> (realloc (data_, newsize));
 
       if (!data)
         return false;

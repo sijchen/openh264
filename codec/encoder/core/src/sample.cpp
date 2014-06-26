@@ -39,80 +39,15 @@
  */
 
 #include "sample.h"
-#include "macros.h"
+#include "sad_common.h"
 
 #include "mc.h"
 #include "cpu_core.h"
-#include "array_stack_align.h"
 
 namespace WelsSVCEnc {
-int32_t WelsSampleSad4x4_c (uint8_t* pSample1, int32_t iStride1, uint8_t* pSample2, int32_t iStride2) {
-  int32_t iSadSum = 0;
-  int32_t i = 0;
-  uint8_t* pSrc1 = pSample1;
-  uint8_t* pSrc2 = pSample2;
-  for (i = 0; i < 4; i++) {
-    iSadSum += WELS_ABS ((pSrc1[0] - pSrc2[0]));
-    iSadSum += WELS_ABS ((pSrc1[1] - pSrc2[1]));
-    iSadSum += WELS_ABS ((pSrc1[2] - pSrc2[2]));
-    iSadSum += WELS_ABS ((pSrc1[3] - pSrc2[3]));
-
-    pSrc1 += iStride1;
-    pSrc2 += iStride2;
-  }
-
-  return iSadSum;
-}
-
-int32_t WelsSampleSad8x8_c (uint8_t* pSample1, int32_t iStride1, uint8_t* pSample2, int32_t iStride2) {
-  int32_t iSadSum = 0;
-  int32_t i = 0;
-  uint8_t* pSrc1 = pSample1;
-  uint8_t* pSrc2 = pSample2;
-  for (i = 0; i < 8; i++) {
-    iSadSum += WELS_ABS ((pSrc1[0] - pSrc2[0]));
-    iSadSum += WELS_ABS ((pSrc1[1] - pSrc2[1]));
-    iSadSum += WELS_ABS ((pSrc1[2] - pSrc2[2]));
-    iSadSum += WELS_ABS ((pSrc1[3] - pSrc2[3]));
-    iSadSum += WELS_ABS ((pSrc1[4] - pSrc2[4]));
-    iSadSum += WELS_ABS ((pSrc1[5] - pSrc2[5]));
-    iSadSum += WELS_ABS ((pSrc1[6] - pSrc2[6]));
-    iSadSum += WELS_ABS ((pSrc1[7] - pSrc2[7]));
-
-    pSrc1 += iStride1;
-    pSrc2 += iStride2;
-  }
-
-  return iSadSum;
-}
-int32_t WelsSampleSad16x8_c (uint8_t* pSample1, int32_t iStride1, uint8_t* pSample2, int32_t iStride2) {
-  int32_t iSadSum = 0;
-
-  iSadSum += WelsSampleSad8x8_c (pSample1,     iStride1, pSample2,     iStride2);
-  iSadSum += WelsSampleSad8x8_c (pSample1 + 8, iStride1, pSample2 + 8, iStride2);
-
-  return iSadSum;
-}
-int32_t WelsSampleSad8x16_c (uint8_t* pSample1, int32_t iStride1, uint8_t* pSample2, int32_t iStride2) {
-  int32_t iSadSum = 0;
-  iSadSum += WelsSampleSad8x8_c (pSample1,                   iStride1, pSample2,                   iStride2);
-  iSadSum += WelsSampleSad8x8_c (pSample1 + (iStride1 << 3), iStride1, pSample2 + (iStride2 << 3), iStride2);
-
-  return iSadSum;
-}
-int32_t WelsSampleSad16x16_c (uint8_t* pSample1, int32_t iStride1, uint8_t* pSample2, int32_t iStride2) {
-  int32_t iSadSum = 0;
-  iSadSum += WelsSampleSad8x8_c (pSample1,                     iStride1, pSample2,                     iStride2);
-  iSadSum += WelsSampleSad8x8_c (pSample1 + 8,                   iStride1, pSample2 + 8,                   iStride2);
-  iSadSum += WelsSampleSad8x8_c (pSample1 + (iStride1 << 3),   iStride1, pSample2 + (iStride2 << 3),   iStride2);
-  iSadSum += WelsSampleSad8x8_c (pSample1 + (iStride1 << 3) + 8, iStride1, pSample2 + (iStride2 << 3) + 8, iStride2);
-
-  return iSadSum;
-}
-
 int32_t WelsSampleSatd4x4_c (uint8_t* pSample1, int32_t iStride1, uint8_t* pSample2, int32_t iStride2) {
   int32_t iSatdSum = 0;
-  int32_t pSampleMix[4][4] = { 0 };
+  int32_t pSampleMix[4][4] = {{ 0 }};
   int32_t iSample0, iSample1, iSample2, iSample3;
   int32_t i = 0;
   uint8_t* pSrc1 = pSample1;
@@ -197,39 +132,6 @@ int32_t WelsSampleSatd16x16_c (uint8_t* pSample1, int32_t iStride1, uint8_t* pSa
   return iSatdSum;
 }
 
-
-void WelsSampleSadFour16x16_c (uint8_t* iSample1, int32_t iStride1, uint8_t* iSample2, int32_t iStride2,
-                               int32_t* pSad) {
-  * (pSad)     = WelsSampleSad16x16_c (iSample1, iStride1, (iSample2 - iStride2), iStride2);
-  * (pSad + 1) = WelsSampleSad16x16_c (iSample1, iStride1, (iSample2 + iStride2), iStride2);
-  * (pSad + 2) = WelsSampleSad16x16_c (iSample1, iStride1, (iSample2 - 1), iStride2);
-  * (pSad + 3) = WelsSampleSad16x16_c (iSample1, iStride1, (iSample2 + 1), iStride2);
-}
-void WelsSampleSadFour16x8_c (uint8_t* iSample1, int32_t iStride1, uint8_t* iSample2, int32_t iStride2, int32_t* pSad) {
-  * (pSad)     = WelsSampleSad16x8_c (iSample1, iStride1, (iSample2 - iStride2), iStride2);
-  * (pSad + 1) = WelsSampleSad16x8_c (iSample1, iStride1, (iSample2 + iStride2), iStride2);
-  * (pSad + 2) = WelsSampleSad16x8_c (iSample1, iStride1, (iSample2 - 1), iStride2);
-  * (pSad + 3) = WelsSampleSad16x8_c (iSample1, iStride1, (iSample2 + 1), iStride2);
-}
-void WelsSampleSadFour8x16_c (uint8_t* iSample1, int32_t iStride1, uint8_t* iSample2, int32_t iStride2, int32_t* pSad) {
-  * (pSad)     = WelsSampleSad8x16_c (iSample1, iStride1, (iSample2 - iStride2), iStride2);
-  * (pSad + 1) = WelsSampleSad8x16_c (iSample1, iStride1, (iSample2 + iStride2), iStride2);
-  * (pSad + 2) = WelsSampleSad8x16_c (iSample1, iStride1, (iSample2 - 1), iStride2);
-  * (pSad + 3) = WelsSampleSad8x16_c (iSample1, iStride1, (iSample2 + 1), iStride2);
-
-}
-void WelsSampleSadFour8x8_c (uint8_t* iSample1, int32_t iStride1, uint8_t* iSample2, int32_t iStride2, int32_t* pSad) {
-  * (pSad)     = WelsSampleSad8x8_c (iSample1, iStride1, (iSample2 - iStride2), iStride2);
-  * (pSad + 1) = WelsSampleSad8x8_c (iSample1, iStride1, (iSample2 + iStride2), iStride2);
-  * (pSad + 2) = WelsSampleSad8x8_c (iSample1, iStride1, (iSample2 - 1), iStride2);
-  * (pSad + 3) = WelsSampleSad8x8_c (iSample1, iStride1, (iSample2 + 1), iStride2);
-}
-void WelsSampleSadFour4x4_c (uint8_t* iSample1, int32_t iStride1, uint8_t* iSample2, int32_t iStride2, int32_t* pSad) {
-  * (pSad)     = WelsSampleSad4x4_c (iSample1, iStride1, (iSample2 - iStride2), iStride2);
-  * (pSad + 1) = WelsSampleSad4x4_c (iSample1, iStride1, (iSample2 + iStride2), iStride2);
-  * (pSad + 2) = WelsSampleSad4x4_c (iSample1, iStride1, (iSample2 - 1), iStride2);
-  * (pSad + 3) = WelsSampleSad4x4_c (iSample1, iStride1, (iSample2 + 1), iStride2);
-}
 
 extern void WelsI4x4LumaPredDc_c (uint8_t* pPred, uint8_t* pRef, const int32_t iStride);
 extern void WelsI4x4LumaPredH_c (uint8_t* pPred, uint8_t* pRef, const int32_t iStride);
@@ -465,11 +367,11 @@ void WelsInitSampleSadFunc (SWelsFuncPtrList* pFuncList, uint32_t uiCpuFlag) {
     pFuncList->sSampleDealingFuncs.pfSampleSatd[BLOCK_8x16 ] = WelsSampleSatd8x16_sse2;
     pFuncList->sSampleDealingFuncs.pfSampleSatd[BLOCK_16x8 ] = WelsSampleSatd16x8_sse2;
     pFuncList->sSampleDealingFuncs.pfSampleSatd[BLOCK_16x16] = WelsSampleSatd16x16_sse2;
-    //pFuncList->sSampleDealingFuncs.pfIntra4x4Combined3Satd =  WelsSmpleSatdThree4x4_sse2;
+    pFuncList->sSampleDealingFuncs.pfIntra4x4Combined3Satd = WelsSampleSatdThree4x4_sse2;
   }
 
   if (uiCpuFlag & WELS_CPU_SSSE3) {
-    //pFuncList->sSampleDealingFuncs.pfIntra16x16Combined3Sad = WelsIntra16x16Combined3Sad_ssse3;
+    pFuncList->sSampleDealingFuncs.pfIntra16x16Combined3Sad = WelsIntra16x16Combined3Sad_ssse3;
   }
 
   if (uiCpuFlag & WELS_CPU_SSE41) {
@@ -478,12 +380,61 @@ void WelsInitSampleSadFunc (SWelsFuncPtrList* pFuncList, uint32_t uiCpuFlag) {
     pFuncList->sSampleDealingFuncs.pfSampleSatd[BLOCK_8x16] = WelsSampleSatd8x16_sse41;
     pFuncList->sSampleDealingFuncs.pfSampleSatd[BLOCK_8x8] = WelsSampleSatd8x8_sse41;
     pFuncList->sSampleDealingFuncs.pfSampleSatd[BLOCK_4x4] = WelsSampleSatd4x4_sse41;
-    //pFuncList->sSampleDealingFuncs.pfIntra16x16Combined3Satd = WelsIntra16x16Combined3Satd_sse41;
-    //pFuncList->sSampleDealingFuncs.pfIntra8x8Combined3Satd = WelsIntraChroma8x8Combined3Satd_sse41;
+    pFuncList->sSampleDealingFuncs.pfIntra16x16Combined3Satd = WelsIntra16x16Combined3Satd_sse41;
+    pFuncList->sSampleDealingFuncs.pfIntra8x8Combined3Satd = WelsIntraChroma8x8Combined3Satd_sse41;
   }
 
 #endif //(X86_ASM)
 
+#if defined (HAVE_NEON)
+  if (uiCpuFlag & WELS_CPU_NEON) {
+    pFuncList->sSampleDealingFuncs.pfSampleSad[BLOCK_4x4  ] = WelsSampleSad4x4_neon;
+    pFuncList->sSampleDealingFuncs.pfSampleSad[BLOCK_16x16] = WelsSampleSad16x16_neon;
+    pFuncList->sSampleDealingFuncs.pfSampleSad[BLOCK_16x8 ] = WelsSampleSad16x8_neon;
+    pFuncList->sSampleDealingFuncs.pfSampleSad[BLOCK_8x16] = WelsSampleSad8x16_neon;
+    pFuncList->sSampleDealingFuncs.pfSampleSad[BLOCK_8x8] = WelsSampleSad8x8_neon;
+
+    pFuncList->sSampleDealingFuncs.pfSample4Sad[BLOCK_16x16] = WelsSampleSadFour16x16_neon;
+    pFuncList->sSampleDealingFuncs.pfSample4Sad[BLOCK_16x8] = WelsSampleSadFour16x8_neon;
+    pFuncList->sSampleDealingFuncs.pfSample4Sad[BLOCK_8x16] = WelsSampleSadFour8x16_neon;
+    pFuncList->sSampleDealingFuncs.pfSample4Sad[BLOCK_8x8] = WelsSampleSadFour8x8_neon;
+    pFuncList->sSampleDealingFuncs.pfSample4Sad[BLOCK_4x4] = WelsSampleSadFour4x4_neon;
+
+    pFuncList->sSampleDealingFuncs.pfSampleSatd[BLOCK_4x4  ] = WelsSampleSatd4x4_neon;
+    pFuncList->sSampleDealingFuncs.pfSampleSatd[BLOCK_8x8  ] = WelsSampleSatd8x8_neon;
+    pFuncList->sSampleDealingFuncs.pfSampleSatd[BLOCK_8x16 ] = WelsSampleSatd8x16_neon;
+    pFuncList->sSampleDealingFuncs.pfSampleSatd[BLOCK_16x8 ] = WelsSampleSatd16x8_neon;
+    pFuncList->sSampleDealingFuncs.pfSampleSatd[BLOCK_16x16] = WelsSampleSatd16x16_neon;
+
+    pFuncList->sSampleDealingFuncs.pfIntra4x4Combined3Satd   = WelsIntra4x4Combined3Satd_neon;
+    pFuncList->sSampleDealingFuncs.pfIntra8x8Combined3Satd   = WelsIntra8x8Combined3Satd_neon;
+    pFuncList->sSampleDealingFuncs.pfIntra8x8Combined3Sad    = WelsIntra8x8Combined3Sad_neon;
+    pFuncList->sSampleDealingFuncs.pfIntra16x16Combined3Satd = WelsIntra16x16Combined3Satd_neon;
+    pFuncList->sSampleDealingFuncs.pfIntra16x16Combined3Sad  = WelsIntra16x16Combined3Sad_neon;
+  }
+#endif
+
+#if defined (HAVE_NEON_AARCH64)
+  if (uiCpuFlag & WELS_CPU_NEON) {
+    pFuncList->sSampleDealingFuncs.pfSampleSad[BLOCK_4x4  ] = WelsSampleSad4x4_AArch64_neon;
+    pFuncList->sSampleDealingFuncs.pfSampleSad[BLOCK_16x16] = WelsSampleSad16x16_AArch64_neon;
+    pFuncList->sSampleDealingFuncs.pfSampleSad[BLOCK_16x8 ] = WelsSampleSad16x8_AArch64_neon;
+    pFuncList->sSampleDealingFuncs.pfSampleSad[BLOCK_8x16] = WelsSampleSad8x16_AArch64_neon;
+    pFuncList->sSampleDealingFuncs.pfSampleSad[BLOCK_8x8] = WelsSampleSad8x8_AArch64_neon;
+
+    pFuncList->sSampleDealingFuncs.pfSample4Sad[BLOCK_16x16] = WelsSampleSadFour16x16_AArch64_neon;
+    pFuncList->sSampleDealingFuncs.pfSample4Sad[BLOCK_16x8] = WelsSampleSadFour16x8_AArch64_neon;
+    pFuncList->sSampleDealingFuncs.pfSample4Sad[BLOCK_8x16] = WelsSampleSadFour8x16_AArch64_neon;
+    pFuncList->sSampleDealingFuncs.pfSample4Sad[BLOCK_8x8] = WelsSampleSadFour8x8_AArch64_neon;
+    pFuncList->sSampleDealingFuncs.pfSample4Sad[BLOCK_4x4] = WelsSampleSadFour4x4_AArch64_neon;
+
+    pFuncList->sSampleDealingFuncs.pfSampleSatd[BLOCK_4x4  ] = WelsSampleSatd4x4_AArch64_neon;
+    pFuncList->sSampleDealingFuncs.pfSampleSatd[BLOCK_8x8  ] = WelsSampleSatd8x8_AArch64_neon;
+    pFuncList->sSampleDealingFuncs.pfSampleSatd[BLOCK_8x16 ] = WelsSampleSatd8x16_AArch64_neon;
+    pFuncList->sSampleDealingFuncs.pfSampleSatd[BLOCK_16x8 ] = WelsSampleSatd16x8_AArch64_neon;
+    pFuncList->sSampleDealingFuncs.pfSampleSatd[BLOCK_16x16] = WelsSampleSatd16x16_AArch64_neon;
+  }
+#endif
 }
 
 } // namespace WelsSVCEnc

@@ -58,6 +58,14 @@ int32_t RequestMemorySvc (sWelsEncCtx** ppCtx);
 void FreeMemorySvc (sWelsEncCtx** ppCtx);
 
 /*!
+ * \brief	 allocate or reallocate the output bs buffer
+ * \return:		successful - 0; otherwise none 0 for failed
+ */
+int32_t AllocateBsOutputBuffer (CMemoryAlign* pMa, const int32_t iNeededLen, int32_t iOrigLen, const char* kpTag,
+                                uint8_t*& pOutputBuffer);
+//TODO: to finish this function and call it
+
+/*!
  * \brief	initialize function pointers that potentially used in Wels encoding
  * \param	pEncCtx		sWelsEncCtx*
  * \return	successful - 0; otherwise none 0 for failed
@@ -74,19 +82,21 @@ int32_t InitFunctionPointers (SWelsFuncPtrList* pFuncList, SWelsSvcCodingParam* 
 /*!
  * \brief	initialize frame coding
  */
-void InitFrameCoding (sWelsEncCtx* pEncCtx, const EFrameType keFrameType);
+void InitFrameCoding (sWelsEncCtx* pEncCtx, const EVideoFrameType keFrameType);
 
-EFrameType DecideFrameType (sWelsEncCtx* pEncCtx, const int8_t kiSpatialNum);
+EVideoFrameType DecideFrameType (sWelsEncCtx* pEncCtx, const int8_t kiSpatialNum);
+
+int32_t GetTemporalLevel (SSpatialLayerInternal* fDlp, const int32_t kiFrameNum, const int32_t kiGopSize);
 /*!
  * \brief	Dump reconstruction for dependency layer
  */
 
-extern "C" void DumpDependencyRec (SPicture* pSrcPic, const str_t* kpFileName, const int8_t kiDid);
+extern "C" void DumpDependencyRec (SPicture* pSrcPic, const char* kpFileName, const int8_t kiDid);
 
 /*!
  * \brief	Dump the reconstruction pictures
  */
-void DumpRecFrame (SPicture* pSrcPic, const str_t* kpFileName);
+void DumpRecFrame (SPicture* pSrcPic, const char* kpFileName);
 
 
 /*!
@@ -117,6 +127,8 @@ void WelsSetMemZeroAligned64_sse2 (void* pDst, int32_t iSize);
 void WelsSetMemZeroSize64_mmx (void* pDst, int32_t iSize);
 void WelsSetMemZeroSize8_mmx (void* pDst, int32_t iSize);
 void WelsPrefetchZero_mmx (int8_t const* kpDst);
+#elif defined(HAVE_NEON)
+void WelsSetMemZero_neon (void* pDst, int32_t iSize);
 #endif
 
 #if defined(__cplusplus)

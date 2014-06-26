@@ -36,12 +36,8 @@
  * \date	5/20/2009 Created
  *
  *************************************************************************************/
-#include <string.h>
-#include <assert.h>
 #include "picture_handle.h"
-#include "wels_const.h"
-#include "utils.h"
-#include "macros.h"
+#include "svc_motion_estimate.h"
 
 namespace WelsSVCEnc {
 /*!
@@ -52,7 +48,8 @@ namespace WelsSVCEnc {
  * \pram	need_expand		need borders expanding
  * \return	successful if effective picture pointer returned, otherwise failed with NULL
  */
-SPicture* AllocPicture (CMemoryAlign* pMa, const int32_t kiWidth , const int32_t kiHeight, bool_t bNeedMbInfo) {
+SPicture* AllocPicture (CMemoryAlign* pMa, const int32_t kiWidth , const int32_t kiHeight,
+                        bool bNeedMbInfo, int32_t iNeedFeatureStorage) {
   SPicture* pPic = NULL;
   int32_t iPicWidth = 0;
   int32_t iPicHeight = 0;
@@ -112,6 +109,15 @@ SPicture* AllocPicture (CMemoryAlign* pMa, const int32_t kiWidth , const int32_t
     WELS_VERIFY_RETURN_PROC_IF (NULL, NULL == pPic->pMbSkipSad, FreePicture (pMa, &pPic));
   }
 
+  if (iNeedFeatureStorage) {
+    pPic->pScreenBlockFeatureStorage = static_cast<SScreenBlockFeatureStorage*> (pMa->WelsMallocz (sizeof (
+                                         SScreenBlockFeatureStorage), "pScreenBlockFeatureStorage"));
+    int32_t iReturn = RequestScreenBlockFeatureStorage (pMa, kiWidth,  kiHeight, iNeedFeatureStorage,
+                      pPic->pScreenBlockFeatureStorage);
+    WELS_VERIFY_RETURN_PROC_IF (NULL, ENC_RETURN_SUCCESS != iReturn, FreePicture (pMa, &pPic));
+  } else {
+    pPic->pScreenBlockFeatureStorage = NULL;
+  }
   return pPic;
 }
 
@@ -162,6 +168,13 @@ void FreePicture (CMemoryAlign* pMa, SPicture** ppPic) {
       pMa->WelsFree (pPic->pMbSkipSad, "pPic->pMbSkipSad");
       pPic->pMbSkipSad = NULL;
     }
+
+    if (pPic->pScreenBlockFeatureStorage) {
+      ReleaseScreenBlockFeatureStorage (pMa, pPic->pScreenBlockFeatureStorage);
+      pMa->WelsFree (pPic->pScreenBlockFeatureStorage, "pPic->pScreenBlockFeatureStorage");
+      pPic->pScreenBlockFeatureStorage = NULL;
+    }
+
     pMa->WelsFree (*ppPic, "pPic");
     *ppPic = NULL;
   }

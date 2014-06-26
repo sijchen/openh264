@@ -42,31 +42,35 @@
 #ifndef WELSVP_VAACALCULATION_H
 #define WELSVP_VAACALCULATION_H
 
-#include "../common/util.h"
-#include "../common/memory.h"
-#include "../common/WelsFrameWork.h"
-#include "../../interface/IWelsVP.h"
+#include "util.h"
+#include "memory.h"
+#include "WelsFrameWork.h"
+#include "IWelsVP.h"
 
 WELSVP_NAMESPACE_BEGIN
 
-typedef void (VAACalcSadBgdFunc) (uint8_t* pCurData, uint8_t* pRefData, int32_t iPicWidth, int32_t iPicHeight,
+typedef void (VAACalcSadBgdFunc) (const uint8_t* pCurData, const uint8_t* pRefData, int32_t iPicWidth,
+                                  int32_t iPicHeight,
                                   int32_t iPicStride,
                                   int32_t* pFrameSad, int32_t* pSad8x8, int32_t* pSd8x8, uint8_t* pMad8x8);
 
-typedef void (VAACalcSadSsdBgdFunc) (uint8_t* pCurData, uint8_t* pRefData, int32_t iPicWidth, int32_t iPicHeight,
+typedef void (VAACalcSadSsdBgdFunc) (const uint8_t* pCurData, const uint8_t* pRefData, int32_t iPicWidth,
+                                     int32_t iPicHeight,
                                      int32_t iPicStride,
                                      int32_t* pFrameSad, int32_t* pSad8x8, int32_t* pSum16x16, int32_t* pSumSquare16x16,
                                      int32_t* pSsd16x16, int32_t* pSd8x8, uint8_t* pMad8x8);
 
-typedef void (VAACalcSadFunc) (uint8_t* pCurData, uint8_t* pRefData, int32_t iPicWidth, int32_t iPicHeight,
+typedef void (VAACalcSadFunc) (const uint8_t* pCurData, const uint8_t* pRefData, int32_t iPicWidth, int32_t iPicHeight,
                                int32_t iPicStride,
                                int32_t* pFrameSad, int32_t* pSad8x8);
 
-typedef void (VAACalcSadVarFunc) (uint8_t* pCurData, uint8_t* pRefData, int32_t iPicWidth, int32_t iPicHeight,
+typedef void (VAACalcSadVarFunc) (const uint8_t* pCurData, const uint8_t* pRefData, int32_t iPicWidth,
+                                  int32_t iPicHeight,
                                   int32_t iPicStride,
                                   int32_t* pFrameSad, int32_t* pSad8x8, int32_t* pSum16x16, int32_t* pSumSquare16x16);
 
-typedef void (VAACalcSadSsdFunc) (uint8_t* pCurData, uint8_t* pRefData, int32_t iPicWidth, int32_t iPicHeight,
+typedef void (VAACalcSadSsdFunc) (const uint8_t* pCurData, const uint8_t* pRefData, int32_t iPicWidth,
+                                  int32_t iPicHeight,
                                   int32_t iPicStride,
                                   int32_t* pFrameSad, int32_t* pSad8x8, int32_t* pSum16x16, int32_t* pSumSquare16x16, int32_t* pSsd16x16);
 
@@ -100,6 +104,16 @@ VAACalcSadSsdBgdFunc	VAACalcSadSsdBgd_sse2;
 VAACalcSadFunc			    VAACalcSad_sse2;
 VAACalcSadVarFunc		VAACalcSadVar_sse2;
 VAACalcSadSsdFunc		VAACalcSadSsd_sse2;
+WELSVP_EXTERN_C_END
+#endif
+
+#ifdef HAVE_NEON
+WELSVP_EXTERN_C_BEGIN
+VAACalcSadBgdFunc		VAACalcSadBgd_neon;
+VAACalcSadSsdBgdFunc	VAACalcSadSsdBgd_neon;
+VAACalcSadFunc			    VAACalcSad_neon;
+VAACalcSadVarFunc		VAACalcSadVar_neon;
+VAACalcSadSsdFunc		VAACalcSadSsd_neon;
 WELSVP_EXTERN_C_END
 #endif
 
