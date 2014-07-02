@@ -1,7 +1,5 @@
-#include<gtest/gtest.h>
-#include<math.h>
-#include<stdlib.h>
-#include<time.h>
+#include <gtest/gtest.h>
+#include <math.h>
 
 #include "cpu_core.h"
 #include "cpu.h"
@@ -24,7 +22,6 @@ TEST (IntraSadSatdFuncTest, WelsIntra16x16Combined3Sad_ssse3) {
   uint8_t* pDec = (uint8_t*)cMemoryAlign.WelsMalloc (iLineSizeDec << 5, "pDec");
   uint8_t* pEnc = (uint8_t*)cMemoryAlign.WelsMalloc (iLineSizeEnc << 5, "pEnc");
   uint8_t* pDst = (uint8_t*)cMemoryAlign.WelsMalloc (512, "pDst");
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (iLineSizeDec << 5); i++)
     pDec[i] = rand() % 256;
   for (int i = 0; i < (iLineSizeEnc << 5); i++)
@@ -56,7 +53,6 @@ TEST (IntraSadSatdFuncTest, WelsIntra16x16Combined3Satd_sse41) {
   uint8_t* pDec = (uint8_t*)cMemoryAlign.WelsMalloc (iLineSizeDec << 5, "pDec");
   uint8_t* pEnc = (uint8_t*)cMemoryAlign.WelsMalloc (iLineSizeEnc << 5, "pEnc");
   uint8_t* pDst = (uint8_t*)cMemoryAlign.WelsMalloc (512, "pDst");
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (iLineSizeDec << 5); i++)
     pDec[i] = rand() % 256;
   for (int i = 0; i < (iLineSizeEnc << 5); i++)
@@ -87,8 +83,6 @@ TEST (IntraSadSatdFuncTest, WelsSampleSatdThree4x4_sse2) {
   uint8_t* pDec = (uint8_t*)cMemoryAlign.WelsMalloc (iLineSizeDec << 5, "pDec");
   uint8_t* pEnc = (uint8_t*)cMemoryAlign.WelsMalloc (iLineSizeEnc << 5, "pEnc");
   uint8_t* pDst = (uint8_t*)cMemoryAlign.WelsMalloc (512, "pDst");
-  WelsInitFillingPredFuncs (WELS_CPU_SSE2);
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (iLineSizeDec << 5); i++)
     pDec[i] = rand() % 256;
   for (int i = 0; i < (iLineSizeEnc << 5); i++)
@@ -121,7 +115,6 @@ TEST (IntraSadSatdFuncTest, WelsIntraChroma8x8Combined3Satd_sse41) {
   uint8_t* pDecCr = (uint8_t*)cMemoryAlign.WelsMalloc (iLineSizeDec << 5, "pDecCr");
   uint8_t* pEncCr = (uint8_t*)cMemoryAlign.WelsMalloc (iLineSizeEnc << 5, "pEncCr");
   uint8_t* pDstChma = (uint8_t*)cMemoryAlign.WelsMalloc (512, "pDstChma");
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (iLineSizeDec << 5); i++) {
     pDecCb[i] = rand() % 256;
     pDecCr[i] = rand() % 256;
@@ -165,7 +158,6 @@ class SadSatdCFuncTest : public testing::Test {
   virtual void SetUp() {
     pMemAlign = new CMemoryAlign (0);
 
-    srand ((uint32_t)time (NULL));
     m_iStrideA = rand() % 256 + PIXEL_STRIDE;
     m_iStrideB = rand() % 256 + PIXEL_STRIDE;
     m_pPixSrcA = (uint8_t*)pMemAlign->WelsMalloc (m_iStrideA << 5, "Sad_m_pPixSrcA");
@@ -192,7 +184,6 @@ class SadSatdCFuncTest : public testing::Test {
 };
 
 TEST_F (SadSatdCFuncTest, WelsSampleSad4x4_c) {
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 2); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 2); i++)
@@ -211,7 +202,6 @@ TEST_F (SadSatdCFuncTest, WelsSampleSad4x4_c) {
 }
 
 TEST_F (SadSatdCFuncTest, WelsSampleSad8x8_c) {
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 3); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 3); i++)
@@ -231,7 +221,6 @@ TEST_F (SadSatdCFuncTest, WelsSampleSad8x8_c) {
 }
 
 TEST_F (SadSatdCFuncTest, WelsSampleSad16x8_c) {
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 3); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 3); i++)
@@ -251,7 +240,6 @@ TEST_F (SadSatdCFuncTest, WelsSampleSad16x8_c) {
 }
 
 TEST_F (SadSatdCFuncTest, WelsSampleSad8x16_c) {
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 4); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 4); i++)
@@ -271,7 +259,6 @@ TEST_F (SadSatdCFuncTest, WelsSampleSad8x16_c) {
 }
 
 TEST_F (SadSatdCFuncTest, WelsSampleSad16x16_c) {
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 4); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 4); i++)
@@ -291,7 +278,6 @@ TEST_F (SadSatdCFuncTest, WelsSampleSad16x16_c) {
 }
 
 TEST_F (SadSatdCFuncTest, WelsSampleSatd4x4_c) {
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 2); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 2); i++)
@@ -355,7 +341,6 @@ TEST_F (SadSatdCFuncTest, WelsSampleSatd4x4_c) {
 }
 
 TEST_F (SadSatdCFuncTest, WelsSampleSadFour16x16_c) {
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 5); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 5); i++)
@@ -379,7 +364,6 @@ TEST_F (SadSatdCFuncTest, WelsSampleSadFour16x16_c) {
 }
 
 TEST_F (SadSatdCFuncTest, WelsSampleSadFour16x8_c) {
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 5); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 5); i++)
@@ -404,7 +388,6 @@ TEST_F (SadSatdCFuncTest, WelsSampleSadFour16x8_c) {
 }
 
 TEST_F (SadSatdCFuncTest, WelsSampleSadFour8x16_c) {
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 5); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 5); i++)
@@ -429,7 +412,6 @@ TEST_F (SadSatdCFuncTest, WelsSampleSadFour8x16_c) {
 }
 
 TEST_F (SadSatdCFuncTest, WelsSampleSadFour8x8_c) {
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 4); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 4); i++)
@@ -453,7 +435,6 @@ TEST_F (SadSatdCFuncTest, WelsSampleSadFour8x8_c) {
 }
 
 TEST_F (SadSatdCFuncTest, WelsSampleSadFour4x4_c) {
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 3); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 3); i++)
@@ -512,7 +493,6 @@ TEST_F (SadSatdAssemblyFuncTest, WelsSampleSad4x4_mmx) {
   if (0 == (m_uiCpuFeatureFlag & WELS_CPU_MMXEXT))
     return;
 
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 2); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 2); i++)
@@ -527,7 +507,6 @@ TEST_F (SadSatdAssemblyFuncTest, WelsSampleSad8x8_sse21) {
   if (0 == (m_uiCpuFeatureFlag & WELS_CPU_SSE2))
     return;
 
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 3); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 3); i++)
@@ -540,7 +519,6 @@ TEST_F (SadSatdAssemblyFuncTest, WelsSampleSad8x8_sse21) {
 TEST_F (SadSatdAssemblyFuncTest, WelsSampleSad8x16_sse2) {
   if (0 == (m_uiCpuFeatureFlag & WELS_CPU_SSE2))
     return;
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 4); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 4); i++)
@@ -553,7 +531,6 @@ TEST_F (SadSatdAssemblyFuncTest, WelsSampleSad8x16_sse2) {
 TEST_F (SadSatdAssemblyFuncTest, WelsSampleSad16x8_sse2) {
   if (0 == (m_uiCpuFeatureFlag & WELS_CPU_SSE2))
     return;
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 3); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 3); i++)
@@ -566,7 +543,6 @@ TEST_F (SadSatdAssemblyFuncTest, WelsSampleSad16x8_sse2) {
 TEST_F (SadSatdAssemblyFuncTest, WelsSampleSad16x16_sse2) {
   if (0 == (m_uiCpuFeatureFlag & WELS_CPU_SSE2))
     return;
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 4); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 4); i++)
@@ -579,7 +555,6 @@ TEST_F (SadSatdAssemblyFuncTest, WelsSampleSad16x16_sse2) {
 TEST_F (SadSatdAssemblyFuncTest, WelsSampleSatd4x4_sse2) {
   if (0 == (m_uiCpuFeatureFlag & WELS_CPU_SSE2))
     return;
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 2); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 2); i++)
@@ -592,7 +567,6 @@ TEST_F (SadSatdAssemblyFuncTest, WelsSampleSatd4x4_sse2) {
 TEST_F (SadSatdAssemblyFuncTest, WelsSampleSatd8x8_sse2) {
   if (0 == (m_uiCpuFeatureFlag & WELS_CPU_SSE2))
     return;
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 3); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 3); i++)
@@ -605,7 +579,6 @@ TEST_F (SadSatdAssemblyFuncTest, WelsSampleSatd8x8_sse2) {
 TEST_F (SadSatdAssemblyFuncTest, WelsSampleSatd8x16_sse2) {
   if (0 == (m_uiCpuFeatureFlag & WELS_CPU_SSE2))
     return;
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 4); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 4); i++)
@@ -618,7 +591,6 @@ TEST_F (SadSatdAssemblyFuncTest, WelsSampleSatd8x16_sse2) {
 TEST_F (SadSatdAssemblyFuncTest, WelsSampleSatd16x8_sse2) {
   if (0 == (m_uiCpuFeatureFlag & WELS_CPU_SSE2))
     return;
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 3); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 3); i++)
@@ -631,7 +603,6 @@ TEST_F (SadSatdAssemblyFuncTest, WelsSampleSatd16x8_sse2) {
 TEST_F (SadSatdAssemblyFuncTest, WelsSampleSatd16x16_sse2) {
   if (0 == (m_uiCpuFeatureFlag & WELS_CPU_SSE2))
     return;
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 4); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 4); i++)
@@ -644,7 +615,6 @@ TEST_F (SadSatdAssemblyFuncTest, WelsSampleSatd16x16_sse2) {
 TEST_F (SadSatdAssemblyFuncTest, WelsSampleSatd4x4_sse41) {
   if (0 == (m_uiCpuFeatureFlag & WELS_CPU_SSE41))
     return;
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 2); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 2); i++)
@@ -657,7 +627,6 @@ TEST_F (SadSatdAssemblyFuncTest, WelsSampleSatd4x4_sse41) {
 TEST_F (SadSatdAssemblyFuncTest, WelsSampleSatd8x8_sse41) {
   if (0 == (m_uiCpuFeatureFlag & WELS_CPU_SSE41))
     return;
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 3); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 3); i++)
@@ -670,7 +639,6 @@ TEST_F (SadSatdAssemblyFuncTest, WelsSampleSatd8x8_sse41) {
 TEST_F (SadSatdAssemblyFuncTest, WelsSampleSatd8x16_sse41) {
   if (0 == (m_uiCpuFeatureFlag & WELS_CPU_SSE41))
     return;
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 4); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 4); i++)
@@ -683,7 +651,6 @@ TEST_F (SadSatdAssemblyFuncTest, WelsSampleSatd8x16_sse41) {
 TEST_F (SadSatdAssemblyFuncTest, WelsSampleSatd16x8_sse41) {
   if (0 == (m_uiCpuFeatureFlag & WELS_CPU_SSE41))
     return;
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 3); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 3); i++)
@@ -696,7 +663,6 @@ TEST_F (SadSatdAssemblyFuncTest, WelsSampleSatd16x8_sse41) {
 TEST_F (SadSatdAssemblyFuncTest, WelsSampleSatd16x16_sse41) {
   if (0 == (m_uiCpuFeatureFlag & WELS_CPU_SSE41))
     return;
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 4); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 4); i++)
@@ -710,7 +676,6 @@ TEST_F (SadSatdAssemblyFuncTest, WelsSampleSadFour16x16_sse2) {
   if (0 == (m_uiCpuFeatureFlag & WELS_CPU_SSE2))
     return;
 
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 5); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 5); i++)
@@ -739,7 +704,6 @@ TEST_F (SadSatdAssemblyFuncTest, WelsSampleSadFour16x8_sse2) {
   if (0 == (m_uiCpuFeatureFlag & WELS_CPU_SSE2))
     return;
 
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 5); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 5); i++)
@@ -768,7 +732,6 @@ TEST_F (SadSatdAssemblyFuncTest, WelsSampleSadFour8x16_sse2) {
   if (0 == (m_uiCpuFeatureFlag & WELS_CPU_SSE2))
     return;
 
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 5); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 5); i++)
@@ -797,7 +760,6 @@ TEST_F (SadSatdAssemblyFuncTest, WelsSampleSadFour8x8_sse2) {
   if (0 == (m_uiCpuFeatureFlag & WELS_CPU_SSE2))
     return;
 
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 4); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 4); i++)
@@ -827,7 +789,6 @@ TEST_F (SadSatdAssemblyFuncTest, WelsSampleSadFour4x4_sse2) {
   if (0 == (m_uiCpuFeatureFlag & WELS_CPU_SSE2))
     return;
 
-  srand ((uint32_t)time (NULL));
   for (int i = 0; i < (m_iStrideA << 3); i++)
     m_pPixSrcA[i] = rand() % 256;
   for (int i = 0; i < (m_iStrideB << 3); i++)

@@ -1,6 +1,4 @@
-#include<gtest/gtest.h>
-#include<stdlib.h>
-#include<time.h>
+#include <gtest/gtest.h>
 #include "ls_defines.h"
 #include "encode_mb_aux.h"
 #include "wels_common_basis.h"
@@ -14,7 +12,6 @@ TEST (EncodeMbAuxTest, TestScan_4x4_ac_c) {
   ALLOC_MEMORY (int16_t, iLevel, 16);
   ALLOC_MEMORY (int16_t, iDctA, 16);
   ALLOC_MEMORY (int16_t, iDctB, 16);
-  srand ((unsigned int)time (NULL));
   for (int i = 0; i < 16; i++) {
     iDctA[i] = rand() % 256 + 1;
     iDctB[i] = iDctA[i];
@@ -47,7 +44,6 @@ TEST (EncodeMbAuxTest, TestScan_4x4_ac_sse2) {
   ALLOC_MEMORY (int16_t, iLevelA, 16);
   ALLOC_MEMORY (int16_t, iLevelB, 16);
   ALLOC_MEMORY (int16_t, iDct, 16);
-  srand ((unsigned int)time (NULL));
   for (int i = 0; i < 16; i++) {
     iDct[i] = rand() % 256 + 1;
   }
@@ -64,7 +60,6 @@ TEST (EncodeMbAuxTest, WelsScan4x4DcAc_sse2) {
   ALLOC_MEMORY (int16_t, iLevelA, 32);
   ALLOC_MEMORY (int16_t, iLevelB, 32);
   ALLOC_MEMORY (int16_t, iDct, 32);
-  srand ((unsigned int)time (NULL));
   for (int i = 0; i < 32; i++)
     iDct[i] = (rand() & 32767) - 16384;
   WelsScan4x4DcAc_sse2 (iLevelA, iDct);
@@ -81,7 +76,6 @@ TEST (EncodeMbAuxTest, TestScan_4x4_dcc) {
   ALLOC_MEMORY (int16_t, iLevel, 16);
   ALLOC_MEMORY (int16_t, iDctA, 16);
   ALLOC_MEMORY (int16_t, iDctB, 16);
-  srand ((unsigned int)time (NULL));
   for (int i = 0; i < 16; i++)
     iDctA[i] = iDctB[i] = rand() % 256 + 1;
   WelsScan4x4Dc (iLevel, iDctA);
@@ -154,7 +148,6 @@ TEST (EncodeMbAuxTest, WelsDctT4_c) {
   int16_t iDctRef[4][4];
   uint8_t uiPix1[16 * FENC_STRIDE], uiPix2[16 * FDEC_STRIDE];
   int16_t iDct[16];
-  srand ((unsigned int)time (NULL));
   for (int i = 0; i < 4; i++)
     for (int j = 0; j < 4; j++)
       uiPix1[i * FENC_STRIDE + j] = uiPix2[i * FDEC_STRIDE + j] = rand() & 255;
@@ -168,7 +161,6 @@ TEST (EncodeMbAuxTest, WelsDctFourT4_c) {
   int16_t iDctRef[4][4][4];
   uint8_t uiPix1[16 * FENC_STRIDE], uiPix2[16 * FDEC_STRIDE];
   int16_t iDct[16 * 4];
-  srand ((unsigned int)time (NULL));
   for (int i = 0; i < 8; i++)
     for (int j = 0; j < 8; j++)
       uiPix1[i * FENC_STRIDE + j] = uiPix2[i * FDEC_STRIDE + j] = rand() & 255;
@@ -184,7 +176,6 @@ TEST (EncodeMbAuxTest, WelsDctFourT4_c) {
 TEST (EncodeMbAuxTest, WelsDctT4_mmx) {
   int16_t iDctC[16], iDctM[16];
   uint8_t uiPix1[16 * FENC_STRIDE], uiPix2[16 * FDEC_STRIDE];
-  srand ((unsigned int)time (NULL));
   for (int i = 0; i < 4; i++)
     for (int j = 0; j < 4; j++)
       uiPix1[i * FENC_STRIDE + j] = uiPix2[i * FDEC_STRIDE + j] = rand() & 255;
@@ -200,7 +191,6 @@ TEST (EncodeMbAuxTest, WelsDctFourT4_sse2) {
   ALLOC_MEMORY (uint8_t, uiPix2, 16 * FDEC_STRIDE);
   ALLOC_MEMORY (int16_t, iDctC, 16 * 4);
   ALLOC_MEMORY (int16_t, iDctS, 16 * 4);
-  srand ((unsigned int)time (NULL));
   for (int i = 0; i < 8; i++)
     for (int j = 0; j < 8; j++)
       uiPix1[i * FENC_STRIDE + j] = uiPix2[i * FDEC_STRIDE + j] = rand() & 255;
@@ -218,7 +208,6 @@ TEST (EncodeMbAuxTest, WelsCalculateSingleCtr4x4_sse2) {
   CMemoryAlign cMemoryAlign (0);
   ALLOC_MEMORY (int16_t, iDctC, 16);
   ALLOC_MEMORY (int16_t, iDctS, 16);
-  srand ((unsigned int)time (NULL));
   for (int i = 0; i < 16; i++)
     iDctC[i] = iDctS[i] = (rand() & 65535) - 32768;
   WelsCalculateSingleCtr4x4_c (iDctC);
@@ -239,11 +228,9 @@ void copy (uint8_t* pDst, int32_t iDStride, uint8_t* pSrc, int32_t iSStride, int
 TEST(EncodeMbAuxTest, function) { \
   const int iSStride = 64;  \
   const int iDStride = 64;  \
-  uint8_t _ref_src[64*64], _ref_dst[64*64], _dst[64*64]; \
-  uint8_t *ref_src = (uint8_t*)((((uintptr_t)(_ref_src + 15)) >> 4) << 4); \
-  uint8_t *ref_dst = (uint8_t*)((((uintptr_t)(_ref_dst + 15)) >> 4) << 4); \
-  uint8_t *dst = (uint8_t*)((((uintptr_t)(_dst + 15)) >> 4) << 4); \
-  srand((unsigned int)time(NULL)); \
+  ENFORCE_STACK_ALIGN_1D (uint8_t, ref_src, iSStride*height, 16); \
+  ENFORCE_STACK_ALIGN_1D (uint8_t, ref_dst, iDStride*height, 16); \
+  ENFORCE_STACK_ALIGN_1D (uint8_t, dst, iDStride*height, 16); \
   for(int i = 0; i < height; i++) \
     for(int j = 0; j < width; j++) \
       ref_src[i*iSStride+j] = rand() & 255; \
@@ -265,9 +252,7 @@ GENERATE_UT_FOR_COPY (16, 16, WelsCopy16x16NotAligned_sse2);
 GENERATE_UT_FOR_COPY (16, 16, WelsCopy16x16_sse2);
 #endif
 TEST (EncodeMbAuxTest, WelsGetNoneZeroCount_c) {
-  int16_t _iLevel[32];
-  int16_t* pLevel = (int16_t*) (((((uintptr_t)_iLevel) + 15) >> 4) << 4);
-  srand ((unsigned int)time (NULL));
+  ENFORCE_STACK_ALIGN_1D (int16_t, pLevel, 16, 16);
   int32_t result = 0;
   for (int i = 0; i < 16; i++) {
     pLevel[i] = (rand() & 0x07) - 4;
@@ -278,9 +263,7 @@ TEST (EncodeMbAuxTest, WelsGetNoneZeroCount_c) {
 }
 #ifdef X86_ASM
 TEST (EncodeMbAuxTest, WelsGetNoneZeroCount_sse2) {
-  int16_t _iLevel[32];
-  int16_t* pLevel = (int16_t*) (((((uintptr_t)_iLevel) + 15) >> 4) << 4);
-  srand ((unsigned int)time (NULL));
+  ENFORCE_STACK_ALIGN_1D (int16_t, pLevel, 16, 16);
   int32_t result = 0;
   for (int i = 0; i < 16; i++) {
     pLevel[i] = (rand() & 0x07) - 4;
@@ -313,7 +296,6 @@ TEST (EncodeMbAuxTest, WelsQuantFour4x4Max_c) {
   int16_t ff[8], mf[8];
   int16_t iDctA[64], iMaxA[16];
   int16_t iDctC[64], iMaxC[16];
-  srand ((unsigned int)time (NULL));
   for (int i = 0; i < 8; i++) {
     ff[i] = rand() & 32767;
     mf[i] = rand() & 32767;
@@ -336,7 +318,6 @@ TEST (EncodeMbAuxTest, WelsQuantFour4x4Max_sse2) {
   ALLOC_MEMORY (int16_t, iDctS, 64);
   ALLOC_MEMORY (int16_t, iMaxC, 16);
   ALLOC_MEMORY (int16_t, iMaxS, 16);
-  srand ((unsigned int)time (NULL));
   for (int i = 0; i < 8; i++) {
     ff[i] = rand() & 32767;
     mf[i] = rand() & 32767;
@@ -375,7 +356,6 @@ int32_t WelsHadamardQuant2x2SkipAnchor (int16_t* rs, int16_t ff,  int16_t mf) {
 TEST (EncodeMbAuxTest, WelsHadamardQuant2x2Skip_c) {
   int16_t iRS[64];
   int16_t ff, mf;
-  srand ((unsigned int)time (NULL));
   for (int i = 0; i < 64; i++)
     iRS[i] = (rand() & 32767) - 16384;
   ff = rand() & 32767;
@@ -420,7 +400,6 @@ TEST (EncodeMbAuxTest, WelsHadamardQuant2x2_c) {
   int16_t iRsC[64], iRsA[64];
   int16_t ff, mf;
   int16_t iBlockA[16], iBlockC[16], iDctA[4], iDctC[4];
-  srand ((unsigned int)time (NULL));
   for (int i = 0; i < 64; i++)
     iRsA[i] = iRsC[i] = (rand() & 32767) - 16384;
   for (int i = 0; i < 4; i++)
@@ -465,7 +444,6 @@ TEST (EncodeMbAuxTest, WelsHadamardT4Dc_c) {
   ALLOC_MEMORY (int16_t, iDct, 128 * 16);
   ALLOC_MEMORY (int16_t, iLumaDcR, 16);
   ALLOC_MEMORY (int16_t, iLumaDcC, 16);
-  srand ((unsigned int)time (NULL));
   for (int i = 0; i < 128 * 16; i++)
     iDct[i] = (rand() & 32767) - 16384;
   WelsHadamardT4DcAnchor (iLumaDcR, iDct);
@@ -482,7 +460,6 @@ TEST (EncodeMbAuxTest, WelsHadamardT4Dc_sse2) {
   ALLOC_MEMORY (int16_t, iDct, 128 * 16);
   ALLOC_MEMORY (int16_t, iLumaDcC, 16);
   ALLOC_MEMORY (int16_t, iLumaDcS, 16);
-  srand ((unsigned int)time (NULL));
   for (int i = 0; i < 128 * 16; i++)
     iDct[i] = (rand() & 32767) - 16384;
   WelsHadamardT4Dc_c (iLumaDcC, iDct);

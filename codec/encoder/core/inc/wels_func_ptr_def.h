@@ -86,8 +86,8 @@ typedef struct TagMcFunc {
   PWelsLumaHalfpelMcFunc      pfLumaHalfpelCen;
   PWelsMcFunc                         pfChromaMc;
 
-  PWelsLumaQuarpelMcFunc*     pfLumaQuarpelMc;
-  PWelsSampleAveragingFunc*   pfSampleAveraging;
+  PWelsLumaQuarpelMcFunc      pfLumaQuarpelMc[16];
+  PWelsSampleAveragingFunc    pfSampleAveraging[2];
 } SMcFunc;
 
 typedef void (*PLumaDeblockingLT4Func) (uint8_t* iSampleY, int32_t iStride, int32_t iAlpha, int32_t iBeta, int8_t* iTc);
@@ -132,6 +132,7 @@ typedef void (*PInterMdBackgroundInfoUpdateFunc) (SDqLayer* pCurLayer,  SMB* pCu
 
 typedef bool (*PInterMdScrollingPSkipDecisionFunc) (void* pEncCtx, void* pWelsMd, SSlice* slice, SMB* pCurMb,
     SMbCache* pMbCache);
+typedef void (*PSetScrollingMv) (void* pVaa, void* pMd);
 
 typedef void (*PInterMdFunc) (void* pEncCtx, void* pWelsMd, SSlice* slice, SMB* pCurMb, SMbCache* pMbCache);
 
@@ -191,6 +192,9 @@ typedef bool (*PBuildRefListFunc) (void* pCtx, const int32_t iPOC, int32_t iBest
 typedef void (*PMarkPicFunc) (void* pCtx);
 typedef bool (*PUpdateRefListFunc) (void* pCtx);
 
+typedef  int32_t (*PCavlcParamCalFunc) (int16_t* pCoff, uint8_t* pRun, int16_t* pLevel, int32_t* pTotalCoeffs,
+                                        int32_t iEndIdx);
+
 struct TagWelsFuncPointerList {
   SExpandPicFunc sExpandPicFunc;
   PFillInterNeighborCacheFunc       pfFillInterNeighborCache;
@@ -208,6 +212,7 @@ struct TagWelsFuncPointerList {
   PInterMdBackgroundInfoUpdateFunc      pfInterMdBackgroundInfoUpdate;
 
   PInterMdScrollingPSkipDecisionFunc pfSCDPSkipDecision;
+  PSetScrollingMv pfSetScrollingMv;
 
   SMcFunc                sMcFuncs;
   SSampleDealingFunc     sSampleDealingFuncs;
@@ -280,6 +285,8 @@ struct TagWelsFuncPointerList {
   PBuildRefListFunc     pBuildRefList;
   PMarkPicFunc          pMarkPic;
   PUpdateRefListFunc    pUpdateRefList;
+
+  PCavlcParamCalFunc    pfCavlcParamCal;
 };
 
 }  //end of namespace WelsSVCEnc {

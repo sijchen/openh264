@@ -94,6 +94,13 @@ typedef struct LayerpEncCtx_s {
   SSliceConfig	sSliceCfg;
 } SLayerPEncCtx;
 
+typedef struct tagFilesSet {
+  string strBsFile;
+  string strSeqFile;    // for cmd lines
+  string strLayerCfgFile[MAX_DEPENDENCY_LAYER];
+  char   sRecFileName[MAX_DEPENDENCY_LAYER][MAX_FNAME_LEN];
+} SFilesSet;
+
 
 
 /* Ctrl-C handler */
@@ -471,7 +478,7 @@ int ParseCommandLine (int argc, char** argv, SSourcePicture* pSrcPic, SEncParamE
       }
     } else if (!strcmp (pCommand, "-drec") && (n + 1 < argc)) {
       unsigned int	iLayer = atoi (argv[n++]);
-      const unsigned int iLen = strlen (argv[n]);
+      const unsigned int iLen = (int) strlen (argv[n]);
       if (iLen >= sizeof (sFileSet.sRecFileName[iLayer]))
         return 1;
       sFileSet.sRecFileName[iLayer][iLen] = '\0';
@@ -576,7 +583,6 @@ int FillSpecificParameters (SEncParamExt& sParam) {
   sParam.bEnableFrameSkip           = 1; // frame skipping
   sParam.bEnableLongTermReference  = 0; // long term reference control
   sParam.iLtrMarkPeriod = 30;
-
   sParam.iInputCsp			= videoFormatI420;			// color space of input sequence
   sParam.uiIntraPeriod		= 320;		// period of Intra frame
   sParam.bEnableSpsPpsIdAddition = 1;
@@ -922,8 +928,8 @@ void LockToSingleCore() {
   return ;
 }
 
-long CreateSVCEncHandle (ISVCEncoder** ppEncoder) {
-  long ret = 0;
+int32_t CreateSVCEncHandle (ISVCEncoder** ppEncoder) {
+  int32_t ret = 0;
   ret = WelsCreateSVCEncoder (ppEncoder);
   return ret;
 }

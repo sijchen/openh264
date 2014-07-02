@@ -22,9 +22,10 @@ LOCAL_MODULE := welsencdemo
 #
 CODEC_PATH := ../../../../
 CONSOLE_ENC_PATH := ../../../../console/enc
+CONSOLE_COMMON_PATH := ../../../../console/common
 LOCAL_SRC_FILES := \
             $(CONSOLE_ENC_PATH)/src/welsenc.cpp \
-            $(CONSOLE_ENC_PATH)/src/read_config.cpp \
+            $(CONSOLE_COMMON_PATH)/src/read_config.cpp \
             myjni.cpp
 
 #
@@ -33,6 +34,7 @@ LOCAL_SRC_FILES := \
 LOCAL_C_INCLUDES := \
             $(LOCAL_PATH)/../../../../api/svc \
             $(LOCAL_PATH)/../../../../console/enc/inc \
+            $(LOCAL_PATH)/../../../../console/common/inc \
             $(LOCAL_PATH)/../../../../encoder/core/inc \
             $(LOCAL_PATH)/../../../../processing/interface \
             $(LOCAL_PATH)/../../../../common/inc
@@ -41,11 +43,7 @@ LOCAL_C_INCLUDES := \
 #
 # Compile Flags and Link Libraries
 #
-LOCAL_CFLAGS := -O3 -DANDROID_NDK
-
-ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
-LOCAL_ARM_MODE := arm
-endif
+LOCAL_CFLAGS := -DANDROID_NDK
 
 LOCAL_LDLIBS := -llog
 LOCAL_SHARED_LIBRARIES := wels
