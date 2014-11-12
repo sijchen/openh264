@@ -391,15 +391,15 @@ if (ASM) { \
 } \
 while(iRunTimes--) {\
 for (int i = 0; i < 17; i ++) {\
-  pRefBuffer[i] = pPredBuffer[i] = rand() & 255; \
-  pRefBuffer[i * kiStride - 1] = pPredBuffer[i * kiStride - 1] = rand() & 255; \
+  pRefBuffer[kiStride + i] = pPredBuffer[kiStride + i] = rand() & 255; \
+  pRefBuffer[(i+1) * kiStride - 1] = pPredBuffer[(i+1) * kiStride - 1] = rand() & 255; \
 }\
-pred(&pPredBuffer[kiStride], kiStride); \
-ref(&pRefBuffer[kiStride], kiStride); \
+pred(&pPredBuffer[2*kiStride], kiStride); \
+ref(&pRefBuffer[2*kiStride], kiStride); \
 bool ok = true; \
 for (int i = 0; i < 8; i ++)\
   for(int j = 0; j < 8; j ++)\
-    if (pPredBuffer[(i+1) * kiStride + j] != pRefBuffer[(i+1) * kiStride + j]) {\
+    if (pPredBuffer[(i+2) * kiStride + j] != pRefBuffer[(i+2) * kiStride + j]) {\
       ok = false; \
       break; \
     } \
@@ -528,15 +528,15 @@ if (ASM) { \
 }\
 while(iRunTimes--) {\
 for (int i = 0; i < 17; i ++) {\
-  pRefBuffer[i] = pPredBuffer[i] = rand() & 255; \
-  pRefBuffer[i * kiStride - 1] = pPredBuffer[i * kiStride - 1] = rand() & 255; \
+  pRefBuffer[kiStride + i] = pPredBuffer[kiStride + i] = rand() & 255; \
+  pRefBuffer[(i+1) * kiStride - 1] = pPredBuffer[(i+1) * kiStride - 1] = rand() & 255; \
 }\
-pred(&pPredBuffer[kiStride], kiStride); \
-ref(&pRefBuffer[kiStride], kiStride); \
+pred(&pPredBuffer[2*kiStride], kiStride); \
+ref(&pRefBuffer[2*kiStride], kiStride); \
 bool ok = true; \
 for (int i = 0; i < 16; i ++)\
   for(int j = 0; j < 16; j ++)\
-    if (pPredBuffer[(i+1) * kiStride + j] != pRefBuffer[(i+1) * kiStride + j]) {\
+    if (pPredBuffer[(i+2) * kiStride + j] != pRefBuffer[(i+2) * kiStride + j]) {\
       ok = false; \
       break; \
     } \
@@ -623,4 +623,30 @@ GENERATE_8x8_UT (WelsDecoderIChromaPredV_neon, LumaI8x8PredV, 1, WELS_CPU_NEON)
 GENERATE_8x8_UT (WelsDecoderIChromaPredH_neon, LumaI8x8PredH, 1, WELS_CPU_NEON)
 GENERATE_8x8_UT (WelsDecoderIChromaPredDc_neon, WelsIChromaPredDc_ref, 1, WELS_CPU_NEON)
 GENERATE_8x8_UT (WelsDecoderIChromaPredPlane_neon, WelsIChromaPredPlane_ref, 1, WELS_CPU_NEON)
+#endif
+
+#if defined(HAVE_NEON_AARCH64)
+GENERATE_16x16_UT (WelsDecoderI16x16LumaPredV_AArch64_neon, LumaI16x16PredV, 1, WELS_CPU_NEON)
+GENERATE_16x16_UT (WelsDecoderI16x16LumaPredH_AArch64_neon, LumaI16x16PredH, 1, WELS_CPU_NEON)
+GENERATE_16x16_UT (WelsDecoderI16x16LumaPredDc_AArch64_neon, LumaI16x16PredDC, 1, WELS_CPU_NEON)
+GENERATE_16x16_UT (WelsDecoderI16x16LumaPredDcTop_AArch64_neon, LumaI16x16PredDCTop, 1, WELS_CPU_NEON)
+GENERATE_16x16_UT (WelsDecoderI16x16LumaPredDcLeft_AArch64_neon, LumaI16x16PredDCLeft, 1, WELS_CPU_NEON)
+GENERATE_16x16_UT (WelsDecoderI16x16LumaPredPlane_AArch64_neon, WelsI16x16LumaPredPlane_ref, 1, WELS_CPU_NEON)
+
+GENERATE_4x4_UT (WelsDecoderI4x4LumaPredH_AArch64_neon, LumaI4x4PredH, 1, WELS_CPU_NEON)
+GENERATE_4x4_UT (WelsDecoderI4x4LumaPredDDL_AArch64_neon, WelsI4x4LumaPredDDL_ref, 1, WELS_CPU_NEON)
+GENERATE_4x4_UT (WelsDecoderI4x4LumaPredDDLTop_AArch64_neon, WelsI4x4LumaPredDDLTop_ref, 1, WELS_CPU_NEON)
+GENERATE_4x4_UT (WelsDecoderI4x4LumaPredVL_AArch64_neon, WelsI4x4LumaPredVL_ref, 1, WELS_CPU_NEON)
+GENERATE_4x4_UT (WelsDecoderI4x4LumaPredVLTop_AArch64_neon, WelsI4x4LumaPredVLTop_ref, 1, WELS_CPU_NEON)
+GENERATE_4x4_UT (WelsDecoderI4x4LumaPredVR_AArch64_neon, WelsI4x4LumaPredVR_ref, 1, WELS_CPU_NEON)
+GENERATE_4x4_UT (WelsDecoderI4x4LumaPredHU_AArch64_neon, WelsI4x4LumaPredHU_ref, 1, WELS_CPU_NEON)
+GENERATE_4x4_UT (WelsDecoderI4x4LumaPredHD_AArch64_neon, WelsI4x4LumaPredHD_ref, 1, WELS_CPU_NEON)
+GENERATE_4x4_UT (WelsDecoderI4x4LumaPredDc_AArch64_neon, LumaI4x4PredDC, 1, WELS_CPU_NEON)
+GENERATE_4x4_UT (WelsDecoderI4x4LumaPredDcTop_AArch64_neon, LumaI4x4PredDCTop, 1, WELS_CPU_NEON)
+
+GENERATE_8x8_UT (WelsDecoderIChromaPredV_AArch64_neon, LumaI8x8PredV, 1, WELS_CPU_NEON)
+GENERATE_8x8_UT (WelsDecoderIChromaPredH_AArch64_neon, LumaI8x8PredH, 1, WELS_CPU_NEON)
+GENERATE_8x8_UT (WelsDecoderIChromaPredDc_AArch64_neon, WelsIChromaPredDc_ref, 1, WELS_CPU_NEON)
+GENERATE_8x8_UT (WelsDecoderIChromaPredPlane_AArch64_neon, WelsIChromaPredPlane_ref, 1, WELS_CPU_NEON)
+GENERATE_8x8_UT (WelsDecoderIChromaPredDcTop_AArch64_neon, WelsIChromaPredDcTop_ref, 1, WELS_CPU_NEON)
 #endif

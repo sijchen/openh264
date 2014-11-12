@@ -37,7 +37,7 @@
 #include "macros.h"
 #include "wels_func_ptr_def.h"
 
-namespace WelsSVCEnc {
+namespace WelsEnc {
 void WelsDequantLumaDc4x4 (int16_t* pRes, const int32_t kiQp);
 void WelsIHadamard4x4Dc (int16_t* pRes);
 
@@ -79,6 +79,17 @@ void WelsIDctT4Rec_neon (uint8_t* pRec, int32_t iStride, uint8_t* pPrediction, i
 void WelsIDctFourT4Rec_neon (uint8_t* pRec, int32_t iStride, uint8_t* pPrediction, int32_t iPredStride, int16_t* pDct);
 void WelsIDctRecI16x16Dc_neon (uint8_t* pRec, int32_t iStride, uint8_t* pPrediction, int32_t iPredStride,
                                int16_t* pDctDc);
+#endif
+
+#ifdef	HAVE_NEON_AARCH64
+void WelsDequantFour4x4_AArch64_neon (int16_t* pDct, const uint16_t* kpMF);
+void WelsDequant4x4_AArch64_neon (int16_t* pDct, const uint16_t* kpMF);
+void WelsDequantIHadamard4x4_AArch64_neon (int16_t* pRes, const uint16_t kuiMF);
+
+void WelsIDctT4Rec_AArch64_neon (uint8_t* pRec, int32_t iStride, uint8_t* pPrediction, int32_t iPredStride, int16_t* pDct);
+void WelsIDctFourT4Rec_AArch64_neon (uint8_t* pRec, int32_t iStride, uint8_t* pPrediction, int32_t iPredStride, int16_t* pDct);
+void WelsIDctRecI16x16Dc_AArch64_neon (uint8_t* pRec, int32_t iStride, uint8_t* pPrediction, int32_t iPredStride,
+                                 int16_t* pDctDc);
 #endif
 
 #if defined(__cplusplus)

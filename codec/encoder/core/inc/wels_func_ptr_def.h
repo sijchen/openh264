@@ -45,7 +45,7 @@
 #include "rc.h"
 #include "IWelsVP.h"
 
-namespace WelsSVCEnc {
+namespace WelsEnc {
 
 typedef struct TagWelsFuncPointerList SWelsFuncPtrList;
 
@@ -155,10 +155,15 @@ typedef bool (*PCheckDirectionalMv) (PSampleSadSatdCostFunc pSad, void* vpMe,
                                      const SMVUnitXY ksMinMv, const SMVUnitXY ksMaxMv, const int32_t kiEncStride, const int32_t kiRefStride,
                                      int32_t& iBestSadCost);
 typedef void (*PLineFullSearchFunc) (SWelsFuncPtrList* pFuncList, SWelsME* pMe,
-                                     uint16_t* pMvdTable, const int32_t kiFixedMvd,
+                                     uint16_t* pMvdTable,
                                      const int32_t kiEncStride, const int32_t kiRefStride,
-                                     const int32_t kiMinPos, const int32_t kiMaxPos,
+                                     const int16_t kiMinMv, const int16_t kiMaxMv,
                                      const bool bVerticalSearch);
+typedef void (*PInitializeHashforFeatureFunc) (uint32_t* pTimesOfFeatureValue, uint16_t* pBuf, const int32_t kiListSize,
+    uint16_t** pLocationOfFeature, uint16_t** pFeatureValuePointerList);
+typedef void (*PFillQpelLocationByFeatureValueFunc) (uint16_t* pFeatureOfBlock, const int32_t kiWidth,
+    const int32_t kiHeight,
+    uint16_t** pFeatureValuePointerList);
 typedef void (*PCalculateBlockFeatureOfFrame) (uint8_t* pRef, const int32_t kiWidth, const int32_t kiHeight,
     const int32_t kiRefStride,
     uint16_t* pFeatureOfBlock, uint32_t pTimesOfFeatureValue[]);
@@ -191,9 +196,14 @@ typedef void (*PUpdateMbMvFunc) (SMVUnitXY* pMvUnit, const SMVUnitXY ksMv);
 typedef bool (*PBuildRefListFunc) (void* pCtx, const int32_t iPOC, int32_t iBestLtrRefIdx);
 typedef void (*PMarkPicFunc) (void* pCtx);
 typedef bool (*PUpdateRefListFunc) (void* pCtx);
+typedef void (*PEndofUpdateRefListFunc) (void* pCtx);
+typedef void (*PAfterBuildRefListFunc) (void* pCtx);
 
 typedef  int32_t (*PCavlcParamCalFunc) (int16_t* pCoff, uint8_t* pRun, int16_t* pLevel, int32_t* pTotalCoeffs,
                                         int32_t iEndIdx);
+typedef int32_t (*PWelsSpatialWriteMbSyn) (void* pCtx, SSlice* pSlice, SMB* pCurMb);
+typedef void (*PStashMBStatus) (SDynamicSlicingStack* pDss, SSlice* pSlice, int32_t iMbSkipRun);
+typedef int32_t (*PStashPopMBStatus) (SDynamicSlicingStack* pDss, SSlice* pSlice);
 
 struct TagWelsFuncPointerList {
   SExpandPicFunc sExpandPicFunc;
@@ -227,6 +237,8 @@ struct TagWelsFuncPointerList {
   PCalculateSatdFunc pfCalculateSatd;
   PCheckDirectionalMv pfCheckDirectionalMv;
 
+  PInitializeHashforFeatureFunc         pfInitializeHashforFeature;
+  PFillQpelLocationByFeatureValueFunc   pfFillQpelLocationByFeatureValue;
   PCalculateBlockFeatureOfFrame pfCalculateBlockFeatureOfFrame[2];//0 - for 8x8, 1 for 16x16
   PCalculateSingleBlockFeature pfCalculateSingleBlockFeature[2];//0 - for 8x8, 1 for 16x16
   PLineFullSearchFunc pfVerticalFullSearch;
@@ -285,10 +297,15 @@ struct TagWelsFuncPointerList {
   PBuildRefListFunc     pBuildRefList;
   PMarkPicFunc          pMarkPic;
   PUpdateRefListFunc    pUpdateRefList;
+  PEndofUpdateRefListFunc    pEndofUpdateRefList;
+  PAfterBuildRefListFunc    pAfterBuildRefList;
 
   PCavlcParamCalFunc    pfCavlcParamCal;
+  PWelsSpatialWriteMbSyn pfWelsSpatialWriteMbSyn;
+  PStashMBStatus pfStashMBStatus;
+  PStashPopMBStatus pfStashPopMBStatus;
 };
 
-}  //end of namespace WelsSVCEnc {
+}  //end of namespace WelsEnc {
 
 #endif//WELS_ENCODER_FUNCTION_POINTERS_DEFINITION_H_

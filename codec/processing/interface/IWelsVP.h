@@ -142,14 +142,14 @@ typedef enum {
 typedef enum {
   SIMILAR_SCENE,   //similar scene
   MEDIUM_CHANGED_SCENE,   //medium changed scene
-  LARGE_CHANGED_SCENE,    //large changed scene
+  LARGE_CHANGED_SCENE     //large changed scene
 } ESceneChangeIdc;
 
 typedef enum {
   NO_STATIC,  // motion block
   COLLOCATED_STATIC, // collocated static block
   SCROLLED_STATIC,  // scrolled static block
-  BLOCK_STATIC_IDC_ALL,
+  BLOCK_STATIC_IDC_ALL
 } EStaticBlockIdc;
 
 typedef struct {
@@ -195,7 +195,7 @@ typedef struct {
 
 typedef enum {
   AQ_QUALITY_MODE,   //Quality mode
-  AQ_BITRATE_MODE,   //Bitrate mode
+  AQ_BITRATE_MODE    //Bitrate mode
 } EAQModes;
 
 typedef struct {
@@ -300,8 +300,8 @@ class IWelsVP {
 #endif
 
 WELSVP_EXTERNC_BEGIN
-EResult CreateVpInterface (void** ppCtx, int iVersion /*= WELSVP_INTERFACE_VERION*/);
-EResult DestroyVpInterface (void* pCtx , int iVersion /*= WELSVP_INTERFACE_VERION*/);
+EResult WelsCreateVpInterface (void** ppCtx, int iVersion /*= WELSVP_INTERFACE_VERION*/);
+EResult WelsDestroyVpInterface (void* pCtx , int iVersion /*= WELSVP_INTERFACE_VERION*/);
 WELSVP_EXTERNC_END
 
 //////////////////////////////////////////////////////////////////////////////////////////////

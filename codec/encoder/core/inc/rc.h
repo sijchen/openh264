@@ -48,61 +48,61 @@
 #include "svc_enc_macroblock.h"
 #include "slice.h"
 
-namespace WelsSVCEnc {
+namespace WelsEnc {
 //trace
-#define GOM_TRACE_FLAG 1
+#define GOM_TRACE_FLAG 0
 #define GOM_H_SCC               8
-#define    WELS_RC_DISABLE        0
-#define    WELS_RC_GOM            1
 
 enum {
-BITS_NORMAL,
-BITS_LIMITED,
-BITS_EXCEEDED,
+  BITS_NORMAL,
+  BITS_LIMITED,
+  BITS_EXCEEDED
 };
 
 enum {
 //virtual gop size
-VGOP_SIZE             = 8,
+  VGOP_SIZE             = 8,
 
 //qp information
-GOM_MIN_QP_MODE       = 12,
-GOM_MAX_QP_MODE       = 36,
-MAX_LOW_BR_QP			= 42,
-MIN_IDR_QP            = 26,
-MAX_IDR_QP            = 32,
-DELTA_QP              = 2,
-DELTA_QP_BGD_THD      = 3,
+  GOM_MIN_QP_MODE       = 12,
+  GOM_MAX_QP_MODE       = 36,
+  MAX_LOW_BR_QP			= 42,
+  MIN_IDR_QP            = 26,
+  MAX_IDR_QP            = 32,
+  MIN_SCREEN_QP         = 26,
+  MAX_SCREEN_QP         = 35,
+  DELTA_QP              = 2,
+  DELTA_QP_BGD_THD      = 3,
 
 //frame skip constants
-SKIP_QP_90P           = 24,
-SKIP_QP_180P          = 24,
-SKIP_QP_360P          = 31,
-SKIP_QP_720P          = 31,
-LAST_FRAME_QP_RANGE_UPPER_MODE0  = 3,
-LAST_FRAME_QP_RANGE_LOWER_MODE0  = 2,
-LAST_FRAME_QP_RANGE_UPPER_MODE1  = 5,
-LAST_FRAME_QP_RANGE_LOWER_MODE1  = 3,
+  SKIP_QP_90P           = 24,
+  SKIP_QP_180P          = 24,
+  SKIP_QP_360P          = 31,
+  SKIP_QP_720P          = 31,
+  LAST_FRAME_QP_RANGE_UPPER_MODE0  = 3,
+  LAST_FRAME_QP_RANGE_LOWER_MODE0  = 2,
+  LAST_FRAME_QP_RANGE_UPPER_MODE1  = 5,
+  LAST_FRAME_QP_RANGE_LOWER_MODE1  = 3,
 
-MB_WIDTH_THRESHOLD_90P   = 15,
-MB_WIDTH_THRESHOLD_180P  = 30,
-MB_WIDTH_THRESHOLD_360P  = 60,
+  MB_WIDTH_THRESHOLD_90P   = 15,
+  MB_WIDTH_THRESHOLD_180P  = 30,
+  MB_WIDTH_THRESHOLD_360P  = 60,
 
 //Mode 0 parameter
-GOM_ROW_MODE0_90P     = 2,
-GOM_ROW_MODE0_180P    = 2,
-GOM_ROW_MODE0_360P    = 4,
-GOM_ROW_MODE0_720P    = 4,
-QP_RANGE_MODE0        = 3,
+  GOM_ROW_MODE0_90P     = 2,
+  GOM_ROW_MODE0_180P    = 2,
+  GOM_ROW_MODE0_360P    = 4,
+  GOM_ROW_MODE0_720P    = 4,
+  QP_RANGE_MODE0        = 3,
 
 //Mode 1 parameter
-GOM_ROW_MODE1_90P     = 1,
-GOM_ROW_MODE1_180P    = 1,
-GOM_ROW_MODE1_360P    = 2,
-GOM_ROW_MODE1_720P    = 2,
-QP_RANGE_UPPER_MODE1  = 9,
-QP_RANGE_LOWER_MODE1  = 4,
-QP_RANGE_INTRA_MODE1  = 3,
+  GOM_ROW_MODE1_90P     = 1,
+  GOM_ROW_MODE1_180P    = 1,
+  GOM_ROW_MODE1_360P    = 2,
+  GOM_ROW_MODE1_720P    = 2,
+  QP_RANGE_UPPER_MODE1  = 9,
+  QP_RANGE_LOWER_MODE1  = 4,
+  QP_RANGE_INTRA_MODE1  = 3
 };
 
 //bits allocation
@@ -122,7 +122,7 @@ QP_RANGE_INTRA_MODE1  = 3,
 #define SKIP_RATIO  50 // *INT_MULTIPLY
 #define PADDING_BUFFER_RATIO 50 // *INT_MULTIPLY
 #define PADDING_THRESHOLD    5 //*INT_MULTIPLY
- 
+
 typedef struct TagRCSlicing {
 int32_t   iComplexityIndexSlice;
 int32_t   iCalculatedQpSlice;
@@ -137,7 +137,7 @@ int32_t   iGomBitsSlice;
 int32_t   iGomTargetBits;
 //int32_t   gom_coded_mb;
 } SRCSlicing;
- 
+
 typedef struct TagRCTemporal {
 int32_t   iMinBitsTl;
 int32_t   iMaxBitsTl;
@@ -147,45 +147,47 @@ int32_t   iGopBitsDq;
 int64_t   iLinearCmplx; // *INT_MULTIPLY
 int32_t   iPFrameNum;
 int32_t   iFrameCmplxMean;
- 
+
 } SRCTemporal;
- 
+
 typedef struct TagWelsRc {
 int32_t   iRcVaryPercentage;
 int32_t    iRcVaryRatio;
- 
+
 int32_t   iInitialQp; //initial qp
 int32_t   iBitRate;
 int32_t   iPreviousBitrate;
 int32_t   iPreviousGopSize;
 double    fFrameRate;
-int32_t   iBitsPerFrame; // *INT_MULTIPLY
+int64_t   iBitsPerFrame; // *INT_MULTIPLY
 double    dPreviousFps;
- 
+
 // bits allocation and status
 int32_t   iRemainingBits;
 int32_t   iTargetBits;
 int32_t   iCurrentBitsLevel;//0:normal; 1:limited; 2:exceeded.
- 
+
 int32_t   iIdrNum;
 int32_t   iIntraComplexity;
 int32_t   iIntraMbCount;
- 
+
 int8_t    iTlOfFrames[VGOP_SIZE];
 int32_t   iRemainingWeights;
 int32_t   iFrameDqBits;
- 
+
 double*    pGomComplexity;
 int32_t*   pGomForegroundBlockNum;
 int32_t*   pCurrentFrameGomSad;
 int32_t*   pGomCost;
- 
+
 int32_t   iAverageFrameQp;
+int32_t   iMinFrameQp;
+int32_t   iMaxFrameQp;
 int32_t   iNumberMbFrame;
 int32_t   iNumberMbGom;
 int32_t	iSliceNum;
 int32_t   iGomSize;
- 
+
 int32_t   iSkipFrameNum;
 int32_t   iFrameCodedInVGop;
 int32_t   iSkipFrameInVGop;
@@ -213,17 +215,27 @@ int32_t   iBufferFullnessPadding;
 int32_t   iPaddingSize;
 int32_t   iPaddingBitrateStat;
 bool      bSkipFlag;
- 
+
 SRCSlicing*	pSlicingOverRc;
 SRCTemporal* pTemporalOverRc;
+
+//for scc
+int64_t     iAvgCost2Bits;
+int64_t     iCost2BitsIntra;
+int32_t    iBaseQp;
+long long  uiLastTimeStamp;
+
+//for statistics and online adjustments
+int32_t   iActualBitRate; // TODO: to complete later
+float     fLatestFrameRate; // TODO: to complete later
 } SWelsSvcRc;
- 
+
 typedef  void (*PWelsRCPictureInitFunc) (void* pCtx);
-typedef  void (*PWelsRCPictureDelayJudgeFunc) (void* pCtx);
+typedef  void (*PWelsRCPictureDelayJudgeFunc) (void* pCtx, EVideoFrameType eFrameType, long long uiTimeStamp);
 typedef  void (*PWelsRCPictureInfoUpdateFunc) (void* pCtx, int32_t iLayerSize);
 typedef  void (*PWelsRCMBInfoUpdateFunc) (void* pCtx, SMB* pCurMb, int32_t iCostLuma, SSlice* pSlice);
 typedef  void (*PWelsRCMBInitFunc) (void* pCtx, SMB* pCurMb, SSlice* pSlice);
- 
+
 typedef  struct  WelsRcFunc_s {
 PWelsRCPictureInitFunc			pfWelsRcPictureInit;
 PWelsRCPictureDelayJudgeFunc      pfWelsRcPicDelayJudge;
@@ -231,10 +243,10 @@ PWelsRCPictureInfoUpdateFunc	pfWelsRcPictureInfoUpdate;
 PWelsRCMBInitFunc				pfWelsRcMbInit;
 PWelsRCMBInfoUpdateFunc			pfWelsRcMbInfoUpdate;
 } SWelsRcFunc;
- 
-void WelsRcInitModule (void* pCtx,  int32_t iModule);
+
+void RcTraceFrameBits (void* pEncCtx, long long uiTimeStamp);
+void WelsRcInitModule (void* pCtx, RC_MODES iRcMode);
 void WelsRcFreeMemory (void* pCtx);
- 
+
 }
 #endif //RC_H
- 

@@ -42,9 +42,9 @@
 #include "parameter_sets.h"
 #include "svc_enc_slice_segment.h"
 #include "bit_stream.h"
+#include "set_mb_syn_cabac.h"
 
-
-namespace WelsSVCEnc {
+namespace WelsEnc {
 
 /*******************************sub struct of slice header****************************/
 
@@ -168,7 +168,7 @@ SMVUnitXY	sMvc[5];
 uint8_t		uiMvcNum;
 uint8_t		sScaleShift;
 
-uint8_t		uiSliceIdx;
+uint32_t		uiSliceIdx;
 bool		bSliceHeaderExtFlag; // Indicate which slice header is used, avc or ext?
 uint8_t		uiLastMbQp;		// stored qp for last mb coded, maybe more efficient for mb skip detection etc.
 
@@ -178,6 +178,10 @@ uint8_t		uiAssumeLog2BytePerMb;
 uint32_t     uiSliceFMECostDown;//TODO: for FME switch under MT, to opt after ME final?
 
 uint8_t		uiReservedFillByte;	// reserved to meet 4 bytes alignment
+
+SCabacCtx   sCabacCtx;
+int32_t     iCabacInitIdc;
+int32_t	    iMbSkipRun;
 } SSlice, *PSlice;
 
 }

@@ -6,6 +6,7 @@ COMMON_CPP_SRCS=\
 	$(COMMON_SRCDIR)/src/crt_util_safe_x.cpp\
 	$(COMMON_SRCDIR)/src/deblocking_common.cpp\
 	$(COMMON_SRCDIR)/src/expand_pic.cpp\
+	$(COMMON_SRCDIR)/src/intra_pred_common.cpp\
 	$(COMMON_SRCDIR)/src/sad_common.cpp\
 	$(COMMON_SRCDIR)/src/utils.cpp\
 	$(COMMON_SRCDIR)/src/welsCodecTrace.cpp\
@@ -13,40 +14,51 @@ COMMON_CPP_SRCS=\
 
 COMMON_OBJS += $(COMMON_CPP_SRCS:.cpp=.$(OBJ))
 
-ifeq ($(ASM_ARCH), x86)
 COMMON_ASM_SRCS=\
 	$(COMMON_SRCDIR)/x86/cpuid.asm\
 	$(COMMON_SRCDIR)/x86/deblock.asm\
 	$(COMMON_SRCDIR)/x86/expand_picture.asm\
+	$(COMMON_SRCDIR)/x86/intra_pred_com.asm\
 	$(COMMON_SRCDIR)/x86/mb_copy.asm\
 	$(COMMON_SRCDIR)/x86/mc_chroma.asm\
 	$(COMMON_SRCDIR)/x86/mc_luma.asm\
 	$(COMMON_SRCDIR)/x86/satd_sad.asm\
 	$(COMMON_SRCDIR)/x86/vaa.asm\
 
-COMMON_OBJS += $(COMMON_ASM_SRCS:.asm=.$(OBJ))
+COMMON_OBJSASM += $(COMMON_ASM_SRCS:.asm=.$(OBJ))
+ifeq ($(ASM_ARCH), x86)
+COMMON_OBJS += $(COMMON_OBJSASM)
 endif
+OBJS += $(COMMON_OBJSASM)
 
-ifeq ($(ASM_ARCH), arm)
 COMMON_ASM_ARM_SRCS=\
 	$(COMMON_SRCDIR)/arm/copy_mb_neon.S\
 	$(COMMON_SRCDIR)/arm/deblocking_neon.S\
 	$(COMMON_SRCDIR)/arm/expand_picture_neon.S\
+	$(COMMON_SRCDIR)/arm/intra_pred_common_neon.S\
 	$(COMMON_SRCDIR)/arm/mc_neon.S\
 
-COMMON_OBJS += $(COMMON_ASM_ARM_SRCS:.S=.$(OBJ))
+COMMON_OBJSARM += $(COMMON_ASM_ARM_SRCS:.S=.$(OBJ))
+ifeq ($(ASM_ARCH), arm)
+COMMON_OBJS += $(COMMON_OBJSARM)
 endif
+OBJS += $(COMMON_OBJSARM)
 
-ifeq ($(ASM_ARCH), arm64)
 COMMON_ASM_ARM64_SRCS=\
+	$(COMMON_SRCDIR)/arm64/copy_mb_aarch64_neon.S\
 	$(COMMON_SRCDIR)/arm64/deblocking_aarch64_neon.S\
 	$(COMMON_SRCDIR)/arm64/expand_picture_aarch64_neon.S\
+	$(COMMON_SRCDIR)/arm64/intra_pred_common_aarch64_neon.S\
 	$(COMMON_SRCDIR)/arm64/mc_aarch64_neon.S\
 
-COMMON_OBJS += $(COMMON_ASM_ARM64_SRCS:.S=.$(OBJ))
+COMMON_OBJSARM64 += $(COMMON_ASM_ARM64_SRCS:.S=.$(OBJ))
+ifeq ($(ASM_ARCH), arm64)
+COMMON_OBJS += $(COMMON_OBJSARM64)
 endif
+OBJS += $(COMMON_OBJSARM64)
 
 OBJS += $(COMMON_OBJS)
+
 $(COMMON_SRCDIR)/%.$(OBJ): $(COMMON_SRCDIR)/%.cpp
 	$(QUIET_CXX)$(CXX) $(CFLAGS) $(CXXFLAGS) $(INCLUDES) $(COMMON_CFLAGS) $(COMMON_INCLUDES) -c $(CXX_O) $<
 

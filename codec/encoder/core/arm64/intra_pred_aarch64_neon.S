@@ -294,7 +294,7 @@ WELS_ASM_AARCH64_FUNC_BEGIN WelsIChromaPredDcTop_AArch64_neon
 .endr
 WELS_ASM_AARCH64_FUNC_END
 
-.align 16
+.align 4
 intra_1_to_4: .short 17*1, 17*2, 17*3, 17*4, 17*1, 17*2, 17*3, 17*4
 intra_m3_to_p4: .short -3, -2, -1, 0, 1, 2, 3, 4
 
@@ -346,23 +346,6 @@ WELS_ASM_AARCH64_FUNC_BEGIN WelsIChromaPredPlane_AArch64_neon
     add     v4.8h, v4.8h, v0.8h
     sqrshrun v1.8b, v4.8h, #5
     st1     {v1.8b}, [x0], 8
-.endr
-WELS_ASM_AARCH64_FUNC_END
-
-//for Luma 16x16
-WELS_ASM_AARCH64_FUNC_BEGIN WelsI16x16LumaPredV_AArch64_neon
-    sub     x3, x1, x2
-    ld1     {v0.16b}, [x3]
-.rept 16
-    st1     {v0.16b}, [x0], 16
-.endr
-WELS_ASM_AARCH64_FUNC_END
-
-WELS_ASM_AARCH64_FUNC_BEGIN WelsI16x16LumaPredH_AArch64_neon
-    sub     x3, x1, #1
-.rept 16
-    ld1r    {v0.16b}, [x3], x2
-    st1     {v0.16b}, [x0], 16
 .endr
 WELS_ASM_AARCH64_FUNC_END
 
@@ -437,7 +420,7 @@ WELS_ASM_AARCH64_FUNC_BEGIN WelsI16x16LumaPredDcLeft_AArch64_neon
 WELS_ASM_AARCH64_FUNC_END
 
 
-.align 16
+.align 4
 intra_1_to_8: .short 5, 10, 15, 20, 25, 30, 35, 40
 intra_m7_to_p8: .short -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8
 

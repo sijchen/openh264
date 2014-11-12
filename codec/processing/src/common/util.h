@@ -56,6 +56,7 @@ WELSVP_NAMESPACE_BEGIN
 
 #define MAX_WIDTH      (4096)
 #define MAX_HEIGHT     (2304)//MAX_FS_LEVEL51 (36864); MAX_FS_LEVEL51*256/4096 = 2304
+
 #define MB_WIDTH_LUMA  (16)
 #define PESN		   (1e-6)	// desired float precision
 #define AQ_INT_MULTIPLY                   10000000
@@ -100,9 +101,6 @@ inline EMethods WelsVpGetValidMethod (int32_t a) {
   return WelsStaticCast (EMethods, WELS_CLAMP (iMethod, METHOD_NULL + 1, METHOD_MASK - 1));
 }
 
-
-#define _SafeFree(p)		if (p) { WelsFree(p); (p) = NULL; }
-#define _SafeDelete(p)		if (p) { delete (p); (p) = NULL; }
 
 
 WELSVP_NAMESPACE_END

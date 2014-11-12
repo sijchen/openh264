@@ -89,8 +89,9 @@ typedef enum {
 
   ENCODER_LTR_RECOVERY_REQUEST,
   ENCODER_LTR_MARKING_FEEDBACK,
-  ENCOCER_LTR_MARKING_PERIOD,
+  ENCODER_LTR_MARKING_PERIOD,
   ENCODER_OPTION_LTR,
+  ENCODER_OPTION_COMPLEXITY,
 
   ENCODER_OPTION_ENABLE_SSEI,               //enable SSEI: true--enable ssei; false--disable ssei
   ENCODER_OPTION_ENABLE_PREFIX_NAL_ADDING,   //enable prefix: true--enable prefix; false--disable prefix
@@ -101,6 +102,12 @@ typedef enum {
   ENCODER_OPTION_TRACE_LEVEL,
   ENCODER_OPTION_TRACE_CALLBACK, // a void (*)(void* context, int level, const char* message) function which receives log messages
   ENCODER_OPTION_TRACE_CALLBACK_CONTEXT,
+
+  ENCODER_OPTION_GET_STATISTICS, //read only
+  ENCODER_OPTION_STATISTICS_LOG_INTERVAL, // log interval in milliseconds
+
+  // advanced algorithmetic settings
+  ENCODER_OPTION_IS_LOSSLESS_LINK
 } ENCODER_OPTION;
 
 /* Option types introduced in decoder application */
@@ -118,6 +125,8 @@ typedef enum {
   DECODER_OPTION_TRACE_CALLBACK, // a void (*)(void* context, int level, const char* message) function which receives log messages
   DECODER_OPTION_TRACE_CALLBACK_CONTEXT,
 
+  DECODER_OPTION_GET_STATISTICS
+
 } DECODER_OPTION;
 
 //enuerate the types of error concealment methods
@@ -125,6 +134,8 @@ typedef enum {
   ERROR_CON_DISABLE = 0,
   ERROR_CON_FRAME_COPY,
   ERROR_CON_SLICE_COPY,
+  ERROR_CON_FRAME_COPY_CROSS_IDR,
+  ERROR_CON_SLICE_COPY_CROSS_IDR
 } ERROR_CON_IDC;
 
 typedef enum { //feedback that whether or not have VCL NAL in current AU
@@ -144,14 +155,14 @@ typedef enum {
   SPATIAL_LAYER_1 = 1,
   SPATIAL_LAYER_2 = 2,
   SPATIAL_LAYER_3 = 3,
-  SPATIAL_LAYER_ALL = 4,
+  SPATIAL_LAYER_ALL = 4
 } LAYER_NUM;
 
 //enumerate the type of video bitstream which is provided to decoder
 typedef enum {
   VIDEO_BITSTREAM_AVC               = 0,
   VIDEO_BITSTREAM_SVC               = 1,
-  VIDEO_BITSTREAM_DEFAULT           = VIDEO_BITSTREAM_SVC,
+  VIDEO_BITSTREAM_DEFAULT           = VIDEO_BITSTREAM_SVC
 } VIDEO_BITSTREAM_TYPE;
 
 typedef enum {
@@ -160,7 +171,7 @@ typedef enum {
   IDR_RECOVERY_REQUEST = 2,
   NO_LTR_MARKING_FEEDBACK = 3,
   LTR_MARKING_SUCCESS = 4,
-  LTR_MARKING_FAILED = 5,
+  LTR_MARKING_FAILED = 5
 } KEY_FRAME_REQUEST_TYPE;
 
 typedef struct {
@@ -176,6 +187,10 @@ typedef struct {
   int			  iLTRFrameNum; //specify current decoder frame_num
 } SLTRMarkingFeedback;
 
+typedef struct {
+  bool   bEnableLongTermReference; // 1: on, 0: off
+  int	   iLTRRefNum; //TODO: not supported to set it arbitrary yet
+} SLTRConfig;
 typedef struct {
   unsigned int
   uiSliceMbNum[MAX_SLICES_NUM_TMP];  //here we use a tmp fixed value since MAX_SLICES_NUM is not defined here and its definition may be changed;
@@ -196,8 +211,8 @@ typedef enum {
 typedef enum {
   RC_QUALITY_MODE = 0,      //Quality mode
   RC_BITRATE_MODE = 1,   //Bitrate mode
-  RC_LOW_BW_MODE = 2, //bitrate limited mode
-  RC_OFF_MODE = -1,    // rate control off mode
+  RC_BUFFERBASED_MODE = 2,//no bitrate control,only using buffer status,adjust the video quality
+  RC_OFF_MODE = -1     // rate control off mode
 } RC_MODES;
 
 typedef enum {
@@ -212,7 +227,7 @@ typedef enum {
   PRO_CAVLC444	= 244,
 
   PRO_SCALABLE_BASELINE	= 83,
-  PRO_SCALABLE_HIGH		= 86,
+  PRO_SCALABLE_HIGH		= 86
 } EProfileIdc;
 
 typedef enum {
@@ -242,9 +257,10 @@ enum {
   WELS_LOG_ERROR		= 1 << 0,	// Error log iLevel
   WELS_LOG_WARNING	= 1 << 1,	// Warning log iLevel
   WELS_LOG_INFO		= 1 << 2,	// Information log iLevel
-  WELS_LOG_DEBUG		= 1 << 3,	// Debug log iLevel
-  WELS_LOG_RESV		= 1 << 4,	// Resversed log iLevel
-  WELS_LOG_LEVEL_COUNT = 5,
+  WELS_LOG_DEBUG		= 1 << 3,	// Debug log, critical algo log
+  WELS_LOG_DETAIL		= 1 << 4,	// per packet/frame log
+  WELS_LOG_RESV		= 1 << 5,	// Resversed log iLevel
+  WELS_LOG_LEVEL_COUNT = 6,
   WELS_LOG_DEFAULT	= WELS_LOG_DEBUG	// Default log iLevel in Wels codec
 };
 
@@ -268,15 +284,19 @@ typedef struct {
 
 typedef enum {
   CAMERA_VIDEO_REAL_TIME, //camera video signal
-  SCREEN_CONTENT_REAL_TIME,//screen content signal
+  SCREEN_CONTENT_REAL_TIME //screen content signal
 } EUsageType;
 
+typedef enum {
+  LOW_COMPLEXITY, //the lowest compleixty,the fastest speed,
+  MEDIUM_COMPLEXITY, //medium complexity, medium speed,medium quality
+  HIGH_COMPLEXITY  //high complexity, lowest speed, high quality
+} ECOMPLEXITY_MODE;
 // TODO:  Refine the parameters definition.
 // SVC Encoding Parameters
 typedef struct TagEncParamBase {
   EUsageType
   iUsageType;	//application type;// CAMERA_VIDEO_REAL_TIME: //camera video signal; SCREEN_CONTENT_REAL_TIME: screen content signal;
-  int		iInputCsp;	// color space of input sequence
 
   int		iPicWidth;			// width of picture in samples
   int		iPicHeight;			// height of picture in samples
@@ -290,7 +310,6 @@ typedef struct TagEncParamBase {
 typedef struct TagEncParamExt {
   EUsageType
   iUsageType;	//application type;// CAMERA_VIDEO_REAL_TIME: //camera video signal; SCREEN_CONTENT_REAL_TIME: screen content signal;
-  int		iInputCsp;	// color space of input sequence
 
   int		iPicWidth;			// width of picture in samples
   int		iPicHeight;			// height of picture in samples
@@ -302,9 +321,9 @@ typedef struct TagEncParamExt {
   int		iSpatialLayerNum;	// layer number at spatial level
   SSpatialLayerConfig sSpatialLayers[MAX_SPATIAL_LAYER_NUM];
 
+  ECOMPLEXITY_MODE iComplexityMode;
   unsigned int		uiIntraPeriod;		// period of Intra frame
   int		        iNumRefFrame;		// number of reference frame used
-  unsigned int	    uiFrameToBeCoded;	// frame to be encoded (at input frame rate)
   bool    bEnableSpsPpsIdAddition;
   bool    bPrefixNalAddingCtrl;
   bool	  bEnableSSEI;
@@ -319,8 +338,8 @@ typedef struct TagEncParamExt {
   unsigned int uiMaxNalSize;
 
   /*LTR settings*/
-  bool     bEnableLongTermReference; // 0: on, 1: off
-  int	   iLTRRefNum;
+  bool     bEnableLongTermReference; // 1: on, 0: off
+  int	   iLTRRefNum; //TODO: not supported to set it arbitrary yet
   unsigned int      iLtrMarkPeriod;
 
   /* multi-thread settings*/
@@ -337,6 +356,9 @@ typedef struct TagEncParamExt {
   bool    bEnableAdaptiveQuant; // adaptive quantization control
   bool	  bEnableFrameCroppingFlag;// enable frame cropping flag: TRUE always in application
   bool    bEnableSceneChangeDetect;
+
+  /*LTR advanced setting*/
+  bool    bIsLosslessLink;
 } SEncParamExt;
 
 //Define a new struct to show the property of video bitstream.
@@ -349,11 +371,11 @@ typedef struct {
 typedef struct TagSVCDecodingParam {
   char*		pFileNameRestructed;	// File name of restructed frame used for PSNR calculation based debug
 
-  int				iOutputColorFormat;	// color space format to be outputed, EVideoFormatType specified in codec_def.h
+  EVideoFormatType eOutputColorFormat;	// color space format to be outputed, EVideoFormatType specified in codec_def.h
   unsigned int	uiCpuLoad;		// CPU load
   unsigned char	uiTargetDqLayer;	// Setting target dq layer id
 
-  unsigned char	uiEcActiveFlag;		// Whether active error concealment feature in decoder
+  ERROR_CON_IDC eEcActiveIdc;		// Whether active error concealment feature in decoder
 
   SVideoProperty   sVideoProperty;
 } SDecodingParam, *PDecodingParam;
@@ -415,8 +437,63 @@ typedef struct TagLevelInfo {
 } SLevelInfo;
 
 typedef struct TagDeliveryStatus {
-  int iDropNum;      //the number of video frames that are dropped continuously before delivery to encoder, which is used by screen content.
-  int iDropFrameType; // the frame type that is dropped
-  int iDropFrameSize; // the frame size that is dropped
+  bool bDeliveryFlag;  //0: the previous frame isn't delivered,1: the previous frame is delivered
+  int iDropFrameType; // the frame type that is dropped; reserved
+  int iDropFrameSize; // the frame size that is dropped; reserved
 } SDeliveryStatus;
+
+typedef struct TagDecoderCapability {
+  int iProfileIdc;
+  int iProfileIop;
+  int iLevelIdc;
+  int iMaxMbps;
+  int iMaxFs;
+  int iMaxCpb;
+  int iMaxDpb;
+  int iMaxBr;
+  bool bRedPicCap;
+} SDecoderCapability;
+
+typedef struct TagParserBsInfo {
+  int iNalNum; //total NAL number in current AU
+  int iNalLenInByte [MAX_NAL_UNITS_IN_LAYER]; //each nal length
+  unsigned char* pDstBuff; //outputted dst buffer for parsed bitstream
+  int iSpsWidthInPixel; //required SPS width info
+  int iSpsHeightInPixel; //required SPS height info
+} SParserBsInfo, PParserBsInfo;
+
+typedef struct TagVideoEncoderStatistics {
+  unsigned int uiWidth;					// the width of encoded frame
+  unsigned int uiHeight;					// the height of encoded frame
+  //following standard, will be 16x aligned, if there are multiple spatial, this is of the highest
+  float fAverageFrameSpeedInMs; // Average_Encoding_Time
+
+  // rate control related
+  float fAverageFrameRate;	// the average frame rate in, calculate since encoding starts, supposed that the input timestamp is in unit of ms
+  float fLatestFrameRate;	// the frame rate in, in the last second, supposed that the input timestamp is in unit of ms (? useful for checking BR, but is it easy to calculate?
+  unsigned int uiBitRate;				// sendrate in Bits per second, calculated within the set time-window
+
+  unsigned int uiInputFrameCount; // number of frames
+  unsigned int uiSkippedFrameCount; // number of frames
+
+  unsigned int uiResolutionChangeTimes; // uiResolutionChangeTimes
+  unsigned int uiIDRReqNum;				// number of IDR requests
+  unsigned int uiIDRSentNum;				// number of actual IDRs sent
+  unsigned int uiLTRSentNum;				// number of LTR sent/marked
+} SEncoderStatistics; // in building, coming soon
+
+typedef struct TagVideoDecoderStatistics {
+  unsigned int uiWidth;					// the width of encode/decode frame
+  unsigned int uiHeight;					// the height of encode/decode frame
+  float fAverageFrameSpeedInMs; // Average_Decoding_Time
+  unsigned int uiDecodedFrameCount; // number of frames
+  unsigned int uiResolutionChangeTimes; // uiResolutionChangeTimes
+  unsigned int uiIDRRecvNum;	// number of actual IDR received
+  //EC on related
+  unsigned int uiAvgEcRatio; // when EC is on, the average ratio of correct or EC areas, can be an indicator of reconstruction quality
+  unsigned int uiEcIDRNum;	// number of actual unintegrity IDR or not received but eced
+  unsigned int uiEcFrameNum; //
+  unsigned int uiIDRLostNum;//Decoder detect out the number of lost IDR lost
+} SDecoderStatistics; // in building, coming soon
+
 #endif//WELS_VIDEO_CODEC_APPLICATION_DEFINITION_H__

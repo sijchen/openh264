@@ -84,7 +84,7 @@
 
 #include <iostream>
 using namespace std;
-using namespace WelsSVCEnc;
+using namespace WelsEnc;
 
 /*
  *	Layer Context
@@ -99,6 +99,7 @@ typedef struct tagFilesSet {
   string strSeqFile;    // for cmd lines
   string strLayerCfgFile[MAX_DEPENDENCY_LAYER];
   char   sRecFileName[MAX_DEPENDENCY_LAYER][MAX_FNAME_LEN];
+  uint32_t uiFrameToBeCoded;
 } SFilesSet;
 
 
@@ -163,11 +164,11 @@ int ParseLayerConfig (CReadConfig& cRdLayerCfg, const int iLayer, SEncParamExt& 
       } else if (strTag[0].compare ("MaxSpatialBitrate") == 0) {
         pDLayer->iMaxSpatialBitrate = 1000 * atoi (strTag[1].c_str());
         if (pSvcParam.iRCMode != RC_OFF_MODE) {
-          if (pDLayer->iMaxSpatialBitrate <= 0) {
+          if (pDLayer->iMaxSpatialBitrate < 0) {
             fprintf (stderr, "Invalid max spatial bitrate(%d) in dependency layer #%d.\n", pDLayer->iMaxSpatialBitrate, iLayer);
             return -1;
           }
-          if (pDLayer->iMaxSpatialBitrate < pDLayer->iSpatialBitrate) {
+          if (pDLayer->iMaxSpatialBitrate > 0 && pDLayer->iMaxSpatialBitrate < pDLayer->iSpatialBitrate) {
             fprintf (stderr, "Invalid max spatial(#%d) bitrate(%d) setting::: < layerBitrate(%d)!\n", iLayer,
                      pDLayer->iMaxSpatialBitrate, pDLayer->iSpatialBitrate);
             return -1;
@@ -204,8 +205,6 @@ int ParseConfig (CReadConfig& cRdCfg, SSourcePicture* pSrcPic, SEncParamExt& pSv
   int32_t iRet = 0;
   int8_t iLayerCount = 0;
 
-//	memset(&pSvcParam, 0, sizeof(WelsSVCParamConfig));
-
   while (!cRdCfg.EndOfFile()) {
     long iRd = cRdCfg.ReadLine (&strTag[0]);
     if (iRd > 0) {
@@ -226,7 +225,7 @@ int ParseConfig (CReadConfig& cRdCfg, SSourcePicture* pSrcPic, SEncParamExt& pSv
       } else if (strTag[0].compare ("MaxFrameRate") == 0) {
         pSvcParam.fMaxFrameRate	= (float)atof (strTag[1].c_str());
       } else if (strTag[0].compare ("FramesToBeEncoded") == 0) {
-        pSvcParam.uiFrameToBeCoded	= atoi (strTag[1].c_str());
+        sFileSet.uiFrameToBeCoded	= atoi (strTag[1].c_str());
       } else if (strTag[0].compare ("TemporalLayerNum") == 0) {
         pSvcParam.iTemporalLayerNum	= atoi (strTag[1].c_str());
       } else if (strTag[0].compare ("IntraPeriod") == 0) {
@@ -239,6 +238,8 @@ int ParseConfig (CReadConfig& cRdCfg, SSourcePicture* pSrcPic, SEncParamExt& pSv
         pSvcParam.bEnableSSEI	= atoi (strTag[1].c_str()) ? true : false;
       } else if (strTag[0].compare ("EnableFrameCropping") == 0) {
         pSvcParam.bEnableFrameCroppingFlag = (atoi (strTag[1].c_str()) != 0);
+      } else if (strTag[0].compare ("EntropyCodingModeFlag") == 0) {
+        pSvcParam.iEntropyCodingModeFlag = (atoi (strTag[1].c_str()) != 0);
       } else if (strTag[0].compare ("LoopFilterDisableIDC") == 0) {
         pSvcParam.iLoopFilterDisableIdc	= (int8_t)atoi (strTag[1].c_str());
         if (pSvcParam.iLoopFilterDisableIdc > 6 || pSvcParam.iLoopFilterDisableIdc < 0) {
@@ -275,7 +276,7 @@ int ParseConfig (CReadConfig& cRdCfg, SSourcePicture* pSrcPic, SEncParamExt& pSv
         }
       } else if (strTag[0].compare ("MaxOverallBitrate") == 0) {
         pSvcParam.iMaxBitrate	= 1000 * atoi (strTag[1].c_str());
-        if ((pSvcParam.iRCMode != RC_OFF_MODE) && pSvcParam.iMaxBitrate <= 0) {
+        if ((pSvcParam.iRCMode != RC_OFF_MODE) && pSvcParam.iMaxBitrate < 0) {
           fprintf (stderr, "Invalid max overall bitrate setting due to RC enabled. Check MaxOverallBitrate field please!\n");
           return 1;
         }
@@ -295,6 +296,8 @@ int ParseConfig (CReadConfig& cRdCfg, SSourcePicture* pSrcPic, SEncParamExt& pSv
         pSvcParam.iLTRRefNum = atoi (strTag[1].c_str());
       } else if (strTag[0].compare ("LtrMarkPeriod") == 0) {
         pSvcParam.iLtrMarkPeriod	= (uint32_t)atoi (strTag[1].c_str());
+      } else if (strTag[0].compare ("LosslessLink") == 0) {
+        pSvcParam.bIsLosslessLink	= atoi (strTag[1].c_str()) ? true : false;
       } else if (strTag[0].compare ("NumLayers") == 0) {
         pSvcParam.iSpatialLayerNum	= (int8_t)atoi (strTag[1].c_str());
         if (pSvcParam.iSpatialLayerNum > MAX_DEPENDENCY_LAYER || pSvcParam.iSpatialLayerNum <= 0) {
@@ -349,10 +352,11 @@ void PrintHelp() {
   printf ("  -sw     the source width\n");
   printf ("  -sh     the source height\n");
   printf ("  -frms   Number of total frames to be encoded\n");
-  printf ("  -gop    GOPSize - GOP size (1,2,4,8, default: 1)\n");
+  printf ("  -numtl  Temporal layer number (default: 1)\n");
   printf ("  -iper   Intra period (default: -1) : must be a power of 2 of GOP size (or -1)\n");
   printf ("  -nalsize the Maximum NAL size. which should be larger than the each layer slicesize when slice mode equals to SM_DYN_SLICE\n");
   printf ("  -spsid   Enable id adding in SPS/PPS per IDR \n");
+  printf ("  -cabac  Entropy coding mode(0:cavlc 1:cabac \n");
   printf ("  -denois Control denoising  (default: 0)\n");
   printf ("  -scene  Control scene change detection (default: 0)\n");
   printf ("  -bgd    Control background detection (default: 0)\n");
@@ -383,7 +387,7 @@ void PrintHelp() {
 
 int ParseCommandLine (int argc, char** argv, SSourcePicture* pSrcPic, SEncParamExt& pSvcParam, SFilesSet& sFileSet) {
   char* pCommand = NULL;
-  SLayerPEncCtx sLayerCtx[3];
+  SLayerPEncCtx sLayerCtx[MAX_SPATIAL_LAYER_NUM];
   int n = 0;
   string str_ ("SlicesAssign");
 
@@ -405,7 +409,7 @@ int ParseCommandLine (int argc, char** argv, SSourcePicture* pSrcPic, SEncParamE
       pSrcPic->iPicHeight = atoi (argv[n++]);
 
     else if (!strcmp (pCommand, "-frms") && (n < argc))
-      pSvcParam.uiFrameToBeCoded = atoi (argv[n++]);
+      sFileSet.uiFrameToBeCoded = atoi (argv[n++]);
 
     else if (!strcmp (pCommand, "-numtl") && (n < argc))
       pSvcParam.iTemporalLayerNum = atoi (argv[n++]);
@@ -418,6 +422,9 @@ int ParseCommandLine (int argc, char** argv, SSourcePicture* pSrcPic, SEncParamE
 
     else if (!strcmp (pCommand, "-spsid") && (n < argc))
       pSvcParam.bEnableSpsPpsIdAddition = atoi (argv[n++]) ? true : false;
+
+    else if (!strcmp (pCommand, "-cabac") && (n < argc))
+      pSvcParam.iEntropyCodingModeFlag = atoi (argv[n++]);
 
     else if (!strcmp (pCommand, "-denois") && (n < argc))
       pSvcParam.bEnableDenoise = atoi (argv[n++]) ? true : false;
@@ -583,11 +590,10 @@ int FillSpecificParameters (SEncParamExt& sParam) {
   sParam.bEnableFrameSkip           = 1; // frame skipping
   sParam.bEnableLongTermReference  = 0; // long term reference control
   sParam.iLtrMarkPeriod = 30;
-  sParam.iInputCsp			= videoFormatI420;			// color space of input sequence
   sParam.uiIntraPeriod		= 320;		// period of Intra frame
   sParam.bEnableSpsPpsIdAddition = 1;
   sParam.bPrefixNalAddingCtrl = 0;
-
+  sParam.iComplexityMode = MEDIUM_COMPLEXITY;
   int iIndexLayer = 0;
   sParam.sSpatialLayers[iIndexLayer].uiProfileIdc	= PRO_BASELINE;
   sParam.sSpatialLayers[iIndexLayer].iVideoWidth	= 160;
@@ -669,7 +675,7 @@ int ProcessEncoding (ISVCEncoder* pPtrEnc, int argc, char** argv, bool bConfigFi
   int iParsedNum = 1;
 
   memset (&sFbi, 0, sizeof (SFrameBSInfo));
-  memset (&sSvcParam, 0, sizeof (SEncParamExt));
+  pPtrEnc->GetDefaultParams (&sSvcParam);
   memset (&fs.sRecFileName[0][0], 0, sizeof (fs.sRecFileName));
 
   FillSpecificParameters (sSvcParam);
@@ -738,7 +744,7 @@ int ProcessEncoding (ISVCEncoder* pPtrEnc, int argc, char** argv, bool bConfigFi
   sSvcParam.iPicWidth = (!sSvcParam.iPicWidth) ? iSourceWidth : sSvcParam.iPicWidth;
   sSvcParam.iPicHeight = (!sSvcParam.iPicHeight) ? iSourceHeight : sSvcParam.iPicHeight;
 
-  iTotalFrameMax = (int32_t)sSvcParam.uiFrameToBeCoded;
+  iTotalFrameMax = (int32_t)fs.uiFrameToBeCoded;
 
   if (cmResultSuccess != pPtrEnc->InitializeExt (&sSvcParam)) {	// SVC encoder initialization
     fprintf (stderr, "SVC encoder Initialize failed\n");
@@ -791,8 +797,8 @@ int ProcessEncoding (ISVCEncoder* pPtrEnc, int argc, char** argv, bool bConfigFi
   }
 
   iFrameIdx = 0;
-  while (iFrameIdx < iTotalFrameMax && (((int32_t)sSvcParam.uiFrameToBeCoded <= 0)
-                                        || (iFrameIdx < (int32_t)sSvcParam.uiFrameToBeCoded))) {
+  while (iFrameIdx < iTotalFrameMax && (((int32_t)fs.uiFrameToBeCoded <= 0)
+                                        || (iFrameIdx < (int32_t)fs.uiFrameToBeCoded))) {
 
 #ifdef ONLY_ENC_FRAMES_NUM
     // Only encoded some limited frames here
@@ -807,10 +813,10 @@ int ProcessEncoding (ISVCEncoder* pPtrEnc, int argc, char** argv, bool bConfigFi
       break;
     // To encoder this frame
     iStart	= WelsTime();
+    pSrcPic->uiTimeStamp = WELS_ROUND (iFrameIdx * (1000 / sSvcParam.fMaxFrameRate));
     int iEncFrames = pPtrEnc->EncodeFrame (pSrcPic, &sFbi);
     iTotal += WelsTime() - iStart;
-
-    // fixed issue in case dismatch source picture introduced by frame skipped, 1/12/2010
+    ++ iFrameIdx;
     if (videoFrameTypeSkip == sFbi.eFrameType) {
       continue;
     }
@@ -861,7 +867,6 @@ int ProcessEncoding (ISVCEncoder* pPtrEnc, int argc, char** argv, bool bConfigFi
       fprintf (stderr, "EncodeFrame(), ret: %d, frame index: %d.\n", iEncFrames, iFrameIdx);
     }
 
-    ++ iFrameIdx;
   }
 
   if (iActualFrameEncodedCount > 0) {
@@ -893,7 +898,7 @@ INSIDE_MEM_FREE:
     pFileYUV = NULL;
   }
   if (pYUV) {
-    delete pYUV;
+    delete[] pYUV;
     pYUV = NULL;
   }
   if (pSrcPic) {

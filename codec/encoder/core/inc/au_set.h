@@ -46,7 +46,7 @@
 #include "parameter_sets.h"
 #include "param_svc.h"
 #include "utils.h"
-namespace WelsSVCEnc {
+namespace WelsEnc {
 /*!
  *************************************************************************************
  * \brief	to write Sequence Parameter Set (SPS)
@@ -138,7 +138,8 @@ int32_t WelsInitPps (SWelsPPS* pPps,
                      SSubsetSps* pSubsetSps,
                      const uint32_t kuiPpsId,
                      const bool kbDeblockingFilterPresentFlag,
-                     const bool kbUsingSubsetSps);
+                     const bool kbUsingSubsetSps,
+                     const bool kbEntropyCodingModeFlag);
 int32_t WelsCheckRefFrameLimitation (SLogContext* pLogCtx, SWelsSvcCodingParam* pParam);
 }
 #endif//WELS_ACCESS_UNIT_PARSER_H__

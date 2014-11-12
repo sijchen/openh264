@@ -47,22 +47,17 @@ struct SVCEncoderImpl : public ISVCEncoder {
     EXPECT_TRUE (gThis == this);
     return 6;
   }
-  virtual int EXTAPI PauseFrame (const SSourcePicture* kpSrcPic,
-                                 SFrameBSInfo* pBsInfo) {
+  virtual int EXTAPI ForceIntraFrame (bool bIDR) {
     EXPECT_TRUE (gThis == this);
     return 7;
   }
-  virtual int EXTAPI ForceIntraFrame (bool bIDR) {
+  virtual int EXTAPI SetOption (ENCODER_OPTION eOptionId, void* pOption) {
     EXPECT_TRUE (gThis == this);
     return 8;
   }
-  virtual int EXTAPI SetOption (ENCODER_OPTION eOptionId, void* pOption) {
-    EXPECT_TRUE (gThis == this);
-    return 9;
-  }
   virtual int EXTAPI GetOption (ENCODER_OPTION eOptionId, void* pOption) {
     EXPECT_TRUE (gThis == this);
-    return 10;
+    return 9;
   }
 };
 
@@ -93,13 +88,18 @@ struct SVCDecoderImpl : public ISVCDecoder {
     EXPECT_TRUE (gThis == this);
     return static_cast<DECODING_STATE> (5);
   }
+  virtual DECODING_STATE EXTAPI DecodeParser (const unsigned char* pSrc,
+      const int iSrcLen, SParserBsInfo* pDstInfo) {
+    EXPECT_TRUE (gThis == this);
+    return static_cast<DECODING_STATE> (6);
+  }
   virtual long EXTAPI SetOption (DECODER_OPTION eOptionId, void* pOption) {
     EXPECT_TRUE (gThis == this);
-    return 6;
+    return 7;
   }
   virtual long EXTAPI GetOption (DECODER_OPTION eOptionId, void* pOption) {
     EXPECT_TRUE (gThis == this);
-    return 7;
+    return 8;
   }
 };
 

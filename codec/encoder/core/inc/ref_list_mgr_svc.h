@@ -46,23 +46,18 @@
 #include "encoder_context.h"
 #include "codec_app_def.h"
 
-namespace WelsSVCEnc {
-typedef enum {
-RECIEVE_UNKOWN = 0,
-RECIEVE_SUCCESS = 1,
-RECIEVE_FAILED = 2,
-} LTR_MARKING_RECEIVE_STATE;
+namespace WelsEnc {
 
 typedef enum {
 LTR_DIRECT_MARK = 0,
-LTR_DELAY_MARK = 1,
+LTR_DELAY_MARK = 1
 } LTR_MARKING_PROCESS_MODE;
 
 typedef enum {
 FRAME_NUM_EQUAL    = 0x01,
 FRAME_NUM_BIGGER   = 0x02,
 FRAME_NUM_SMALLER  = 0x04,
-FRAME_NUM_OVER_MAX = 0x08,
+FRAME_NUM_OVER_MAX = 0x08
 } COMPARE_FRAME_NUM;
 
 /*
@@ -98,7 +93,7 @@ bool CheckCurMarkFrameNumUsed (sWelsEncCtx* pCtx);
 */
 void WelsMarkPic (void* pCtx);
 
-void InitRefListMgrFunc (SWelsFuncPtrList* pFuncList, EUsageType eUsageType);
+void InitRefListMgrFunc (SWelsFuncPtrList* pFuncList, const bool bEnableLongTermReference, const bool bScreenContent);
 
 #ifdef LONG_TERM_REF_DUMP
 void DumpRef (sWelsEncCtx* ctx);

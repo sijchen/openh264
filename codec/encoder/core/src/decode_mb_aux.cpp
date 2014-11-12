@@ -33,7 +33,7 @@
 #include "decode_mb_aux.h"
 #include "cpu_core.h"
 
-namespace WelsSVCEnc {
+namespace WelsEnc {
 /****************************************************************************
  * Dequant and Ihdm functions
  ****************************************************************************/
@@ -130,10 +130,10 @@ void WelsDequantIHadamard2x2Dc (int16_t* pDct, const uint16_t kuiMF) {
   const int16_t kiSumD = pDct[1] + pDct[3];
   const int16_t kiDelD =   pDct[1] -  pDct[3];
 
-  pDct[0] = (kiSumU + kiSumD) * kuiMF;
-  pDct[1] = (kiSumU  -  kiSumD) * kuiMF;
-  pDct[2] = (kiDelU   + kiDelD)   * kuiMF;
-  pDct[3] = (kiDelU   - kiDelD)   * kuiMF;
+  pDct[0] = ((kiSumU + kiSumD) * kuiMF) >> 1;
+  pDct[1] = ((kiSumU - kiSumD) * kuiMF) >> 1;
+  pDct[2] = ((kiDelU + kiDelD) * kuiMF) >> 1;
+  pDct[3] = ((kiDelU - kiDelD) * kuiMF) >> 1;
 }
 
 void WelsDequant4x4_c (int16_t* pRes, const uint16_t* kpMF) {
@@ -280,6 +280,18 @@ void WelsInitReconstructionFuncs (SWelsFuncPtrList* pFuncList, uint32_t  uiCpuFl
     pFuncList->pfIDctFourT4		= WelsIDctFourT4Rec_neon;
     pFuncList->pfIDctT4		= WelsIDctT4Rec_neon;
     pFuncList->pfIDctI16x16Dc = WelsIDctRecI16x16Dc_neon;
+  }
+#endif
+
+#if defined(HAVE_NEON_AARCH64)
+  if (uiCpuFlag & WELS_CPU_NEON) {
+    pFuncList->pfDequantization4x4			= WelsDequant4x4_AArch64_neon;
+    pFuncList->pfDequantizationFour4x4		= WelsDequantFour4x4_AArch64_neon;
+    pFuncList->pfDequantizationIHadamard4x4	= WelsDequantIHadamard4x4_AArch64_neon;
+
+    pFuncList->pfIDctFourT4		= WelsIDctFourT4Rec_AArch64_neon;
+    pFuncList->pfIDctT4		= WelsIDctT4Rec_AArch64_neon;
+    pFuncList->pfIDctI16x16Dc = WelsIDctRecI16x16Dc_AArch64_neon;
   }
 #endif
 }

@@ -23,8 +23,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\..\bin\win32\Debug"
-			IntermediateDirectory=".\..\..\..\obj\encoder\core\Debug"
+			OutputDirectory=".\..\..\..\..\bin\$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -57,10 +57,6 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\..\..\..\obj\encoder\core\Debug/WelsEncCore.pch"
-				AssemblerListingLocation=".\..\..\..\obj\encoder\core\Debug/"
-				ObjectFile=".\..\..\..\obj\encoder\core\Debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\encoder\core\Debug/"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 			/>
@@ -99,8 +95,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory=".\..\..\..\..\bin\win64\Debug"
-			IntermediateDirectory=".\..\..\..\obj\encoder\core\Debug"
+			OutputDirectory=".\..\..\..\..\bin\$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -134,10 +130,6 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\..\..\..\obj\encoder\core\Debug/WelsEncCore.pch"
-				AssemblerListingLocation=".\..\..\..\obj\encoder\core\Debug/"
-				ObjectFile=".\..\..\..\obj\encoder\core\Debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\encoder\core\Debug/"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -176,13 +168,14 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\..\bin\win32\Release"
-			IntermediateDirectory=".\..\..\..\obj\encoder\core\Release"
+			OutputDirectory=".\..\..\..\..\bin\$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
+			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -207,16 +200,11 @@
 				Optimization="3"
 				InlineFunctionExpansion="2"
 				FavorSizeOrSpeed="1"
-				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories="..\..\..\common\inc;..\..\..\encoder\core\inc,..\..\..\api\svc;..\..\..\processing\interface"
 				PreprocessorDefinitions="NDEBUG;_LIB;X86_ASM"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\..\..\..\obj\encoder\core\Release/WelsEncCore.pch"
-				AssemblerListingLocation=".\..\..\..\obj\encoder\core\Release/"
-				ObjectFile=".\..\..\..\obj\encoder\core\Release/"
-				ProgramDataBaseFileName=".\..\..\..\obj\encoder\core\Release/"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -255,13 +243,14 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory=".\..\..\..\..\bin\win64\Release"
-			IntermediateDirectory=".\..\..\..\obj\encoder\core\Release"
+			OutputDirectory=".\..\..\..\..\bin\$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
+			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -287,16 +276,11 @@
 				Optimization="3"
 				InlineFunctionExpansion="2"
 				FavorSizeOrSpeed="1"
-				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories="..\..\..\common\inc;..\..\..\encoder\core\inc,..\..\..\api\svc;..\..\..\processing\interface"
 				PreprocessorDefinitions="NDEBUG;_LIB;X86_ASM"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\..\..\..\obj\encoder\core\Release/WelsEncCore.pch"
-				AssemblerListingLocation=".\..\..\..\obj\encoder\core\Release/"
-				ObjectFile=".\..\..\..\obj\encoder\core\Release/"
-				ProgramDataBaseFileName=".\..\..\..\obj\encoder\core\Release/"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -398,6 +382,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\common\src\intra_pred_common.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\encoder\core\src\mc.cpp"
 				>
 			</File>
@@ -442,6 +430,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\encoder\core\src\set_mb_syn_cabac.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\encoder\core\src\set_mb_syn_cavlc.cpp"
 				>
 			</File>
@@ -471,6 +463,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\encoder\core\src\svc_motion_estimate.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\encoder\core\src\svc_set_mb_syn_cabac.cpp"
 				>
 			</File>
 			<File
@@ -639,6 +635,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\encoder\core\inc\set_mb_syn_cabac.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\encoder\core\inc\set_mb_syn_cavlc.h"
 				>
 			</File>
@@ -688,6 +688,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\encoder\core\inc\svc_motion_estimate.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\encoder\core\inc\svc_set_mb_syn.h"
 				>
 			</File>
 			<File
@@ -743,7 +747,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="nasm -I$(InputDir) -I$(InputDir)/../../../common/x86/ -f win32 -DPREFIX -o $(IntDir)\$(InputName).obj $(InputPath)&#x0D;&#x0A;"
+						CommandLine="nasm -I$(InputDir) -I$(InputDir)/../../../common/x86/ -f win32 -DPREFIX -DX86_32 -o $(IntDir)\$(InputName).obj $(InputPath)&#x0D;&#x0A;"
 						Outputs="$(IntDir)\$(InputName).obj"
 					/>
 				</FileConfiguration>
@@ -761,7 +765,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="nasm -I$(InputDir) -I$(InputDir)/../../../common/x86/ -f win32 -DPREFIX -o $(IntDir)\$(InputName).obj $(InputPath)&#x0D;&#x0A;"
+						CommandLine="nasm -I$(InputDir) -I$(InputDir)/../../../common/x86/ -f win32 -DPREFIX -DX86_32 -o $(IntDir)\$(InputName).obj $(InputPath)&#x0D;&#x0A;"
 						Outputs="$(IntDir)\$(InputName).obj"
 					/>
 				</FileConfiguration>
@@ -783,7 +787,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="nasm  -I$(InputDir) -f win32 -DPREFIX -DX86_32 -o $(IntDir)\$(InputName).obj $(InputPath)&#x0D;&#x0A;"
+						CommandLine="nasm -I$(InputDir) -I$(InputDir)/../../../common/x86/ -f win32 -DPREFIX -DX86_32 -o $(IntDir)\$(InputName).obj $(InputPath)&#x0D;&#x0A;"
 						Outputs="$(IntDir)\$(InputName).obj"
 					/>
 				</FileConfiguration>
@@ -937,6 +941,46 @@
 			</File>
 			<File
 				RelativePath="..\..\..\encoder\core\x86\intra_pred.asm"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="nasm -I$(InputDir) -I$(InputDir)/../../../common/x86/ -f win32 -DPREFIX -DX86_32 -o $(IntDir)\$(InputName).obj $(InputPath)&#x0D;&#x0A;"
+						Outputs="$(IntDir)\$(InputName).obj"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="nasm -I$(InputDir) -I$(InputDir)/../../../common/x86/ -f win64 -DWIN64 -o $(IntDir)\$(InputName).obj $(InputPath)&#x0D;&#x0A;"
+						Outputs="$(IntDir)\$(InputName).obj"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="nasm -I$(InputDir) -I$(InputDir)/../../../common/x86/ -f win32 -DPREFIX -DX86_32 -o $(IntDir)\$(InputName).obj $(InputPath)&#x0D;&#x0A;"
+						Outputs="$(IntDir)\$(InputName).obj"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						CommandLine="nasm -I$(InputDir) -I$(InputDir)/../../../common/x86/ -f win64 -DWIN64 -o $(IntDir)\$(InputName).obj $(InputPath)&#x0D;&#x0A;"
+						Outputs="$(IntDir)\$(InputName).obj"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\common\x86\intra_pred_com.asm"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -1343,7 +1387,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="nasm -I$(InputDir) -I$(InputDir)/../../../common/x86/ -f win32 -DPREFIX  -DX86_32 -o $(IntDir)\$(InputName).obj $(InputPath)&#x0D;&#x0A;"
+						CommandLine="nasm -I$(InputDir) -I$(InputDir)/../../../common/x86/ -f win32 -DPREFIX -DX86_32 -o $(IntDir)\$(InputName).obj $(InputPath)&#x0D;&#x0A;"
 						Outputs="$(IntDir)\$(InputName).obj"
 					/>
 				</FileConfiguration>
@@ -1361,7 +1405,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="nasm -I$(InputDir) -I$(InputDir)/../../../common/x86/ -f win32 -DPREFIX  -DX86_32 -o $(IntDir)\$(InputName).obj $(InputPath)&#x0D;&#x0A;"
+						CommandLine="nasm -I$(InputDir) -I$(InputDir)/../../../common/x86/ -f win32 -DPREFIX -DX86_32 -o $(IntDir)\$(InputName).obj $(InputPath)&#x0D;&#x0A;"
 						Outputs="$(IntDir)\$(InputName).obj"
 					/>
 				</FileConfiguration>

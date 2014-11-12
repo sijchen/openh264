@@ -43,7 +43,7 @@
 #include "typedefs.h"
 #include "memory_align.h"
 
-namespace WelsSVCEnc {
+namespace WelsEnc {
 /*!
  * \brief	alloc picture pData with borders for each plane based width and height of picture
  * \param	kiWidth				width of picture in pixels
@@ -62,12 +62,5 @@ SPicture* AllocPicture (CMemoryAlign* pMa, const int32_t kiWidth, const int32_t 
  */
 void FreePicture (CMemoryAlign* pMa, SPicture** ppPic);
 
-/*!
-* \brief	exchange two picture pData planes
-* \param	ppPic1		picture pointer to picture 1
-* \param	ppPic2		picture pointer to picture 2
-* \return	none
-*/
-void WelsExchangeSpatialPictures (SPicture** ppPic1, SPicture** ppPic2);
 }
 #endif//WELS_ENCODER_PICTURE_HANDLE_H__

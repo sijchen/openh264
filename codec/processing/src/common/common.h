@@ -38,14 +38,24 @@
  *
  */
 
-#ifndef WELSVP_SCENECHANGEDETECTIONCOMMON_H
-#define WELSVP_SCENECHANGEDETECTIONCOMMON_H
+#ifndef WELSVP_COMMON_H
+#define WELSVP_COMMON_H
 
 #include "util.h"
 #include "memory.h"
 #include "WelsFrameWork.h"
 #include "IWelsVP.h"
 #include "sad_common.h"
+#include "intra_pred_common.h"
+
+
+
+typedef void (GetIntraPred) (uint8_t* pPred, uint8_t* pRef, const int32_t kiStride);
+
+typedef GetIntraPred*  GetIntraPredPtr;
+
+GetIntraPred     WelsI16x16LumaPredV_c;
+GetIntraPred     WelsI16x16LumaPredH_c;
 
 WELSVP_NAMESPACE_BEGIN
 
@@ -56,16 +66,16 @@ typedef SadFunc*   SadFuncPtr;
 typedef int32_t (Sad16x16Func) (uint8_t* pSrcY, int32_t iSrcStrideY, uint8_t* pRefY, int32_t iRefStrideY);
 typedef Sad16x16Func*      PSad16x16Func;
 
-typedef void (GetIntraPred) (uint8_t* pPred, uint8_t* pRef, const int32_t kiStride);
-
-typedef GetIntraPred*  GetIntraPredPtr;
-
-GetIntraPred     WelsI16x16LumaPredV_c;
-GetIntraPred     WelsI16x16LumaPredH_c;
 
 #ifdef HAVE_NEON
 WELSVP_EXTERN_C_BEGIN
 int32_t WelsProcessingSampleSad8x8_neon (uint8_t*, int32_t, uint8_t*, int32_t);
+WELSVP_EXTERN_C_END
+#endif
+
+#ifdef HAVE_NEON_AARCH64
+WELSVP_EXTERN_C_BEGIN
+int32_t WelsProcessingSampleSad8x8_AArch64_neon (uint8_t*, int32_t, uint8_t*, int32_t);
 WELSVP_EXTERN_C_END
 #endif
 

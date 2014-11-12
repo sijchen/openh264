@@ -85,6 +85,9 @@ virtual DECODING_STATE EXTAPI DecodeFrame2 (const unsigned char* kpSrc,
     const int kiSrcLen,
     unsigned char** ppDst,
     SBufferInfo* pDstInfo);
+virtual DECODING_STATE EXTAPI DecodeParser (const unsigned char* kpSrc,
+    const int kiSrcLen,
+    SParserBsInfo* pDstInfo);
 virtual DECODING_STATE EXTAPI DecodeFrameEx (const unsigned char* kpSrc,
     const int kiSrcLen,
     unsigned char* pDst,
@@ -101,7 +104,7 @@ virtual long EXTAPI GetOption (DECODER_OPTION eOptID, void* pOption);
 PWelsDecoderContext 				m_pDecContext;
 welsCodecTrace*			m_pWelsTrace;
 
-void InitDecoder (void);
+int32_t InitDecoder (void);
 void UninitDecoder (void);
 
 #ifdef OUTPUT_BIT_STREAM

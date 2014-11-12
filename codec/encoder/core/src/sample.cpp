@@ -40,11 +40,11 @@
 
 #include "sample.h"
 #include "sad_common.h"
-
+#include "intra_pred_common.h"
 #include "mc.h"
 #include "cpu_core.h"
 
-namespace WelsSVCEnc {
+namespace WelsEnc {
 int32_t WelsSampleSatd4x4_c (uint8_t* pSample1, int32_t iStride1, uint8_t* pSample2, int32_t iStride2) {
   int32_t iSatdSum = 0;
   int32_t pSampleMix[4][4] = {{ 0 }};
@@ -250,8 +250,8 @@ int32_t WelsSampleSadIntra8x8Combined3_c (uint8_t* pDecCb, int32_t iDecStride, u
 }
 
 extern void WelsI16x16LumaPredDc_c (uint8_t* pPred, uint8_t* pRef, const int32_t iStride);
-extern void WelsI16x16LumaPredH_c (uint8_t* pPred, uint8_t* pRef, const int32_t iStride);
-extern void WelsI16x16LumaPredV_c (uint8_t* pPred, uint8_t* pRef, const int32_t iStride);
+//extern void WelsI16x16LumaPredH_c (uint8_t* pPred, uint8_t* pRef, const int32_t iStride);
+//extern void WelsI16x16LumaPredV_c (uint8_t* pPred, uint8_t* pRef, const int32_t iStride);
 
 int32_t WelsSampleSatdIntra16x16Combined3_c (uint8_t* pDec, int32_t iDecStride, uint8_t* pEnc, int32_t iEncStride,
     int32_t* pBestMode, int32_t iLambda, uint8_t* pDst) {
@@ -443,4 +443,4 @@ void WelsInitSampleSadFunc (SWelsFuncPtrList* pFuncList, uint32_t uiCpuFlag) {
 #endif
 }
 
-} // namespace WelsSVCEnc
+} // namespace WelsEnc

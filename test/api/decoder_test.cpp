@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "utils/HashFunctions.h"
 #include "BaseDecoderTest.h"
+#include <string>
 
 static void UpdateHashFromPlane (SHA1Context* ctx, const uint8_t* plane,
                                  int width, int height, int stride) {
@@ -8,6 +9,27 @@ static void UpdateHashFromPlane (SHA1Context* ctx, const uint8_t* plane,
     SHA1Input (ctx, plane, width);
     plane += stride;
   }
+}
+
+class DecoderCapabilityTest : public ::testing::Test {
+ public:
+  virtual void SetUp() {}
+  virtual void TearDown() {}
+};
+
+TEST_F (DecoderCapabilityTest, JustInit) {
+  SDecoderCapability sDecCap;
+  int iRet = WelsGetDecoderCapability (&sDecCap);
+  ASSERT_TRUE (iRet == 0);
+  EXPECT_EQ (sDecCap.iProfileIdc, 66);
+  EXPECT_EQ (sDecCap.iProfileIop, 0xE0);
+  EXPECT_EQ (sDecCap.iLevelIdc, 32);
+  EXPECT_EQ (sDecCap.iMaxMbps, 216000);
+  EXPECT_EQ (sDecCap.iMaxFs, 5120);
+  EXPECT_EQ (sDecCap.iMaxCpb, 20000);
+  EXPECT_EQ (sDecCap.iMaxDpb, 20480);
+  EXPECT_EQ (sDecCap.iMaxBr, 20000);
+  EXPECT_EQ (sDecCap.bRedPicCap, 0);
 }
 
 
@@ -52,7 +74,12 @@ class DecoderOutputTest : public ::testing::WithParamInterface<FileParam>,
 
 TEST_P (DecoderOutputTest, CompareOutput) {
   FileParam p = GetParam();
+#if defined(ANDROID_NDK)
+  std::string filename = std::string ("/sdcard/") + p.fileName;
+  DecodeFile (filename.c_str(), this);
+#else
   DecodeFile (p.fileName, this);
+#endif
 
   unsigned char digest[SHA_DIGEST_LENGTH];
   SHA1Result (&ctx_, digest);
@@ -60,7 +87,6 @@ TEST_P (DecoderOutputTest, CompareOutput) {
     CompareHash (digest, p.hashStr);
   }
 }
-
 static const FileParam kFileParamArray[] = {
   {"res/test_vd_1d.264", "5827d2338b79ff82cd091c707823e466197281d3"},
   {"res/test_vd_rc.264", "eea02e97bfec89d0418593a8abaaf55d02eaa1ca"},
@@ -93,7 +119,12 @@ static const FileParam kFileParamArray[] = {
   {"res/SVA_CL1_E.264", "4fe09ab6cdc965ea10a20f1d6dd38aca954412bb"},
   {"res/SVA_FM1_E.264", "fad08c4ff7cf2307b6579853d0f4652fc26645d3"},
   {"res/SVA_NL1_B.264", "6d63f72a0c0d833b1db0ba438afff3b4180fb3e6"},
-  {"res/SVA_NL2_E.264", "70453ef8097c94dd190d6d2d1d5cb83c67e66238"}
+  {"res/SVA_NL2_E.264", "70453ef8097c94dd190d6d2d1d5cb83c67e66238"},
+  {"res/test_cif_I_CABAC_PCM.264", "95fdf21470d3bbcf95505abb2164042063a79d98"},
+  {"res/test_cif_I_CABAC_slice.264", "19121bc67f2b13fb8f030504fc0827e1ac6d0fdb"},
+  {"res/test_cif_P_CABAC_slice.264", "521bbd0ba2422369b724c7054545cf107a56f959"},
+  {"res/test_qcif_cabac.264", "587d1d05943f3cd416bf69469975fdee05361e69"},
+  {"res/QCIF_2P_I_allIPCM.264", "8724c0866ebdba7ebb7209a0c0c3ae3ae38a0240"}
 };
 
 INSTANTIATE_TEST_CASE_P (DecodeFile, DecoderOutputTest,

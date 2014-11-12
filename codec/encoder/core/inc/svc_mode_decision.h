@@ -47,7 +47,7 @@
 #include "md.h"
 
 
-namespace WelsSVCEnc {
+namespace WelsEnc {
 ////////////////////////
 // INTERFACE, called by svc_encode_slice.c
 ///////////////////////
@@ -55,7 +55,7 @@ namespace WelsSVCEnc {
 
 typedef enum {
 STATIC,
-SCROLLED,
+SCROLLED
 } ESkipModes;
 
 // NOILP ILFMD ENTRANCE

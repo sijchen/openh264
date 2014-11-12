@@ -33,7 +33,7 @@
 #ifdef HAVE_NEON_AARCH64
 .text
 #include "arm_arch64_common_macro.S"
-.align 16
+.align 4
 filter_para: .short 0, 1, -5, 20, 0, 0, 0, 0
 
 #ifdef __APPLE__
@@ -197,8 +197,8 @@ filter_para: .short 0, 1, -5, 20, 0, 0, 0, 0
 
 .macro UNPACK_FILTER_SINGLE_TAG_16BITS // v0, v1, v22, v23
 //  {   // each 16bits; input: d_dst, d_src[0:5], para, working, working, d(low part of d_dst)
-    ext.16b $3, $1, $1, #14       // X[0][1][2][3][4][5]O
-    ext.16b $4, $3, $3, #8      // [3][4][5]OX[0][1][2]
+    ext $3.16b, $1.16b, $1.16b, #14       // X[0][1][2][3][4][5]O
+    ext $4.16b, $3.16b, $3.16b, #8      // [3][4][5]OX[0][1][2]
     rev64  $4.8h, $4.8h         // X[5][4][3][2][1][0]O
     add   $3.8h, $3.8h, $4.8h    // each 16bits, *[50][41][32][23][14][05]*
     smull $3.4s, $3.4h, $2.4h           // 0+1*[50]-5*[41]+20[32]
@@ -413,8 +413,8 @@ WELS_ASM_AARCH64_FUNC_BEGIN McHorVer20WidthEq8_AArch64_neon
     movi v0.8h, #20, lsl #0
     movi v1.8h, #5, lsl #0
 w8_h_mc_luma_loop:
-    ld1 {v2.8b, v3.8b}, [x0], x1 //only use 13(8+5); v2=src[-2]
-    trn1 v2.2d, v2.2d, v3.2d
+    ld1 {v2.16b}, [x0], x1 //only use 13(8+5); v2=src[-2]
+
     //prfm pldl1strm, [x0]
     ext v5.16b, v2.16b, v4.16b, #1    //v5=src[-1]
     ext v6.16b, v2.16b, v4.16b, #2    //v6=src[0]
@@ -492,8 +492,8 @@ WELS_ASM_AARCH64_FUNC_BEGIN McHorVer10WidthEq8_AArch64_neon
     movi v0.8h, #20, lsl #0
     movi v1.8h, #5, lsl #0
 w8_xy_10_mc_luma_loop:
-    ld1 {v2.8b, v3.8b}, [x0], x1 //only use 13(8+5); v2=src[-2]
-    trn1 v2.2d, v2.2d, v3.2d
+    ld1 {v2.16b}, [x0], x1 //only use 13(8+5); v2=src[-2]
+
     //prfm pldl1strm, [x0]
     ext v5.16b, v2.16b, v4.16b, #1    //v5=src[-1]
     ext v6.16b, v2.16b, v4.16b, #2    //v6=src[0]
@@ -572,8 +572,8 @@ WELS_ASM_AARCH64_FUNC_BEGIN McHorVer30WidthEq8_AArch64_neon
     movi v0.8h, #20, lsl #0
     movi v1.8h, #5, lsl #0
 w8_xy_30_mc_luma_loop:
-    ld1 {v2.8b, v3.8b}, [x0], x1 //only use 13(8+5); v2=src[-2]
-    trn1 v2.2d, v2.2d, v3.2d
+    ld1 {v2.16b}, [x0], x1 //only use 13(8+5); v2=src[-2]
+
     //prfm pldl1strm, [x0]
     ext v5.16b, v2.16b, v4.16b, #1    //v5=src[-1]
     ext v6.16b, v2.16b, v4.16b, #2    //v6=src[0]
@@ -1713,12 +1713,12 @@ WELS_ASM_AARCH64_FUNC_END
 WELS_ASM_AARCH64_FUNC_BEGIN McChromaWidthEq8_AArch64_neon
     ld4r {v4.8b, v5.8b, v6.8b, v7.8b}, [x4] //load A/B/C/D
     ld1 {v0.16b}, [x0], x1  // src[x]
-    ext.16b v1, v0, v0, #1  // src[x+1]
+    ext v1.16b, v0.16b, v0.16b, #1  // src[x+1]
 w8_mc_chroma_loop:
     ld1 {v2.16b}, [x0], x1  // src[x+stride]
-    ext.16b v3, v2, v2, #1  // src[x+stride+1]
+    ext v3.16b, v2.16b, v2.16b, #1  // src[x+stride+1]
     ld1 {v18.16b}, [x0], x1  // src[x+2*stride]
-    ext.16b v19, v18, v18, #1  // src[x+2*stride+1]
+    ext v19.16b, v18.16b, v18.16b, #1  // src[x+2*stride+1]
 
     umull v16.8h, v0.8b, v4.8b
     umlal v16.8h, v1.8b, v5.8b
@@ -1744,12 +1744,12 @@ WELS_ASM_AARCH64_FUNC_END
 WELS_ASM_AARCH64_FUNC_BEGIN McChromaWidthEq4_AArch64_neon
     ld4r {v4.8b, v5.8b, v6.8b, v7.8b}, [x4] //load A/B/C/D
     ld1 {v0.8b}, [x0], x1  // src[x]
-    ext.8b v1, v0, v0, #1  // src[x+1]
+    ext v1.8b, v0.8b, v0.8b, #1  // src[x+1]
 w4_mc_chroma_loop:
     ld1 {v2.8b}, [x0], x1  // src[x+stride]
-    ext.8b v3, v2, v2, #1  // src[x+stride+1]
+    ext v3.8b, v2.8b, v2.8b, #1  // src[x+stride+1]
     ld1 {v18.8b}, [x0], x1  // src[x+2*stride]
-    ext.8b v19, v18, v18, #1  // src[x+2*stride+1]
+    ext v19.8b, v18.8b, v18.8b, #1  // src[x+2*stride+1]
 
     zip1 v0.4s, v0.4s, v2.4s
     zip1 v1.4s, v1.4s, v3.4s
@@ -1779,20 +1779,20 @@ WELS_ASM_AARCH64_FUNC_BEGIN McHorVer20Width17_AArch64_neon
     movi v1.8h, #5, lsl #0
     ldr q22, filter_para
 w17_h_mc_luma_loop:
-    ld1 {v2.8b, v3.8b, v4.8b}, [x0], x1 //only use 22(17+5); v2=src[-2]
-    trn1 v2.2d, v2.2d, v3.2d
+    ld1 {v2.16b, v3.16b}, [x0], x1 //only use 22(17+5); v2=src[-2]
+
     //prfm pldl1strm, [x0]
-    ext v5.16b, v2.16b, v4.16b, #1    //v5=src[-1]
-    ext v6.16b, v2.16b, v4.16b, #2    //v6=src[0]
-    ext v7.16b, v2.16b, v4.16b, #3    //v7=src[1]
-    ext v16.16b, v2.16b, v4.16b, #4   //v16=src[2]
-    ext v17.16b, v2.16b, v4.16b, #5   //v17=src[3]
+    ext v5.16b, v2.16b, v3.16b, #1    //v5=src[-1]
+    ext v6.16b, v2.16b, v3.16b, #2    //v6=src[0]
+    ext v7.16b, v2.16b, v3.16b, #3    //v7=src[1]
+    ext v16.16b, v2.16b, v3.16b, #4   //v16=src[2]
+    ext v17.16b, v2.16b, v3.16b, #5   //v17=src[3]
 
     FILTER_6TAG_8BITS1 v2, v5, v6, v7, v16, v17, v20, v0, v1
     FILTER_6TAG_8BITS2 v2, v5, v6, v7, v16, v17, v20, v0, v1
     st1 {v20.16b}, [x2], x5 //write 16Byte
 
-    ext.8b v21, v4, v4, #7 // [0][1][2][3][4][5]XY-->O[0][1][2][3][4][5]X
+    ext v21.8b, v3.8b, v3.8b, #7 // [0][1][2][3][4][5]XY-->O[0][1][2][3][4][5]X
     FILTER_SINGLE_TAG_8BITS v21, v22, v23, h21
     st1 {v21.b}[0], [x2], x3 //write 16th Byte
 
@@ -1808,8 +1808,8 @@ WELS_ASM_AARCH64_FUNC_BEGIN McHorVer20Width9_AArch64_neon
     movi v1.8h, #5, lsl #0
     ldr q22, filter_para
 w9_h_mc_luma_loop:
-    ld1 {v2.8b, v3.8b}, [x0], x1 //only use 14(9+5); v2=src[-2]
-    trn1 v2.2d, v2.2d, v3.2d
+    ld1 {v2.16b}, [x0], x1 //only use 14(9+5); v2=src[-2]
+    mov v3.d[0], v2.d[1]
     //prfm pldl1strm, [x0]
     ext v5.16b, v2.16b, v4.16b, #1    //v5=src[-1]
     ext v6.16b, v2.16b, v4.16b, #2    //v6=src[0]
@@ -1820,7 +1820,7 @@ w9_h_mc_luma_loop:
     FILTER_6TAG_8BITS1 v2, v5, v6, v7, v16, v17, v20, v0, v1
     st1 {v20.8b}, [x2], x5 //write 8Byte
 
-    ext.8b v21, v3, v3, #7 // [0][1][2][3][4][5]XY-->O[0][1][2][3][4][5]X
+    ext v21.8b, v3.8b, v3.8b, #7 // [0][1][2][3][4][5]XY-->O[0][1][2][3][4][5]X
     FILTER_SINGLE_TAG_8BITS v21, v22, v23, h21
     st1 {v21.b}[0], [x2], x3 //write 9th Byte
 

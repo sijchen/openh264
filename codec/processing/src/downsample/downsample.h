@@ -94,13 +94,9 @@ GeneralDownsampleFunc GeneralBilinearFastDownsamplerWrap_sse2;
 GeneralDownsampleFunc GeneralBilinearAccurateDownsamplerWrap_sse2;
 
 void GeneralBilinearFastDownsampler_sse2 (uint8_t* pDst, const int32_t kiDstStride, const int32_t kiDstWidth,
-    const int32_t kiDstHeight,
-    uint8_t* pSrc, const int32_t kiSrcStride, const int32_t kiSrcWidth, const int32_t kiSrcHeight,
-    const uint32_t kuiScaleX, const uint32_t kuiScaleY);
+    const int32_t kiDstHeight, uint8_t* pSrc, const int32_t kiSrcStride, const uint32_t kuiScaleX, const uint32_t kuiScaleY);
 void GeneralBilinearAccurateDownsampler_sse2 (uint8_t* pDst, const int32_t kiDstStride, const int32_t kiDstWidth,
-    const int32_t kiDstHeight,
-    uint8_t* pSrc, const int32_t kiSrcStride, const int32_t kiSrcWidth, const int32_t kiSrcHeight,
-    const uint32_t kuiScaleX, const uint32_t kuiScaleY);
+    const int32_t kiDstHeight, uint8_t* pSrc, const int32_t kiSrcStride, const uint32_t kuiScaleX, const uint32_t kuiScaleY);
 WELSVP_EXTERN_C_END
 #endif
 
@@ -116,6 +112,21 @@ GeneralDownsampleFunc   GeneralBilinearAccurateDownsamplerWrap_neon;
 void GeneralBilinearAccurateDownsampler_neon (uint8_t* pDst, const int32_t kiDstStride, const int32_t kiDstWidth,
     const int32_t kiDstHeight,
     uint8_t* pSrc, const int32_t kiSrcStride, const uint32_t kuiScaleX, const uint32_t kuiScaleY);
+
+WELSVP_EXTERN_C_END
+#endif
+
+#ifdef HAVE_NEON_AARCH64
+WELSVP_EXTERN_C_BEGIN
+// iSrcWidth no limitation
+HalveDownsampleFunc		DyadicBilinearDownsampler_AArch64_neon;
+// iSrcWidth = x32 pixels
+HalveDownsampleFunc		DyadicBilinearDownsamplerWidthx32_AArch64_neon;
+
+GeneralDownsampleFunc   GeneralBilinearAccurateDownsamplerWrap_AArch64_neon;
+
+void GeneralBilinearAccurateDownsampler_AArch64_neon (uint8_t* pDst, const int32_t kiDstStride, const int32_t kiDstWidth, const int32_t kiDstHeight,
+                                                      uint8_t* pSrc, const int32_t kiSrcStride, const uint32_t kuiScaleX, const uint32_t kuiScaleY);
 
 WELSVP_EXTERN_C_END
 #endif

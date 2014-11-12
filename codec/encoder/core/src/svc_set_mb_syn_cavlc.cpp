@@ -40,9 +40,9 @@
 
 #include "vlc_encoder.h"
 #include "ls_defines.h"
-#include "svc_set_mb_syn_cavlc.h"
+#include "svc_set_mb_syn.h"
 
-namespace WelsSVCEnc {
+namespace WelsEnc {
 const uint32_t g_kuiIntra4x4CbpMap[48] = {
   3, 29, 30, 17, 31, 18, 37,  8, 32, 38, 19,  9, 20, 10, 11, 2, //15
   16, 33, 34, 21, 35, 22, 39,  4, 36, 40, 23,  5, 24,  6,  7, 1, //31
@@ -208,7 +208,7 @@ void WelsSpatialWriteSubMbPred (sWelsEncCtx* pEncCtx, SSlice* pSlice, SMB* pCurM
   }
 }
 
-int32_t CheckBitstreamBuffer (const uint8_t	kuiSliceIdx, sWelsEncCtx* pEncCtx,  SBitStringAux* pBs) {
+int32_t CheckBitstreamBuffer (const uint32_t	kuiSliceIdx, sWelsEncCtx* pEncCtx,  SBitStringAux* pBs) {
   const intX_t iLeftLength = pBs->pBufEnd - pBs->pBufPtr - 1;
   assert (iLeftLength > 0);
 
@@ -220,40 +220,54 @@ int32_t CheckBitstreamBuffer (const uint8_t	kuiSliceIdx, sWelsEncCtx* pEncCtx,  
 }
 
 //============================Base Layer CAVLC Writing===============================
-int32_t WelsSpatialWriteMbSyn (sWelsEncCtx* pEncCtx, SSlice* pSlice, SMB* pCurMb) {
+int32_t WelsSpatialWriteMbSyn (void* pCtx, SSlice* pSlice, SMB* pCurMb) {
+  sWelsEncCtx* pEncCtx = (sWelsEncCtx*)pCtx;
   SBitStringAux* pBs = pSlice->pSliceBsa;
   SMbCache* pMbCache = &pSlice->sMbCacheInfo;
+  const uint8_t kuiChromaQpIndexOffset = pEncCtx->pCurDqLayer->sLayerInfo.pPpsP->uiChromaQpIndexOffset;
 
-  /* Step 1: write mb type and pred */
-  if (IS_Inter_8x8 (pCurMb->uiMbType)) {
-    WelsSpatialWriteSubMbPred (pEncCtx, pSlice, pCurMb);
+  if (IS_SKIP (pCurMb->uiMbType)) {
+    pCurMb->uiLumaQp	= pSlice->uiLastMbQp;
+    pCurMb->uiChromaQp = g_kuiChromaQpTable[CLIP3_QP_0_51 (pCurMb->uiLumaQp + kuiChromaQpIndexOffset)];
+
+    pSlice->iMbSkipRun++;
+    return ENC_RETURN_SUCCESS;
   } else {
-    WelsSpatialWriteMbPred (pEncCtx, pSlice, pCurMb);
+    if (pEncCtx->eSliceType != I_SLICE) {
+      BsWriteUE (pBs, pSlice->iMbSkipRun);
+      pSlice->iMbSkipRun = 0;
+    }
+    /* Step 1: write mb type and pred */
+    if (IS_Inter_8x8 (pCurMb->uiMbType)) {
+      WelsSpatialWriteSubMbPred (pEncCtx, pSlice, pCurMb);
+    } else {
+      WelsSpatialWriteMbPred (pEncCtx, pSlice, pCurMb);
+    }
+
+    /* Step 2: write coded block patern */
+    if (IS_INTRA4x4 (pCurMb->uiMbType)) {
+      BsWriteUE (pBs, g_kuiIntra4x4CbpMap[pCurMb->uiCbp]);
+    } else if (!IS_INTRA16x16 (pCurMb->uiMbType)) {
+      BsWriteUE (pBs, g_kuiInterCbpMap[pCurMb->uiCbp]);
+    }
+
+    /* Step 3: write QP and residual */
+    if (pCurMb->uiCbp > 0 || IS_INTRA16x16 (pCurMb->uiMbType)) {
+      const int32_t kiDeltaQp = pCurMb->uiLumaQp - pSlice->uiLastMbQp;
+      pSlice->uiLastMbQp = pCurMb->uiLumaQp;
+
+      BsWriteSE (pBs, kiDeltaQp);
+      if (WelsWriteMbResidual (pEncCtx->pFuncList, pMbCache, pCurMb, pBs))
+        return ENC_RETURN_VLCOVERFLOWFOUND;
+    } else {
+      pCurMb->uiLumaQp = pSlice->uiLastMbQp;
+      pCurMb->uiChromaQp = g_kuiChromaQpTable[CLIP3_QP_0_51 (pCurMb->uiLumaQp +
+                                              pEncCtx->pCurDqLayer->sLayerInfo.pPpsP->uiChromaQpIndexOffset)];
+    }
+
+    /* Step 4: Check the left buffer */
+    return CheckBitstreamBuffer (pSlice->uiSliceIdx, pEncCtx, pBs);
   }
-
-  /* Step 2: write coded block patern */
-  if (IS_INTRA4x4 (pCurMb->uiMbType)) {
-    BsWriteUE (pBs, g_kuiIntra4x4CbpMap[pCurMb->uiCbp]);
-  } else if (!IS_INTRA16x16 (pCurMb->uiMbType)) {
-    BsWriteUE (pBs, g_kuiInterCbpMap[pCurMb->uiCbp]);
-  }
-
-  /* Step 3: write QP and residual */
-  if (pCurMb->uiCbp > 0 || IS_INTRA16x16 (pCurMb->uiMbType)) {
-    const int32_t kiDeltaQp = pCurMb->uiLumaQp - pSlice->uiLastMbQp;
-    pSlice->uiLastMbQp = pCurMb->uiLumaQp;
-
-    BsWriteSE (pBs, kiDeltaQp);
-    if (WelsWriteMbResidual (pEncCtx->pFuncList, pMbCache, pCurMb, pBs))
-      return ENC_RETURN_VLCOVERFLOWFOUND;
-  } else {
-    pCurMb->uiLumaQp = pSlice->uiLastMbQp;
-    pCurMb->uiChromaQp = g_kuiChromaQpTable[CLIP3_QP_0_51 (pCurMb->uiLumaQp +
-                                            pEncCtx->pCurDqLayer->sLayerInfo.pPpsP->uiChromaQpIndexOffset)];
-  }
-
-  /* Step 4: Check the left buffer */
-  return CheckBitstreamBuffer (pSlice->uiSliceIdx, pEncCtx, pBs);
 }
 
 int32_t WelsWriteMbResidual (SWelsFuncPtrList* pFuncList, SMbCache* sMbCacheInfo, SMB* pCurMb, SBitStringAux* pBs) {
@@ -369,4 +383,4 @@ int32_t WelsWriteMbResidual (SWelsFuncPtrList* pFuncList, SMbCache* sMbCacheInfo
   return 0;
 }
 
-} // namespace WelsSVCEnc
+} // namespace WelsEnc

@@ -39,7 +39,7 @@
 #include "picture_handle.h"
 #include "svc_motion_estimate.h"
 
-namespace WelsSVCEnc {
+namespace WelsEnc {
 /*!
  * \brief	alloc picture pData with borders for each plane based width and height of picture
  * \param	cx				width of picture in pixels
@@ -98,7 +98,7 @@ SPicture* AllocPicture (CMemoryAlign* pMa, const int32_t kiWidth , const int32_t
     pPic->uiRefMbType	= (uint32_t*)pMa->WelsMallocz (kuiCountMbNum * sizeof (uint32_t), "pPic->uiRefMbType");
     WELS_VERIFY_RETURN_PROC_IF (NULL, NULL == pPic->uiRefMbType, FreePicture (pMa, &pPic));
 
-    pPic->pRefMbQp	= (uint8_t*)pMa->WelsMallocz (kuiCountMbNum * sizeof (uint8_t), "pPic->bgd_mb_qp");
+    pPic->pRefMbQp	= (uint8_t*)pMa->WelsMallocz (kuiCountMbNum * sizeof (uint8_t), "pPic->pRefMbQp");
     WELS_VERIFY_RETURN_PROC_IF (NULL, NULL == pPic->pRefMbQp, FreePicture (pMa, &pPic));
 
     pPic->sMvList           = static_cast<SMVUnitXY*> (pMa->WelsMallocz (kuiCountMbNum * sizeof (SMVUnitXY),
@@ -152,11 +152,11 @@ void FreePicture (CMemoryAlign* pMa, SPicture** ppPic) {
     pPic->iMarkFrameNum		= -1;
 
     if (pPic->uiRefMbType) {
-      pMa->WelsFree (pPic->uiRefMbType, "pPic->bgd_mb_type");
+      pMa->WelsFree (pPic->uiRefMbType, "pPic->uiRefMbType");
       pPic->uiRefMbType = NULL;
     }
     if (pPic->pRefMbQp) {
-      pMa->WelsFree (pPic->pRefMbQp, "pPic->bgd_mb_qp");
+      pMa->WelsFree (pPic->pRefMbQp, "pPic->pRefMbQp");
       pPic->pRefMbQp = NULL;
     }
 
@@ -179,20 +179,6 @@ void FreePicture (CMemoryAlign* pMa, SPicture** ppPic) {
     *ppPic = NULL;
   }
 }
-/*!
-* \brief	exchange two picture pData planes
-* \param	ppPic1		picture pointer to picture 1
-* \param	ppPic2		picture pointer to picture 2
-* \return	none
-*/
-void WelsExchangeSpatialPictures (SPicture** ppPic1, SPicture** ppPic2) {
-  SPicture* tmp	= *ppPic1;
 
-  assert (*ppPic1 != *ppPic2);
-
-  *ppPic1 = *ppPic2;
-  *ppPic2 = tmp;
-}
-
-} // namespace WelsSVCEnc
+} // namespace WelsEnc
 

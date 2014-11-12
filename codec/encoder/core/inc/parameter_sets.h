@@ -37,7 +37,7 @@
 #include "wels_const.h"
 #include "wels_common_basis.h"
 
-namespace WelsSVCEnc {
+namespace WelsEnc {
 
 /* Sequence Parameter Set, refer to Page 57 in JVT X201wcm */
 typedef struct TagWelsSPS {
@@ -147,7 +147,7 @@ uint8_t		uiChromaQpIndexOffset;
 //	/* potential application for High profile */
 
 //	bool		bPicOrderPresentFlag;
-
+bool    bEntropyCodingModeFlag;
 bool		bDeblockingFilterControlPresentFlag;
 
 //	bool		bConstainedIntraPredFlag;

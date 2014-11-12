@@ -23,13 +23,14 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\..\bin\win32\Release"
-			IntermediateDirectory=".\..\..\..\obj\decoder\core\release"
+			OutputDirectory=".\..\..\..\..\bin\$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
+			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -58,12 +59,8 @@
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\..\..\..\obj\decoder\core\release/WelsDecCore.pch"
-				AssemblerListingLocation=".\..\..\..\obj\decoder\core\release/"
-				ObjectFile=".\..\..\..\obj\decoder\core\release/"
-				ProgramDataBaseFileName=".\..\..\..\obj\decoder\core\release/"
 				WarningLevel="3"
-				DebugInformationFormat="0"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -88,7 +85,6 @@
 			/>
 			<Tool
 				Name="VCBscMakeTool"
-				OutputFile=".\..\..\..\..\bin\win32\Release/WelsDecCore.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -99,13 +95,14 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory=".\..\..\..\..\bin\win64\Release"
-			IntermediateDirectory=".\..\..\..\obj\decoder\core\release"
+			OutputDirectory=".\..\..\..\..\bin\$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
+			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -135,12 +132,8 @@
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\..\..\..\obj\decoder\core\release/WelsDecCore.pch"
-				AssemblerListingLocation=".\..\..\..\obj\decoder\core\release/"
-				ObjectFile=".\..\..\..\obj\decoder\core\release/"
-				ProgramDataBaseFileName=".\..\..\..\obj\decoder\core\release/"
 				WarningLevel="3"
-				DebugInformationFormat="0"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -165,7 +158,6 @@
 			/>
 			<Tool
 				Name="VCBscMakeTool"
-				OutputFile=".\..\..\..\..\bin\win32\Release/WelsDecCore.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -176,8 +168,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\..\bin\win32\Debug"
-			IntermediateDirectory=".\..\..\..\obj\decoder\core\debug"
+			OutputDirectory=".\..\..\..\..\bin\$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -210,10 +202,6 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\..\..\..\obj\decoder\core\debug/WelsDecCore.pch"
-				AssemblerListingLocation=".\..\..\..\obj\decoder\core\debug/"
-				ObjectFile=".\..\..\..\obj\decoder\core\debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\decoder\core\debug/"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 			/>
@@ -240,7 +228,6 @@
 			/>
 			<Tool
 				Name="VCBscMakeTool"
-				OutputFile=".\..\..\..\..\bin\win32\Debug/WelsDecCore.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -251,8 +238,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory=".\..\..\..\..\bin\win64\Debug"
-			IntermediateDirectory=".\..\..\..\obj\decoder\core\debug"
+			OutputDirectory=".\..\..\..\..\bin\$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -286,10 +273,6 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\..\..\..\obj\decoder\core\debug/WelsDecCore.pch"
-				AssemblerListingLocation=".\..\..\..\obj\decoder\core\debug/"
-				ObjectFile=".\..\..\..\obj\decoder\core\debug/"
-				ProgramDataBaseFileName=".\..\..\..\obj\decoder\core\debug/"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -316,7 +299,6 @@
 			/>
 			<Tool
 				Name="VCBscMakeTool"
-				OutputFile=".\..\..\..\..\bin\win32\Debug/WelsDecCore.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -674,6 +656,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\decoder\core\inc\cabac_decoder.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\common\inc\copy_mb.h"
 					>
 				</File>
@@ -794,6 +780,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\decoder\core\inc\parse_mb_syn_cabac.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\decoder\core\inc\parse_mb_syn_cavlc.h"
 					>
 				</File>
@@ -848,6 +838,10 @@
 				</File>
 				<File
 					RelativePath="..\..\..\decoder\core\src\bit_stream.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\decoder\core\src\cabac_decoder.cpp"
 					>
 				</File>
 				<File
@@ -928,6 +922,10 @@
 				</File>
 				<File
 					RelativePath="..\..\..\decoder\core\src\mv_pred.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\decoder\core\src\parse_mb_syn_cabac.cpp"
 					>
 				</File>
 				<File
