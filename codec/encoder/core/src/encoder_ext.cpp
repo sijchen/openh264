@@ -965,35 +965,11 @@ static inline int32_t InitDqLayers (sWelsEncCtx** ppCtx) {
     SSpatialLayerConfig* pDlayerParam	= &pParam->sSpatialLayers[iDlayerIndex];
 
     pDqIdc->uiSpatialId	= iDlayerIndex;
+
+    WelsGenerateNewSps (*ppCtx, bUseSubsetSps, iDlayerIndex,
+                        iDlayerCount, iSpsId, pSps, pSubsetSps);
+
     pPps	= & (*ppCtx)->pPPSArray[iPpsId];
-    if (!bUseSubsetSps) {
-      pSps	= & (*ppCtx)->pSpsArray[iSpsId];
-    } else {
-      pSubsetSps	= & (*ppCtx)->pSubsetArray[iSpsId];
-      pSps			= &pSubsetSps->pSps;
-    }
-
-    // Need port pSps/pPps initialization due to spatial scalability changed
-    if (!bUseSubsetSps) {
-      WelsInitSps (pSps, pDlayerParam, &pParam->sDependencyLayers[iDlayerIndex], pParam->uiIntraPeriod,
-                   pParam->iMaxNumRefFrame,
-                   iSpsId, pParam->bEnableFrameCroppingFlag, pParam->iRCMode != RC_OFF_MODE);
-
-      if (pDlayerParam->uiProfileIdc == PRO_BASELINE) {
-        pSps->bConstraintSet0Flag = true;
-      }
-      if (pDlayerParam->uiProfileIdc <= PRO_MAIN) {
-        pSps->bConstraintSet1Flag = true;
-      }
-      if (iDlayerCount > 1) {
-        pSps->bConstraintSet2Flag = true;
-      }
-    } else {
-      WelsInitSubsetSps (pSubsetSps, pDlayerParam, &pParam->sDependencyLayers[iDlayerIndex], pParam->uiIntraPeriod,
-                         pParam->iMaxNumRefFrame,
-                         iSpsId, pParam->bEnableFrameCroppingFlag, pParam->iRCMode != RC_OFF_MODE);
-    }
-
     // initialize pPps
     WelsInitPps (pPps, pSps, pSubsetSps, iPpsId, true, bUseSubsetSps, pParam->iEntropyCodingModeFlag != 0);
 
