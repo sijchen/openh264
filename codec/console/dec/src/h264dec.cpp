@@ -74,7 +74,7 @@ void H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, cons
   FILE* fpTrack = fopen ("3.len", "rb");
   unsigned long pInfo[4];
 #endif// STICK_STREAM_SIZE
-
+  unsigned long long uiTimeStamp = 0;
   int64_t iStart = 0, iEnd = 0, iTotal = 0;
   int32_t iSliceSize;
   int32_t iSliceIndex = 0;
@@ -171,7 +171,7 @@ void H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, cons
 #if defined ( STICK_STREAM_SIZE )
     if (fpTrack) {
       fread (pInfo, 4, sizeof (unsigned long), fpTrack);
-      iSliceSize = static_cast<int32_t>(pInfo[2]);
+      iSliceSize = static_cast<int32_t> (pInfo[2]);
     }
 #else
     for (i = 0; i < iFileSize; i++) {
@@ -182,6 +182,11 @@ void H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, cons
     }
     iSliceSize = i;
 #endif
+
+    if (iSliceSize < 4) { //too small size, no effective data, ignore
+      iBufPos += iSliceSize;
+      continue;
+    }
 
 //for coverage test purpose
     int32_t iOutputColorFormat;
@@ -200,7 +205,7 @@ void H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, cons
     pDecoder->GetOption (DECODER_OPTION_VCL_NAL, &iFeedbackVclNalInAu);
     int32_t iFeedbackTidInAu;
     pDecoder->GetOption (DECODER_OPTION_TEMPORAL_ID, &iFeedbackTidInAu);
-    int32_t iErrorConMethod = (int32_t) ERROR_CON_SLICE_COPY;
+    int32_t iErrorConMethod = (int32_t) ERROR_CON_SLICE_MV_COPY_CROSS_IDR_FREEZE_RES_CHANGE;
     pDecoder->SetOption (DECODER_OPTION_ERROR_CON_IDC, &iErrorConMethod);
 //~end for
 
@@ -208,9 +213,14 @@ void H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, cons
     pData[0] = NULL;
     pData[1] = NULL;
     pData[2] = NULL;
+    uiTimeStamp ++;
     memset (&sDstBufInfo, 0, sizeof (SBufferInfo));
-
+    sDstBufInfo.uiInBsTimeStamp = uiTimeStamp;
+#ifndef NO_DELAY_DECODING
+    pDecoder->DecodeFrameNoDelay (pBuf + iBufPos, iSliceSize, pData, &sDstBufInfo);
+#else
     pDecoder->DecodeFrame2 (pBuf + iBufPos, iSliceSize, pData, &sDstBufInfo);
+#endif
 
     if (sDstBufInfo.iBufferStatus == 1) {
       pDst[0] = pData[0];
@@ -242,6 +252,7 @@ void H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, cons
     pData[1] = NULL;
     pData[2] = NULL;
     memset (&sDstBufInfo, 0, sizeof (SBufferInfo));
+    sDstBufInfo.uiInBsTimeStamp = uiTimeStamp;
     pDecoder->DecodeFrame2 (NULL, 0, pData, &sDstBufInfo);
     if (sDstBufInfo.iBufferStatus == 1) {
       pDst[0] = pData[0];
@@ -270,36 +281,6 @@ void H264DecodeInstance (ISVCDecoder* pDecoder, const char* kpH264FileName, cons
     iBufPos += iSliceSize;
     ++ iSliceIndex;
   }
-
-  // Get pending last frame
-  pData[0] = NULL;
-  pData[1] = NULL;
-  pData[2] = NULL;
-  memset (&sDstBufInfo, 0, sizeof (SBufferInfo));
-
-  pDecoder->DecodeFrame2 (NULL, 0, pData, &sDstBufInfo);
-  if (sDstBufInfo.iBufferStatus == 1) {
-    pDst[0] = pData[0];
-    pDst[1] = pData[1];
-    pDst[2] = pData[2];
-  }
-
-  if (sDstBufInfo.iBufferStatus == 1) {
-    cOutputModule.Process ((void**)pDst, &sDstBufInfo, pYuvFile);
-    iWidth  = sDstBufInfo.UsrData.sSystemBuffer.iWidth;
-    iHeight = sDstBufInfo.UsrData.sSystemBuffer.iHeight;
-
-    if (pOptionFile != NULL) {
-      /* Anyway, we need write in case of final frame decoding */
-      fwrite (&iFrameCount, sizeof (iFrameCount), 1, pOptionFile);
-      fwrite (&iWidth , sizeof (iWidth) , 1, pOptionFile);
-      fwrite (&iHeight, sizeof (iHeight), 1, pOptionFile);
-      iLastWidth	= iWidth;
-      iLastHeight	= iHeight;
-    }
-    ++ iFrameCount;
-  }
-
 
 #if defined ( STICK_STREAM_SIZE )
   if (fpTrack) {

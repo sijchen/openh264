@@ -79,8 +79,8 @@ int32_t WelsTargetSliceConstruction (PWelsDecoderContext pCtx) {
   pCurLayer->iMbXyIndex = iNextMbXyIndex;
 
   if (0 == iNextMbXyIndex) {
-    pCurLayer->pDec->iSpsId = pSliceHeader->iSpsId;
-    pCurLayer->pDec->iPpsId = pSliceHeader->iPpsId;
+    pCurLayer->pDec->iSpsId = pCtx->pSps->iSpsId;
+    pCurLayer->pDec->iPpsId = pCtx->pPps->iPpsId;
 
     pCurLayer->pDec->uiQualityId = pCurLayer->sLayerInfo.sNalHeaderExt.uiQualityId;
   }
@@ -90,17 +90,20 @@ int32_t WelsTargetSliceConstruction (PWelsDecoderContext pCtx) {
       break;
     }
 
-    if (WelsTargetMbConstruction (pCtx)) {
-      WelsLog (& (pCtx->sLogCtx), WELS_LOG_WARNING,
-               "WelsTargetSliceConstruction():::MB(%d, %d) construction error. pCurSlice_type:%d",
-               pCurLayer->iMbX, pCurLayer->iMbY, pCurSlice->eSliceType);
+    if (!pCtx->bParseOnly) { //for parse only, actual recon MB unnecessary
+      if (WelsTargetMbConstruction (pCtx)) {
+        WelsLog (& (pCtx->sLogCtx), WELS_LOG_WARNING,
+                 "WelsTargetSliceConstruction():::MB(%d, %d) construction error. pCurSlice_type:%d",
+                 pCurLayer->iMbX, pCurLayer->iMbY, pCurSlice->eSliceType);
 
-      return -1;
+        return -1;
+      }
     }
 
     ++iCountNumMb;
     if (!pCurLayer->pMbCorrectlyDecodedFlag[iNextMbXyIndex]) { //already con-ed, overwrite
       pCurLayer->pMbCorrectlyDecodedFlag[iNextMbXyIndex] = true;
+      pCtx->pDec->iMbEcedPropNum += (pCurLayer->pMbRefConcealedFlag[iNextMbXyIndex] ? 1 : 0);
       ++pCtx->iTotalNumMbRec;
     }
 
@@ -131,9 +134,13 @@ int32_t WelsTargetSliceConstruction (PWelsDecoderContext pCtx) {
   if ((pCurSlice->eSliceType != I_SLICE) && (pCurSlice->eSliceType != P_SLICE))
     return 0;
 
+  if (pCtx->bParseOnly) //for parse only, deblocking should not go on
+    return 0;
+
   pDeblockMb = WelsDeblockingMb;
 
-  if (1 == pSliceHeader->uiDisableDeblockingFilterIdc) {
+  if (1 == pSliceHeader->uiDisableDeblockingFilterIdc
+      || pCtx->pCurDqLayer->sLayerInfo.sSliceInLayer.iTotalMbInCurSlice <= 0) {
     return 0;//NO_SUPPORTED_FILTER_IDX
   } else {
     WelsDeblockingFilterSlice (pCtx, pDeblockMb);
@@ -196,8 +203,8 @@ int32_t WelsMbInterConstruction (PWelsDecoderContext pCtx, PDqLayer pCurLayer) {
   return 0;
 }
 
-void WelsLumaDcDequantIdct (int16_t* pBlock, int32_t iQp) {
-  const int32_t kiQMul = g_kuiDequantCoeff[iQp][0];
+void WelsLumaDcDequantIdct (int16_t* pBlock, int32_t iQp, PWelsDecoderContext pCtx) {
+  const int32_t kiQMul = pCtx->bUseScalingList ? pCtx->pDequant_coeff4x4[0][iQp][0] >> 4 : g_kuiDequantCoeff[iQp][0];
 #define STRIDE 16
   int32_t i;
   int32_t iTemp[16]; //FIXME check if this is a good idea
@@ -245,7 +252,7 @@ int32_t WelsMbIntraPredictionConstruction (PWelsDecoderContext pCtx, PDqLayer pC
   WelsFillRecNeededMbInfo (pCtx, bOutput, pCurLayer);
 
   if (IS_INTRA16x16 (pCurLayer->pMbType[iMbXy])) {
-    WelsLumaDcDequantIdct (pCurLayer->pScaledTCoeff[iMbXy], pCurLayer->pLumaQp[iMbXy]);
+    WelsLumaDcDequantIdct (pCurLayer->pScaledTCoeff[iMbXy], pCurLayer->pLumaQp[iMbXy], pCtx);
     RecI16x16Mb (iMbXy, pCtx, pCurLayer->pScaledTCoeff[iMbXy], pCurLayer);
 
     return 0;
@@ -528,7 +535,7 @@ int32_t WelsDecodeMbCabacISliceBaseMode0 (PWelsDecoderContext pCtx, uint32_t& ui
     //get uiCbp for I4x4
     WELS_READ_VERIFY (ParseCbpInfoCabac (pCtx, &sNeighAvail, uiCbp));
     pCurLayer->pCbp[iMbXy] = uiCbp;
-    pSlice->iLastDeltaQp = uiCbp == 0 ? 0: pSlice->iLastDeltaQp;
+    pSlice->iLastDeltaQp = uiCbp == 0 ? 0 : pSlice->iLastDeltaQp;
     uiCbpChroma = uiCbp >> 4;
     uiCbpLuma = uiCbp & 15;
   } else { //I16x16;
@@ -541,7 +548,7 @@ int32_t WelsDecodeMbCabacISliceBaseMode0 (PWelsDecoderContext pCtx, uint32_t& ui
     WELS_READ_VERIFY (ParseIntra16x16Mode (pCtx, &sNeighAvail, pBsAux, pCurLayer));
   }
 
-  memset (pCurLayer->pScaledTCoeff[iMbXy], 0, 384 * sizeof (pCurLayer->pScaledTCoeff[iMbXy][0]));
+
   ST32 (&pCurLayer->pNzc[iMbXy][0], 0);
   ST32 (&pCurLayer->pNzc[iMbXy][4], 0);
   ST32 (&pCurLayer->pNzc[iMbXy][8], 0);
@@ -557,6 +564,7 @@ int32_t WelsDecodeMbCabacISliceBaseMode0 (PWelsDecoderContext pCtx, uint32_t& ui
   }
 
   if (pCurLayer->pCbp[iMbXy] || MB_TYPE_INTRA16x16 == pCurLayer->pMbType[iMbXy]) {
+    memset (pCurLayer->pScaledTCoeff[iMbXy], 0, 384 * sizeof (pCurLayer->pScaledTCoeff[iMbXy][0]));
     int32_t iQpDelta, iId8x8, iId4x4;
     WELS_READ_VERIFY (ParseDeltaQpCabac (pCtx, iQpDelta));
     if (iQpDelta > 25 || iQpDelta < -26) {//out of iQpDelta range
@@ -594,7 +602,8 @@ int32_t WelsDecodeMbCabacISliceBaseMode0 (PWelsDecoderContext pCtx, uint32_t& ui
           for (iId4x4 = 0; iId4x4 < 4; iId4x4++) {
             //Luma (DC and AC decoding together)
             WELS_READ_VERIFY (ParseResidualBlockCabac (&sNeighAvail, pNonZeroCount, pBsAux, iIdx, iScanIdxEnd - iScanIdxStart + 1,
-                              g_kuiZigzagScan + iScanIdxStart, LUMA_DC_AC, pCurLayer->pScaledTCoeff[iMbXy] + (iIdx << 4), pCurLayer->pLumaQp[iMbXy],
+                              g_kuiZigzagScan + iScanIdxStart, LUMA_DC_AC_INTRA, pCurLayer->pScaledTCoeff[iMbXy] + (iIdx << 4),
+                              pCurLayer->pLumaQp[iMbXy],
                               pCtx));
             iIdx++;
           }
@@ -608,25 +617,26 @@ int32_t WelsDecodeMbCabacISliceBaseMode0 (PWelsDecoderContext pCtx, uint32_t& ui
       ST32 (&pCurLayer->pNzc[iMbXy][8], LD32 (&pNonZeroCount[1 + 8 * 3]));
       ST32 (&pCurLayer->pNzc[iMbXy][12], LD32 (&pNonZeroCount[1 + 8 * 4]));
     }
-
+    int32_t iMbResProperty;
     //chroma
     //step1: DC
     if (1 == uiCbpChroma || 2 == uiCbpChroma) {
       //Cb Cr
-      WELS_READ_VERIFY (ParseResidualBlockCabac (&sNeighAvail, pNonZeroCount, pBsAux, 16 + (0 << 2), 4, g_kuiChromaDcScan,
-                        CHROMA_DC_V, pCurLayer->pScaledTCoeff[iMbXy] + 256 + (0 << 6), pCurLayer->pChromaQp[iMbXy], pCtx));
-      WELS_READ_VERIFY (ParseResidualBlockCabac (&sNeighAvail, pNonZeroCount, pBsAux, 16 + (1 << 2), 4, g_kuiChromaDcScan,
-                        CHROMA_DC_U, pCurLayer->pScaledTCoeff[iMbXy] + 256 + (1 << 6), pCurLayer->pChromaQp[iMbXy], pCtx));
+      for (i = 0; i < 2; i++) {
+        iMbResProperty = i ? CHROMA_DC_V : CHROMA_DC_U;
+        WELS_READ_VERIFY (ParseResidualBlockCabac (&sNeighAvail, pNonZeroCount, pBsAux, 16 + (i << 2), 4, g_kuiChromaDcScan,
+                          iMbResProperty, pCurLayer->pScaledTCoeff[iMbXy] + 256 + (i << 6), pCurLayer->pChromaQp[iMbXy], pCtx));
+      }
     }
 
     //step2: AC
     if (2 == uiCbpChroma) {
       for (i = 0; i < 2; i++) { //Cb Cr
-        int32_t iResProperty = i ? CHROMA_AC_V : CHROMA_AC_U;
+        iMbResProperty = i ? CHROMA_AC_V : CHROMA_AC_U;
         int32_t iIdx = 16 + (i << 2);
         for (iId4x4 = 0; iId4x4 < 4; iId4x4++) {
           WELS_READ_VERIFY (ParseResidualBlockCabac (&sNeighAvail, pNonZeroCount, pBsAux, iIdx,
-                            iScanIdxEnd - WELS_MAX (iScanIdxStart, 1) + 1, g_kuiZigzagScan + WELS_MAX (iScanIdxStart, 1), iResProperty,
+                            iScanIdxEnd - WELS_MAX (iScanIdxStart, 1) + 1, g_kuiZigzagScan + WELS_MAX (iScanIdxStart, 1), iMbResProperty,
                             pCurLayer->pScaledTCoeff[iMbXy] + (iIdx << 4), pCurLayer->pChromaQp[iMbXy], pCtx));
           iIdx++;
         }
@@ -671,7 +681,7 @@ int32_t WelsDecodeMbCabacPSliceBaseMode0 (PWelsDecoderContext pCtx, PWelsNeighAv
   int32_t iScanIdxStart = pSlice->sSliceHeaderExt.uiScanIdxStart;
   int32_t iScanIdxEnd   = pSlice->sSliceHeaderExt.uiScanIdxEnd;
   int32_t iMbXy = pCurLayer->iMbXyIndex;
-
+  int32_t iMbResProperty;
   int32_t i;
   uint32_t uiMbType = 0, uiCbp = 0, uiCbpLuma = 0, uiCbpChroma = 0;
 
@@ -721,17 +731,20 @@ int32_t WelsDecodeMbCabacPSliceBaseMode0 (PWelsDecoderContext pCtx, PWelsNeighAv
     }
   }
 
-  if (MB_TYPE_INTRA16x16 != pCurLayer->pMbType[iMbXy]) {
-    WELS_READ_VERIFY (ParseCbpInfoCabac (pCtx, pNeighAvail, uiCbp));
-    pCurLayer->pCbp[iMbXy] = uiCbp;
-    pSlice->iLastDeltaQp = uiCbp == 0 ? 0: pSlice->iLastDeltaQp;
-    uiCbpChroma = pCurLayer->pCbp[iMbXy] >> 4;
-    uiCbpLuma = pCurLayer->pCbp[iMbXy] & 15;
-  }
 
-  pCtx->sBlockFunc.pWelsBlockZero16x16Func (pCurLayer->pScaledTCoeff[iMbXy], 16);
-  pCtx->sBlockFunc.pWelsBlockZero8x8Func (pCurLayer->pScaledTCoeff[iMbXy] + 256, 8);
-  pCtx->sBlockFunc.pWelsBlockZero8x8Func (pCurLayer->pScaledTCoeff[iMbXy] + 256 + 64, 8);
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   ST32 (&pCurLayer->pNzc[iMbXy][0], 0);
   ST32 (&pCurLayer->pNzc[iMbXy][4], 0);
@@ -740,10 +753,23 @@ int32_t WelsDecodeMbCabacPSliceBaseMode0 (PWelsDecoderContext pCtx, PWelsNeighAv
   ST32 (&pCurLayer->pNzc[iMbXy][16], 0);
   ST32 (&pCurLayer->pNzc[iMbXy][20], 0);
 
+  if (MB_TYPE_INTRA16x16 != pCurLayer->pMbType[iMbXy]) {
+    WELS_READ_VERIFY (ParseCbpInfoCabac (pCtx, pNeighAvail, uiCbp));
+    pCurLayer->pCbp[iMbXy] = uiCbp;
+    pSlice->iLastDeltaQp = uiCbp == 0 ? 0 : pSlice->iLastDeltaQp;
+    uiCbpChroma = pCurLayer->pCbp[iMbXy] >> 4;
+    uiCbpLuma = pCurLayer->pCbp[iMbXy] & 15;
+  }
+
   if (pCurLayer->pCbp[iMbXy] || MB_TYPE_INTRA16x16 == pCurLayer->pMbType[iMbXy]) {
+    memset (pCurLayer->pScaledTCoeff[iMbXy], 0, 384 * sizeof (pCurLayer->pScaledTCoeff[iMbXy][0]));
+
     int32_t iQpDelta, iId8x8, iId4x4;
 
     WELS_READ_VERIFY (ParseDeltaQpCabac (pCtx, iQpDelta));
+    if (iQpDelta > 25 || iQpDelta < -26) { //out of iQpDelta range
+      return ERR_INFO_INVALID_QP;
+    }
     pCurLayer->pLumaQp[iMbXy] = (pSlice->iLastMbQp + iQpDelta + 52) % 52; //update last_mb_qp
     pSlice->iLastMbQp = pCurLayer->pLumaQp[iMbXy];
     pCurLayer->pChromaQp[iMbXy] = g_kuiChromaQpTable[WELS_CLIP3 (pSlice->iLastMbQp +
@@ -771,13 +797,15 @@ int32_t WelsDecodeMbCabacPSliceBaseMode0 (PWelsDecoderContext pCtx, PWelsNeighAv
         ST32 (&pCurLayer->pNzc[iMbXy][12], 0);
       }
     } else { //non-MB_TYPE_INTRA16x16
+      iMbResProperty = (IS_INTRA (pCurLayer->pMbType[iMbXy])) ? LUMA_DC_AC_INTRA : LUMA_DC_AC_INTER;
       for (iId8x8 = 0; iId8x8 < 4; iId8x8++) {
         if (uiCbpLuma & (1 << iId8x8)) {
           int32_t iIdx = (iId8x8 << 2);
           for (iId4x4 = 0; iId4x4 < 4; iId4x4++) {
             //Luma (DC and AC decoding together)
             WELS_READ_VERIFY (ParseResidualBlockCabac (pNeighAvail, pNonZeroCount, pBsAux, iIdx, iScanIdxEnd - iScanIdxStart + 1,
-                              g_kuiZigzagScan + iScanIdxStart, LUMA_DC_AC, pCurLayer->pScaledTCoeff[iMbXy] + (iIdx << 4), pCurLayer->pLumaQp[iMbXy],
+                              g_kuiZigzagScan + iScanIdxStart, iMbResProperty, pCurLayer->pScaledTCoeff[iMbXy] + (iIdx << 4),
+                              pCurLayer->pLumaQp[iMbXy],
                               pCtx));
             iIdx++;
           }
@@ -796,20 +824,27 @@ int32_t WelsDecodeMbCabacPSliceBaseMode0 (PWelsDecoderContext pCtx, PWelsNeighAv
     //step1: DC
     if (1 == uiCbpChroma || 2 == uiCbpChroma) {
       for (i = 0; i < 2; i++) {
-        int32_t iResProperty = i ? CHROMA_DC_V : CHROMA_DC_U;
+        if (IS_INTRA (pCurLayer->pMbType[iMbXy]))
+          iMbResProperty = i ? CHROMA_DC_V : CHROMA_DC_U;
+        else
+          iMbResProperty = i ? CHROMA_DC_V_INTER : CHROMA_DC_U_INTER;
+
         WELS_READ_VERIFY (ParseResidualBlockCabac (pNeighAvail, pNonZeroCount, pBsAux, 16 + (i << 2), 4, g_kuiChromaDcScan,
-                          iResProperty, pCurLayer->pScaledTCoeff[iMbXy] + 256 + (i << 6), pCurLayer->pChromaQp[iMbXy], pCtx));
+                          iMbResProperty, pCurLayer->pScaledTCoeff[iMbXy] + 256 + (i << 6), pCurLayer->pChromaQp[iMbXy], pCtx));
       }
     }
     //step2: AC
     if (2 == uiCbpChroma) {
       for (i = 0; i < 2; i++) {
-        int32_t iResProperty = i ? CHROMA_AC_V : CHROMA_AC_U;
+        if (IS_INTRA (pCurLayer->pMbType[iMbXy]))
+          iMbResProperty = i ? CHROMA_AC_V : CHROMA_AC_U;
+        else
+          iMbResProperty = i ? CHROMA_AC_V_INTER : CHROMA_AC_U_INTER;
         int32_t index = 16 + (i << 2);
         for (iId4x4 = 0; iId4x4 < 4; iId4x4++) {
           WELS_READ_VERIFY (ParseResidualBlockCabac (pNeighAvail, pNonZeroCount, pBsAux, index,
                             iScanIdxEnd - WELS_MAX (iScanIdxStart, 1) + 1, g_kuiZigzagScan + WELS_MAX (iScanIdxStart, 1),
-                            iResProperty, pCurLayer->pScaledTCoeff[iMbXy] + (index << 4), pCurLayer->pChromaQp[iMbXy], pCtx));
+                            iMbResProperty, pCurLayer->pScaledTCoeff[iMbXy] + (index << 4), pCurLayer->pChromaQp[iMbXy], pCtx));
           index++;
         }
       }
@@ -839,6 +874,7 @@ int32_t WelsDecodeMbCabacPSlice (PWelsDecoderContext pCtx, PNalUnit pNalCur, uin
   PDqLayer pCurLayer		 = pCtx->pCurDqLayer;
   PSlice pSlice			 = &pCurLayer->sLayerInfo.sSliceInLayer;
   PSliceHeader pSliceHeader		 = &pSlice->sSliceHeaderExt.sSliceHeader;
+  PPicture* ppRefPic = pCtx->sRefPic.pRefList[LIST_0];
   uint32_t uiCode;
   int32_t iMbXy = pCurLayer->iMbXyIndex;
   int32_t i;
@@ -861,7 +897,7 @@ int32_t WelsDecodeMbCabacPSlice (PWelsDecoderContext pCtx, PNalUnit pNalCur, uin
 
     pCurLayer->pInterPredictionDoneFlag[iMbXy] = 0;
     memset (pCurLayer->pRefIndex[0][iMbXy], 0, sizeof (int8_t) * 16);
-
+    pCtx->bMbRefConcealed = pCtx->bRPLRError || pCtx->bMbRefConcealed || ! (ppRefPic[0] && ppRefPic[0]->bIsComplete);
     //predict mv
     PredPSkipMvFromNeighbor (pCurLayer, pMv);
     for (i = 0; i < 16; i++) {
@@ -869,9 +905,9 @@ int32_t WelsDecodeMbCabacPSlice (PWelsDecoderContext pCtx, PNalUnit pNalCur, uin
       ST32 (pCurLayer->pMvd[0][iMbXy][i], 0);
     }
 
-    if (!pSlice->sSliceHeaderExt.bDefaultResidualPredFlag) {
-      memset (pCurLayer->pScaledTCoeff[iMbXy], 0, 384 * sizeof (int16_t));
-    }
+    //if (!pSlice->sSliceHeaderExt.bDefaultResidualPredFlag) {
+    //  memset (pCurLayer->pScaledTCoeff[iMbXy], 0, 384 * sizeof (int16_t));
+    //}
 
     //reset rS
     pCurLayer->pLumaQp[iMbXy] = pSlice->iLastMbQp; //??????????????? dqaunt of previous mb
@@ -889,11 +925,49 @@ int32_t WelsDecodeMbCabacPSlice (PWelsDecoderContext pCtx, PNalUnit pNalCur, uin
   WELS_READ_VERIFY (WelsDecodeMbCabacPSliceBaseMode0 (pCtx, &uiNeighAvail, uiEosFlag));
   return ERR_NONE;
 }
+// Calculate deqaunt coeff scaling list value
+int32_t  WelsCalcDeqCoeffScalingList (PWelsDecoderContext pCtx) {
+  if (pCtx->pSps->bSeqScalingMatrixPresentFlag || pCtx->pPps->bPicScalingMatrixPresentFlag) {
+    pCtx->bUseScalingList = true;
+
+    if (!pCtx->bDequantCoeff4x4Init || (pCtx->iDequantCoeffPpsid != pCtx->pPps->iPpsId)) {
+      int i, q, x;
+      // Rewrite pps scaling list for scalingList present flag=0
+      if (pCtx->bSpsLatePps) {
+        for (i = 0; i < 6; i++) {
+          if (!pCtx->pSps->bSeqScalingListPresentFlag[i]) {
+            if (i == 0 || i == 3)
+              memcpy (pCtx->pPps->iScalingList4x4[i], pCtx->pSps->iScalingList4x4[i], 16 * sizeof (uint8_t));
+            else
+              memcpy (pCtx->pPps->iScalingList4x4[i], pCtx->pPps->iScalingList4x4[i - 1], 16 * sizeof (uint8_t));
+
+          }
+        }
+        //TO DO, SUPPORT 8x8 SCALINGlist
+
+      }
+      //Init dequant coeff value for different QP
+      for (i = 0; i < 6; i++) {
+        pCtx->pDequant_coeff4x4[i] = pCtx->pDequant_coeff_buffer4x4[i];
+        for (q = 0; q < 51; q++) {
+          for (x = 0; x < 16; x++) {
+            pCtx->pDequant_coeff4x4[i][q][x] = pCtx->pPps->bPicScalingMatrixPresentFlag ? pCtx->pPps->iScalingList4x4[i][x] *
+                                               g_kuiDequantCoeff[q][x & 0x07] : pCtx->pSps->iScalingList4x4[i][x] * g_kuiDequantCoeff[q][x & 0x07];
+          }
+        }
+      }
+
+      pCtx->bDequantCoeff4x4Init = true;
+    }
+  } else
+    pCtx->bUseScalingList = false;
+  return ERR_NONE;
+}
 
 int32_t WelsDecodeSlice (PWelsDecoderContext pCtx, bool bFirstSliceInLayer, PNalUnit pNalCur) {
   PDqLayer pCurLayer = pCtx->pCurDqLayer;
   PFmo pFmo = pCtx->pFmo;
-  int32_t i, iRet;
+  int32_t iRet;
   int32_t iNextMbXyIndex, iSliceIdc;
 
   PSlice pSlice = &pCurLayer->sLayerInfo.sSliceInLayer;
@@ -946,6 +1020,8 @@ int32_t WelsDecodeSlice (PWelsDecoderContext pCtx, bool bFirstSliceInLayer, PNal
     pSlice->iLastDeltaQp = 0;
     WELS_READ_VERIFY (InitCabacDecEngineFromBS (pCtx->pCabacDecEngine, pCtx->pCurDqLayer->pBitStringAux));
   }
+  //try to calculate  the dequant_coeff
+  WelsCalcDeqCoeffScalingList (pCtx);
 
   iNextMbXyIndex = pSliceHeader->iFirstMbInSlice;
   iMbX = iNextMbXyIndex % pCurLayer->iMbWidth;
@@ -957,37 +1033,15 @@ int32_t WelsDecodeSlice (PWelsDecoderContext pCtx, bool bFirstSliceInLayer, PNal
   pCurLayer->iMbY = iMbY;
   pCurLayer->iMbXyIndex = iNextMbXyIndex;
 
-  if (pSliceHeaderExt->bSliceSkipFlag == 1) {
-    for (i = 0; i < (int32_t)pSliceHeaderExt->uiNumMbsInSlice; i++) {
-      pCurLayer->pSliceIdc[iNextMbXyIndex] = iSliceIdc;
-
-
-      pCurLayer->pResidualPredFlag[iNextMbXyIndex] = 1;
-
-      if (pSliceHeaderExt->sSliceHeader.pPps->uiNumSliceGroups > 1) {
-        iNextMbXyIndex = FmoNextMb (pFmo, iNextMbXyIndex);
-      } else {
-        ++iNextMbXyIndex;
-      }
-
-      iMbX = iNextMbXyIndex % pCurLayer->iMbWidth;
-      iMbY = iNextMbXyIndex % pCurLayer->iMbHeight;
-
-      pCurLayer->iMbX =  iMbX;
-      pCurLayer->iMbY = iMbY;
-      pCurLayer->iMbXyIndex = iNextMbXyIndex;
-    }
-    return 0;
-  }
-
   do {
     if ((-1 == iNextMbXyIndex) || (iNextMbXyIndex >= kiCountNumMb)) {	// slice group boundary or end of a frame
       break;
     }
 
     pCurLayer->pSliceIdc[iNextMbXyIndex] = iSliceIdc;
+    pCtx->bMbRefConcealed = false;
     iRet = pDecMbFunc (pCtx,  pNalCur, uiEosFlag);
-
+    pCurLayer->pMbRefConcealedFlag[iNextMbXyIndex] = pCtx->bMbRefConcealed;
     if (iRet != ERR_NONE) {
       return iRet;
     }
@@ -1019,6 +1073,7 @@ int32_t WelsActualDecodeMbCavlcISlice (PWelsDecoderContext pCtx) {
   PSliceHeader pSliceHeader		     = &pSlice->sSliceHeaderExt.sSliceHeader;
 
   SWelsNeighAvail sNeighAvail;
+  int32_t iMbResProperty;
 
   int32_t iScanIdxStart = pSlice->sSliceHeaderExt.uiScanIdxStart;
   int32_t iScanIdxEnd   = pSlice->sSliceHeaderExt.uiScanIdxEnd;
@@ -1056,6 +1111,7 @@ int32_t WelsActualDecodeMbCavlcISlice (PWelsDecoderContext pCtx) {
 
     uint8_t* pTmpBsBuf;
 
+
     int32_t i;
     int32_t iCopySizeY  = (sizeof (uint8_t) << 4);
     int32_t iCopySizeUV = (sizeof (uint8_t) << 3);
@@ -1091,7 +1147,7 @@ int32_t WelsActualDecodeMbCavlcISlice (PWelsDecoderContext pCtx) {
     pCurLayer->pLumaQp[iMbXy] = 0;
     pCurLayer->pChromaQp[iMbXy] = 0;
     memset (pNzc, 16, sizeof (pCurLayer->pNzc[iMbXy]));   //Rec. 9.2.1 for PCM, nzc=16
-    WELS_READ_VERIFY(InitReadBits (pBs, 0));
+    WELS_READ_VERIFY (InitReadBits (pBs, 0));
     return 0;
   } else if (0 == uiMbType) { //reference to JM
     ENFORCE_STACK_ALIGN_1D (int8_t, pIntraPredMode, 48, 16);
@@ -1121,7 +1177,6 @@ int32_t WelsActualDecodeMbCavlcISlice (PWelsDecoderContext pCtx) {
     WELS_READ_VERIFY (ParseIntra16x16Mode (pCtx, &sNeighAvail, pBs, pCurLayer));
   }
 
-  memset (pCurLayer->pScaledTCoeff[iMbXy], 0, 384 * sizeof (pCurLayer->pScaledTCoeff[iMbXy][0]));
   ST32A4 (&pNzc[0], 0);
   ST32A4 (&pNzc[4], 0);
   ST32A4 (&pNzc[8], 0);
@@ -1137,6 +1192,7 @@ int32_t WelsActualDecodeMbCavlcISlice (PWelsDecoderContext pCtx) {
   }
 
   if (pCurLayer->pCbp[iMbXy] || MB_TYPE_INTRA16x16 == pCurLayer->pMbType[iMbXy]) {
+    memset (pCurLayer->pScaledTCoeff[iMbXy], 0, 384 * sizeof (pCurLayer->pScaledTCoeff[iMbXy][0]));
     int32_t iQpDelta, iId8x8, iId4x4;
 
     WELS_READ_VERIFY (BsGetSe (pBs, &iCode)); //mb_qp_delta
@@ -1183,7 +1239,7 @@ int32_t WelsActualDecodeMbCavlcISlice (PWelsDecoderContext pCtx) {
             //Luma (DC and AC decoding together)
             if (WelsResidualBlockCavlc (pVlcTable, pNonZeroCount, pBs, iIndex,
                                         iScanIdxEnd - iScanIdxStart + 1, g_kuiZigzagScan + iScanIdxStart,
-                                        LUMA_DC_AC, pCurLayer->pScaledTCoeff[iMbXy] + (iIndex << 4), pCurLayer->pLumaQp[iMbXy], pCtx)) {
+                                        LUMA_DC_AC_INTRA, pCurLayer->pScaledTCoeff[iMbXy] + (iIndex << 4), pCurLayer->pLumaQp[iMbXy], pCtx)) {
               return -1;//abnormal
             }
             iIndex++;
@@ -1203,8 +1259,9 @@ int32_t WelsActualDecodeMbCavlcISlice (PWelsDecoderContext pCtx) {
     //step1: DC
     if (1 == uiCbpC || 2 == uiCbpC) {
       for (i = 0; i < 2; i++) { //Cb Cr
+        iMbResProperty = i ? CHROMA_DC_V : CHROMA_DC_U;
         if (WelsResidualBlockCavlc (pVlcTable, pNonZeroCount, pBs,
-                                    16 + (i << 2), 4, g_kuiChromaDcScan, CHROMA_DC, pCurLayer->pScaledTCoeff[iMbXy] + 256 + (i << 6),
+                                    16 + (i << 2), 4, g_kuiChromaDcScan, iMbResProperty, pCurLayer->pScaledTCoeff[iMbXy] + 256 + (i << 6),
                                     pCurLayer->pChromaQp[iMbXy], pCtx)) {
           return -1;//abnormal
         }
@@ -1214,11 +1271,12 @@ int32_t WelsActualDecodeMbCavlcISlice (PWelsDecoderContext pCtx) {
     //step2: AC
     if (2 == uiCbpC) {
       for (i = 0; i < 2; i++) { //Cb Cr
+        iMbResProperty = i ? CHROMA_AC_V : CHROMA_AC_U;
         int32_t iIndex = 16 + (i << 2);
         for (iId4x4 = 0; iId4x4 < 4; iId4x4++) {
           if (WelsResidualBlockCavlc (pVlcTable, pNonZeroCount, pBs, iIndex,
                                       iScanIdxEnd - WELS_MAX (iScanIdxStart, 1) + 1, g_kuiZigzagScan + WELS_MAX (iScanIdxStart, 1),
-                                      CHROMA_AC, pCurLayer->pScaledTCoeff[iMbXy] + (iIndex << 4), pCurLayer->pChromaQp[iMbXy], pCtx)) {
+                                      iMbResProperty, pCurLayer->pScaledTCoeff[iMbXy] + (iIndex << 4), pCurLayer->pChromaQp[iMbXy], pCtx)) {
             return -1;//abnormal
           }
           iIndex++;
@@ -1295,6 +1353,8 @@ int32_t WelsActualDecodeMbCavlcPSlice (PWelsDecoderContext pCtx) {
   uint32_t uiMbType = 0, uiCbp = 0, uiCbpL = 0, uiCbpC = 0;
   uint32_t uiCode;
   int32_t iCode;
+  int32_t iMbResProperty;
+
   GetNeighborAvailMbType (&sNeighAvail, pCurLayer);
   ENFORCE_STACK_ALIGN_1D (uint8_t, pNonZeroCount, 48, 16);
   pCurLayer->pInterPredictionDoneFlag[iMbXy] = 0;//2009.10.23
@@ -1425,8 +1485,6 @@ int32_t WelsActualDecodeMbCavlcPSlice (PWelsDecoderContext pCtx) {
     uiCbpL = pCurLayer->pCbp[iMbXy] & 15;
   }
 
-  memset (pCurLayer->pScaledTCoeff[iMbXy], 0, MB_COEFF_LIST_SIZE * sizeof (int16_t));
-
   ST32A4 (&pNzc[0], 0);
   ST32A4 (&pNzc[4], 0);
   ST32A4 (&pNzc[8], 0);
@@ -1441,7 +1499,7 @@ int32_t WelsActualDecodeMbCavlcPSlice (PWelsDecoderContext pCtx) {
 
   if (pCurLayer->pCbp[iMbXy] || MB_TYPE_INTRA16x16 == pCurLayer->pMbType[iMbXy]) {
     int32_t iQpDelta, iId8x8, iId4x4;
-
+    memset (pCurLayer->pScaledTCoeff[iMbXy], 0, MB_COEFF_LIST_SIZE * sizeof (int16_t));
     WELS_READ_VERIFY (BsGetSe (pBs, &iCode)); //mb_qp_delta
     iQpDelta = iCode;
 
@@ -1479,12 +1537,13 @@ int32_t WelsActualDecodeMbCavlcPSlice (PWelsDecoderContext pCtx) {
       }
     } else { //non-MB_TYPE_INTRA16x16
       for (iId8x8 = 0; iId8x8 < 4; iId8x8++) {
+        iMbResProperty = (IS_INTRA (pCurLayer->pMbType[iMbXy])) ? LUMA_DC_AC_INTRA : LUMA_DC_AC_INTER;
         if (uiCbpL & (1 << iId8x8)) {
           int32_t iIndex = (iId8x8 << 2);
           for (iId4x4 = 0; iId4x4 < 4; iId4x4++) {
             //Luma (DC and AC decoding together)
             if (WelsResidualBlockCavlc (pVlcTable, pNonZeroCount, pBs, iIndex,
-                                        iScanIdxEnd - iScanIdxStart + 1, g_kuiZigzagScan + iScanIdxStart, LUMA_DC_AC,
+                                        iScanIdxEnd - iScanIdxStart + 1, g_kuiZigzagScan + iScanIdxStart, iMbResProperty,
                                         pCurLayer->pScaledTCoeff[iMbXy] + (iIndex << 4), pCurLayer->pLumaQp[iMbXy], pCtx)) {
               return -1;//abnormal
             }
@@ -1506,8 +1565,13 @@ int32_t WelsActualDecodeMbCavlcPSlice (PWelsDecoderContext pCtx) {
     //step1: DC
     if (1 == uiCbpC || 2 == uiCbpC) {
       for (i = 0; i < 2; i++) { //Cb Cr
+        if (IS_INTRA (pCurLayer->pMbType[iMbXy]))
+          iMbResProperty = i ? CHROMA_DC_V : CHROMA_DC_U;
+        else
+          iMbResProperty = i ? CHROMA_DC_V_INTER : CHROMA_DC_U_INTER;
+
         if (WelsResidualBlockCavlc (pVlcTable, pNonZeroCount, pBs,
-                                    16 + (i << 2), 4, g_kuiChromaDcScan, CHROMA_DC, pCurLayer->pScaledTCoeff[iMbXy] + 256 + (i << 6),
+                                    16 + (i << 2), 4, g_kuiChromaDcScan, iMbResProperty, pCurLayer->pScaledTCoeff[iMbXy] + 256 + (i << 6),
                                     pCurLayer->pChromaQp[iMbXy], pCtx)) {
           return -1;//abnormal
         }
@@ -1517,11 +1581,16 @@ int32_t WelsActualDecodeMbCavlcPSlice (PWelsDecoderContext pCtx) {
     //step2: AC
     if (2 == uiCbpC) {
       for (i = 0; i < 2; i++) { //Cb Cr
+        if (IS_INTRA (pCurLayer->pMbType[iMbXy]))
+          iMbResProperty = i ? CHROMA_AC_V : CHROMA_AC_U;
+        else
+          iMbResProperty = i ? CHROMA_AC_V_INTER : CHROMA_AC_U_INTER;
+
         int32_t iIndex = 16 + (i << 2);
         for (iId4x4 = 0; iId4x4 < 4; iId4x4++) {
           if (WelsResidualBlockCavlc (pVlcTable, pNonZeroCount, pBs, iIndex,
                                       iScanIdxEnd - WELS_MAX (iScanIdxStart, 1) + 1, g_kuiZigzagScan + WELS_MAX (iScanIdxStart, 1),
-                                      CHROMA_AC, pCurLayer->pScaledTCoeff[iMbXy] + (iIndex << 4), pCurLayer->pChromaQp[iMbXy], pCtx)) {
+                                      iMbResProperty, pCurLayer->pScaledTCoeff[iMbXy] + (iIndex << 4), pCurLayer->pChromaQp[iMbXy], pCtx)) {
             return -1;//abnormal
           }
           iIndex++;
@@ -1543,6 +1612,7 @@ int32_t WelsDecodeMbCavlcPSlice (PWelsDecoderContext pCtx, PNalUnit pNalCur, uin
   PBitStringAux pBs		 = pCurLayer->pBitStringAux;
   PSlice pSlice			 = &pCurLayer->sLayerInfo.sSliceInLayer;
   PSliceHeader pSliceHeader		    = &pSlice->sSliceHeaderExt.sSliceHeader;
+  PPicture* ppRefPic = pCtx->sRefPic.pRefList[LIST_0];
   intX_t iUsedBits;
   const int32_t iMbXy = pCurLayer->iMbXyIndex;
   int8_t* pNzc = pCurLayer->pNzc[iMbXy];
@@ -1570,16 +1640,16 @@ int32_t WelsDecodeMbCavlcPSlice (PWelsDecoderContext pCtx, PNalUnit pNalCur, uin
 
     pCurLayer->pInterPredictionDoneFlag[iMbXy] = 0;
     memset (pCurLayer->pRefIndex[0][iMbXy], 0, sizeof (int8_t) * 16);
-
+    pCtx->bMbRefConcealed = pCtx->bRPLRError || pCtx->bMbRefConcealed || ! (ppRefPic[0] && ppRefPic[0]->bIsComplete);
     //predict iMv
     PredPSkipMvFromNeighbor (pCurLayer, iMv);
     for (i = 0; i < 16; i++) {
       ST32A2 (pCurLayer->pMv[0][iMbXy][i], * (uint32_t*)iMv);
     }
 
-    if (!pSlice->sSliceHeaderExt.bDefaultResidualPredFlag) {
-      memset (pCurLayer->pScaledTCoeff[iMbXy], 0, 384 * sizeof (int16_t));
-    }
+    //if (!pSlice->sSliceHeaderExt.bDefaultResidualPredFlag) {
+    //  memset (pCurLayer->pScaledTCoeff[iMbXy], 0, 384 * sizeof (int16_t));
+    //}
 
     //reset rS
     if (!pSlice->sSliceHeaderExt.bDefaultResidualPredFlag ||
@@ -1625,42 +1695,34 @@ int32_t WelsDecodeMbCavlcPSlice (PWelsDecoderContext pCtx, PNalUnit pNalCur, uin
 }
 
 void WelsBlockFuncInit (SBlockFunc*   pFunc,  int32_t iCpu) {
-  pFunc->pWelsSetNonZeroCountFunc	    = SetNonZeroCount_c;
-
-#ifdef	HAVE_NEON
-  if (iCpu & WELS_CPU_NEON) {
-    pFunc->pWelsSetNonZeroCountFunc		= SetNonZeroCount_neon;
-  }
-#endif
-
-#ifdef	HAVE_NEON_AARCH64
-  if (iCpu & WELS_CPU_NEON) {
-    pFunc->pWelsSetNonZeroCountFunc		= SetNonZeroCount_AArch64_neon;
-  }
-#endif
-
+  pFunc->pWelsSetNonZeroCountFunc	    = WelsNonZeroCount_c;
   pFunc->pWelsBlockZero16x16Func	    = WelsBlockZero16x16_c;
-  pFunc->pWelsBlockZero8x8Func	    = WelsBlockZero8x8_c;
-  //TO DO add neon and X86
+  pFunc->pWelsBlockZero8x8Func          = WelsBlockZero8x8_c;
+
 #ifdef	HAVE_NEON
   if (iCpu & WELS_CPU_NEON) {
-
+    pFunc->pWelsSetNonZeroCountFunc		= WelsNonZeroCount_neon;
+    pFunc->pWelsBlockZero16x16Func	    = WelsBlockZero16x16_neon;
+    pFunc->pWelsBlockZero8x8Func	    = WelsBlockZero8x8_neon;
   }
 #endif
 
 #ifdef	HAVE_NEON_AARCH64
   if (iCpu & WELS_CPU_NEON) {
-
+    pFunc->pWelsSetNonZeroCountFunc		= WelsNonZeroCount_AArch64_neon;
+    pFunc->pWelsBlockZero16x16Func	    = WelsBlockZero16x16_AArch64_neon;
+    pFunc->pWelsBlockZero8x8Func	    = WelsBlockZero8x8_AArch64_neon;
   }
 #endif
-}
 
-void SetNonZeroCount_c (int8_t* pNonZeroCount) {
-  int32_t i;
-
-  for (i = 0; i < 24; i++) {
-    pNonZeroCount[i] = !!pNonZeroCount[i];
+#if defined(X86_ASM)
+  if (iCpu & WELS_CPU_SSE2) {
+    pFunc->pWelsSetNonZeroCountFunc		= WelsNonZeroCount_sse2;
+    pFunc->pWelsBlockZero16x16Func	    = WelsBlockZero16x16_sse2;
+    pFunc->pWelsBlockZero8x8Func	    = WelsBlockZero8x8_sse2;
   }
+#endif
+
 }
 
 void WelsBlockInit (int16_t* pBlock, int iW, int iH, int iStride, uint8_t uiVal) {

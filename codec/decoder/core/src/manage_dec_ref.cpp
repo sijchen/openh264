@@ -40,6 +40,7 @@
  *****************************************************************************/
 
 #include "manage_dec_ref.h"
+#include "error_concealment.h"
 #include "error_code.h"
 
 namespace WelsDec {
@@ -67,7 +68,7 @@ static void SetUnRef (PPicture pRef) {
     pRef->bUsedAsRef = false;
     pRef->bIsLongRef = false;
     pRef->iFrameNum = -1;
-    pRef->iFramePoc = 0;
+    //pRef->iFramePoc = 0;
     pRef->iLongTermFrameIdx = -1;
     pRef->uiQualityId = -1;
     pRef->uiTemporalId = -1;
@@ -118,11 +119,18 @@ int32_t WelsInitRefList (PWelsDecoderContext pCtx, int32_t iPoc) {
       if (pRef != NULL) {
         // IDR lost, set new
         pRef->bIsComplete = false; // Set complete flag to false for lost IDR ref picture
+        pRef->iSpsId = pCtx->pSps->iSpsId;
+        pRef->iPpsId = pCtx->pPps->iPpsId;
         pCtx->iErrorCode |= dsDataErrorConcealed;
         bool bCopyPrevious = ((ERROR_CON_FRAME_COPY_CROSS_IDR == pCtx->eErrorConMethod)
-                              || (ERROR_CON_SLICE_COPY_CROSS_IDR == pCtx->eErrorConMethod)) && (NULL != pCtx->pPreviousDecodedPictureInDpb);
+                              || (ERROR_CON_SLICE_COPY_CROSS_IDR == pCtx->eErrorConMethod)
+                              || (ERROR_CON_SLICE_COPY_CROSS_IDR_FREEZE_RES_CHANGE == pCtx->eErrorConMethod)
+                              || (ERROR_CON_SLICE_MV_COPY_CROSS_IDR == pCtx->eErrorConMethod)
+                              || (ERROR_CON_SLICE_MV_COPY_CROSS_IDR_FREEZE_RES_CHANGE == pCtx->eErrorConMethod))
+                              && (NULL != pCtx->pPreviousDecodedPictureInDpb);
         bCopyPrevious = bCopyPrevious && (pRef->iWidthInPixel == pCtx->pPreviousDecodedPictureInDpb->iWidthInPixel)
                         && (pRef->iHeightInPixel == pCtx->pPreviousDecodedPictureInDpb->iHeightInPixel);
+
         if (bCopyPrevious) {
           memcpy (pRef->pData[0], pCtx->pPreviousDecodedPictureInDpb->pData[0], pRef->iLinesize[0] * pRef->iHeightInPixel);
           memcpy (pRef->pData[1], pCtx->pPreviousDecodedPictureInDpb->pData[1], pRef->iLinesize[1] * pRef->iHeightInPixel / 2);
@@ -254,6 +262,8 @@ int32_t WelsMarkAsRef (PWelsDecoderContext pCtx) {
 
   pCtx->pDec->uiQualityId = pCtx->pCurDqLayer->sLayerInfo.sNalHeaderExt.uiQualityId;
   pCtx->pDec->uiTemporalId = pCtx->pCurDqLayer->sLayerInfo.sNalHeaderExt.uiTemporalId;
+  pCtx->pDec->iSpsId = pCtx->pSps->iSpsId;
+  pCtx->pDec->iPpsId = pCtx->pPps->iPpsId;
 
   for (j = pCurAU->uiStartPos; j <= pCurAU->uiEndPos; j++) {
     if (pCurAU->pNalUnitsList[j]->sNalHeaderExt.sNalUnitHeader.eNalUnitType == NAL_UNIT_CODED_SLICE_IDR

@@ -22,11 +22,14 @@ V=Yes
 PREFIX=/usr/local
 SHARED=-shared
 OBJ=o
+DESTDIR=
+SHAREDLIB_DIR=$(PREFIX)/lib
 PROJECT_NAME=openh264
 MODULE_NAME=gmpopenh264
-GMP_API_BRANCH=master
+GMP_API_BRANCH=Firefox36
 CCASFLAGS=$(CFLAGS)
-VERSION=1.2
+VERSION=1.3
+STATIC_LDFLAGS=-lstdc++
 
 ifeq (,$(wildcard $(SRC_PATH)gmp-api))
 HAVE_GMP_API=No
@@ -45,7 +48,7 @@ ifeq ($(BUILDTYPE), Release)
 CFLAGS += $(CFLAGS_OPT)
 USE_ASM = Yes
 else
-CFLAGS = $(CFLAGS_DEBUG)
+CFLAGS += $(CFLAGS_DEBUG)
 USE_ASM = No
 endif
 
@@ -54,6 +57,7 @@ CFLAGS += -fsanitize=address
 LDFLAGS += -fsanitize=address
 endif
 
+SHAREDLIBVERSION=0
 include $(SRC_PATH)build/platform-$(OS).mk
 
 
@@ -123,7 +127,13 @@ API_TEST_INCLUDES += $(CODEC_UNITTEST_INCLUDES) -I$(SRC_PATH)test -I$(SRC_PATH)t
 COMMON_UNITTEST_INCLUDES += $(CODEC_UNITTEST_INCLUDES) $(DECODER_INCLUDES) -I$(SRC_PATH)test -I$(SRC_PATH)test/common
 MODULE_INCLUDES += -I$(SRC_PATH)gmp-api
 
-.PHONY: test gtest-bootstrap clean $(PROJECT_NAME).pc
+DECODER_UNITTEST_CFLAGS += $(CODEC_UNITTEST_CFLAGS)
+ENCODER_UNITTEST_CFLAGS += $(CODEC_UNITTEST_CFLAGS)
+PROCESSING_UNITTEST_CFLAGS += $(CODEC_UNITTEST_CFLAGS)
+API_TEST_CFLAGS += $(CODEC_UNITTEST_CFLAGS)
+COMMON_UNITTEST_CFLAGS += $(CODEC_UNITTEST_CFLAGS)
+
+.PHONY: test gtest-bootstrap clean $(PROJECT_NAME).pc $(PROJECT_NAME)-static.pc
 
 all: libraries binaries
 
@@ -184,50 +194,70 @@ else
 libraries: $(LIBPREFIX)$(PROJECT_NAME).$(LIBSUFFIX)
 endif
 
-LIBRARIES += $(LIBPREFIX)$(PROJECT_NAME).$(LIBSUFFIX) $(LIBPREFIX)$(PROJECT_NAME).$(SHAREDLIBSUFFIX)
+LIBRARIES += $(LIBPREFIX)$(PROJECT_NAME).$(LIBSUFFIX) $(LIBPREFIX)$(PROJECT_NAME).$(SHAREDLIBSUFFIXVER)
 
 $(LIBPREFIX)$(PROJECT_NAME).$(LIBSUFFIX): $(ENCODER_OBJS) $(DECODER_OBJS) $(PROCESSING_OBJS) $(COMMON_OBJS)
 	$(QUIET)rm -f $@
 	$(QUIET_AR)$(AR) $(AR_OPTS) $+
 
-$(LIBPREFIX)$(PROJECT_NAME).$(SHAREDLIBSUFFIX): $(ENCODER_OBJS) $(DECODER_OBJS) $(PROCESSING_OBJS) $(COMMON_OBJS)
+$(LIBPREFIX)$(PROJECT_NAME).$(SHAREDLIBSUFFIXVER): $(ENCODER_OBJS) $(DECODER_OBJS) $(PROCESSING_OBJS) $(COMMON_OBJS)
 	$(QUIET)rm -f $@
 	$(QUIET_CXX)$(CXX) $(SHARED) $(CXX_LINK_O) $+ $(LDFLAGS) $(SHLDFLAGS)
 
+ifneq ($(SHAREDLIBSUFFIXVER),$(SHAREDLIBSUFFIX))
+$(LIBPREFIX)$(PROJECT_NAME).$(SHAREDLIBSUFFIX): $(LIBPREFIX)$(PROJECT_NAME).$(SHAREDLIBSUFFIXVER)
+	$(QUIET)ln -sfn $+ $@
+endif
+
 ifeq ($(HAVE_GMP_API),Yes)
 plugin: $(LIBPREFIX)$(MODULE_NAME).$(SHAREDLIBSUFFIX)
-LIBRARIES += $(LIBPREFIX)$(MODULE_NAME).$(SHAREDLIBSUFFIX)
+LIBRARIES += $(LIBPREFIX)$(MODULE_NAME).$(SHAREDLIBSUFFIXVER)
 else
 plugin:
 	@echo "./gmp-api : No such file or directory."
 	@echo "You do not have gmp-api.  Run make gmp-bootstrap to get the gmp-api headers."
 endif
 
-$(LIBPREFIX)$(MODULE_NAME).$(SHAREDLIBSUFFIX): $(MODULE_OBJS) $(ENCODER_OBJS) $(DECODER_OBJS) $(PROCESSING_OBJS) $(COMMON_OBJS)
+$(LIBPREFIX)$(MODULE_NAME).$(SHAREDLIBSUFFIXVER): $(MODULE_OBJS) $(ENCODER_OBJS) $(DECODER_OBJS) $(PROCESSING_OBJS) $(COMMON_OBJS)
 	$(QUIET)rm -f $@
 	$(QUIET_CXX)$(CXX) $(SHARED) $(CXX_LINK_O) $+ $(LDFLAGS) $(SHLDFLAGS) $(MODULE_LDFLAGS)
 
-$(PROJECT_NAME).pc: $(PROJECT_NAME).pc.in
-	@sed -e 's;@prefix@;$(PREFIX);' -e 's;@VERSION@;$(VERSION);' < $(PROJECT_NAME).pc.in > $(PROJECT_NAME).pc
-
-install-headers:
-	mkdir -p $(PREFIX)/include/wels
-	install -m 644 codec/api/svc/codec*.h $(PREFIX)/include/wels
-
-install-static: $(LIBPREFIX)$(PROJECT_NAME).$(LIBSUFFIX) install-headers
-	mkdir -p $(PREFIX)/lib
-	install -m 644 $(LIBPREFIX)$(PROJECT_NAME).$(LIBSUFFIX) $(PREFIX)/lib
-
-install-shared: $(LIBPREFIX)$(PROJECT_NAME).$(SHAREDLIBSUFFIX) install-headers $(PROJECT_NAME).pc
-	mkdir -p $(PREFIX)/lib
-	install -m 755 $(LIBPREFIX)$(PROJECT_NAME).$(SHAREDLIBSUFFIX) $(PREFIX)/lib
-	mkdir -p $(PREFIX)/lib/pkgconfig
-	install -m 444 $(PROJECT_NAME).pc $(PREFIX)/lib/pkgconfig
-ifneq ($(EXTRA_LIBRARY),)
-	install -m 644 $(EXTRA_LIBRARY) $(PREFIX)/lib
+ifneq ($(SHAREDLIBSUFFIXVER),$(SHAREDLIBSUFFIX))
+$(LIBPREFIX)$(MODULE_NAME).$(SHAREDLIBSUFFIX): $(LIBPREFIX)$(MODULE_NAME).$(SHAREDLIBSUFFIXVER)
+	$(QUIET)ln -sfn $+ $@
 endif
 
-install: install-static install-shared
+$(PROJECT_NAME).pc: $(PROJECT_NAME).pc.in
+	@sed -e 's;@prefix@;$(PREFIX);' -e 's;@VERSION@;$(VERSION);' -e 's;@LIBS@;;' -e 's;@LIBS_PRIVATE@;$(STATIC_LDFLAGS);' < $(PROJECT_NAME).pc.in > $@
+
+$(PROJECT_NAME)-static.pc: $(PROJECT_NAME).pc.in
+	@sed -e 's;@prefix@;$(PREFIX);' -e 's;@VERSION@;$(VERSION);' -e 's;@LIBS@;$(STATIC_LDFLAGS);' -e 's;@LIBS_PRIVATE@;;' < $(PROJECT_NAME).pc.in > $@
+
+install-headers:
+	mkdir -p $(DESTDIR)/$(PREFIX)/include/wels
+	install -m 644 codec/api/svc/codec*.h $(DESTDIR)/$(PREFIX)/include/wels
+
+install-static-lib: $(LIBPREFIX)$(PROJECT_NAME).$(LIBSUFFIX) install-headers
+	mkdir -p $(DESTDIR)/$(PREFIX)/lib
+	install -m 644 $(LIBPREFIX)$(PROJECT_NAME).$(LIBSUFFIX) $(DESTDIR)/$(PREFIX)/lib
+
+install-static: install-static-lib $(PROJECT_NAME)-static.pc
+	mkdir -p $(DESTDIR)/$(PREFIX)/lib/pkgconfig
+	install -m 644 $(PROJECT_NAME)-static.pc $(DESTDIR)/$(PREFIX)/lib/pkgconfig/$(PROJECT_NAME).pc
+
+install-shared: $(LIBPREFIX)$(PROJECT_NAME).$(SHAREDLIBSUFFIX) install-headers $(PROJECT_NAME).pc
+	mkdir -p $(DESTDIR)/$(SHAREDLIB_DIR)
+	install -m 755 $(LIBPREFIX)$(PROJECT_NAME).$(SHAREDLIBSUFFIXVER) $(DESTDIR)/$(SHAREDLIB_DIR)
+	if [ "$(SHAREDLIBSUFFIXVER)" != "$(SHAREDLIBSUFFIX)" ]; then \
+		cp -a $(LIBPREFIX)$(PROJECT_NAME).$(SHAREDLIBSUFFIX) $(DESTDIR)/$(SHAREDLIB_DIR); \
+	fi
+	mkdir -p $(DESTDIR)/$(PREFIX)/lib/pkgconfig
+	install -m 644 $(PROJECT_NAME).pc $(DESTDIR)/$(PREFIX)/lib/pkgconfig
+ifneq ($(EXTRA_LIBRARY),)
+	install -m 644 $(EXTRA_LIBRARY) $(DESTDIR)/$(PREFIX)/lib
+endif
+
+install: install-static-lib install-shared
 	@:
 
 ifeq ($(HAVE_GTEST),Yes)

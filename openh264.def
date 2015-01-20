@@ -3,3 +3,5 @@ EXPORTS
 	WelsDestroyDecoder
 	WelsCreateSVCEncoder
 	WelsDestroySVCEncoder
+	WelsGetCodecVersion
+	WelsGetCodecVersionEx

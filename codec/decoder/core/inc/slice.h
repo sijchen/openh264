@@ -120,6 +120,7 @@ PSps		pSps;
 PPps		pPps;
 int32_t	    iSpsId;
 int32_t	    iPpsId;
+bool bIdrFlag;
 
 /*********************got from other layer for efficency if possible*********************/
 SRefPicListReorderSyn	pRefPicListReordering;	// Reference picture list reordering syntaxs
@@ -145,7 +146,6 @@ typedef struct TagSliceHeaderExt {
 SSliceHeader	sSliceHeader;
 PSubsetSps	pSubsetSps;
 
-uint32_t	uiNumMbsInSlice;
 uint32_t	uiDisableInterLayerDeblockingFilterIdc;
 int32_t		iInterLayerSliceAlphaC0Offset;
 int32_t		iInterLayerSliceBetaOffset;

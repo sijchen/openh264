@@ -157,7 +157,9 @@ void WelsDecodeAccessUnitEnd (PWelsDecoderContext pCtx);
 void ForceResetCurrentAccessUnit (PAccessUnit pAu);
 void ForceClearCurrentNal (PAccessUnit pAu);
 
-bool bCheckRefPicturesComplete (PWelsDecoderContext pCtx); // Check whether all ref pictures are complete
+bool CheckRefPicturesComplete (PWelsDecoderContext pCtx); // Check whether all ref pictures are complete
+
+void ForceResetParaSetStatusAndAUList(PWelsDecoderContext pCtx);
 } // namespace WelsDec
 
 #endif//WELS_DECODER_CORE_H__

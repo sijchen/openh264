@@ -100,20 +100,6 @@
 //  }
 .endm
 #endif
-// x0    int8_t* non_zero_count,
-WELS_ASM_AARCH64_FUNC_BEGIN SetNonZeroCount_AArch64_neon
-    mov x1, x0
-    ld1 {v0.16b}, [x1], #16
-    ld1 {v1.8b}, [x1]
-    cmeq v0.16b, v0.16b, #0
-    cmeq v1.8b, v1.8b, #0
-    mvn  v0.16b, v0.16b
-    mvn  v1.8b, v1.8b
-    abs  v0.16b, v0.16b
-    abs  v1.8b, v1.8b
-    st1 {v0.16b}, [x0], #16
-    st1 {v1.8b}, [x0]
-WELS_ASM_AARCH64_FUNC_END
 
 //  uint8_t *pred, const int32_t stride, int16_t *rs
 WELS_ASM_AARCH64_FUNC_BEGIN IdctResAddPred_AArch64_neon
@@ -157,5 +143,22 @@ WELS_ASM_AARCH64_FUNC_BEGIN IdctResAddPred_AArch64_neon
     st1     {v0.s}[1],[x2],x1
     st1     {v1.s}[0],[x2],x1
     st1     {v1.s}[1],[x2]
+WELS_ASM_AARCH64_FUNC_END
+
+WELS_ASM_AARCH64_FUNC_BEGIN WelsBlockZero16x16_AArch64_neon
+    eor v0.16b, v0.16b, v0.16b
+    eor v1.16b, v1.16b, v1.16b
+    lsl x1, x1, 1
+.rept 16
+    st1 {v0.16b, v1.16b}, [x0], x1
+.endr
+WELS_ASM_AARCH64_FUNC_END
+
+WELS_ASM_AARCH64_FUNC_BEGIN WelsBlockZero8x8_AArch64_neon
+    eor v0.16b, v0.16b, v0.16b
+    lsl x1, x1, 1
+.rept 8
+    st1 {v0.16b}, [x0], x1
+.endr
 WELS_ASM_AARCH64_FUNC_END
 #endif

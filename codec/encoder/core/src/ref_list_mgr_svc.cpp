@@ -289,8 +289,10 @@ static inline void LTRMarkProcess (sWelsEncCtx* pCtx) {
     }
   }
 
-  if ((pLtr->iLTRMarkMode == LTR_DELAY_MARK && pLtr->bLTRMarkingFlag) || ((pLtr->iLTRMarkMode == LTR_DIRECT_MARK)
-      && (bMoveLtrFromShortToLong))) {
+  if ((pLtr->iLTRMarkMode == LTR_DELAY_MARK && pLtr->bLTRMarkingFlag)
+      || ((pLtr->iLTRMarkMode == LTR_DIRECT_MARK) && (bMoveLtrFromShortToLong))) {
+    pCtx->bRefOfCurTidIsLtr[pCtx->uiDependencyId][pCtx->uiTemporalId] = true;
+
     if (pRefList->uiLongRefCount > 0) {
       memmove (&pRefList->pLongRefList[1], &pRefList->pLongRefList[0],
                pRefList->uiLongRefCount * sizeof (SPicture*));	// confirmed_safe_unsafe_usage
@@ -320,8 +322,7 @@ static inline void LTRMarkProcessScreen (sWelsEncCtx* pCtx) {
   pLongRefList[iLtrIdx] = pCtx->pDecPic;
 }
 
-static void PrefetchNextBuffer (void* pEncCtx) {
-  sWelsEncCtx* pCtx     = (sWelsEncCtx*)pEncCtx;
+static void PrefetchNextBuffer (sWelsEncCtx* pCtx) {
   SRefList* pRefList		= pCtx->ppRefPicListExt[pCtx->uiDependencyId];
   const int32_t kiNumRef	= pCtx->pSvcParam->iNumRefFrame;
   int32_t i;
@@ -345,8 +346,7 @@ static void PrefetchNextBuffer (void* pEncCtx) {
 /*
  *	update reference picture list
  */
-bool WelsUpdateRefList (void* pEncCtx) {
-  sWelsEncCtx* pCtx     = (sWelsEncCtx*)pEncCtx;
+bool WelsUpdateRefList (sWelsEncCtx* pCtx) {
   SRefList* pRefList		= pCtx->ppRefPicListExt[pCtx->uiDependencyId];
   SLTRState* pLtr			= &pCtx->pLtr[pCtx->uiDependencyId];
   SSpatialLayerInternal* pParamD	= &pCtx->pSvcParam->sDependencyLayers[pCtx->uiDependencyId];
@@ -444,8 +444,7 @@ bool CheckCurMarkFrameNumUsed (sWelsEncCtx* pCtx) {
 
   return true;
 }
-void WelsMarkPic (void* pEncCtx) {
-  sWelsEncCtx* pCtx = (sWelsEncCtx*)pEncCtx;
+void WelsMarkPic (sWelsEncCtx* pCtx) {
   SLTRState* pLtr = &pCtx->pLtr[pCtx->uiDependencyId];
   const int32_t kiCountSliceNum			= GetCurrentSliceNum (pCtx->pCurDqLayer->pSliceEncCtx);
   int32_t iGoPFrameNumInterval = ((pCtx->pSvcParam->uiGopSize >> 1) > 1) ? (pCtx->pSvcParam->uiGopSize >> 1) : (1);
@@ -498,7 +497,7 @@ int32_t FilterLTRRecoveryRequest (sWelsEncCtx* pCtx, SLTRRecoverRequest* pLTRRec
   SLTRState* pLtr = &pCtx->pLtr[pCtx->uiDependencyId];
   int32_t iMaxFrameNumPlus1 = (1 << pCtx->pSps->uiLog2MaxFrameNum);
   if (pCtx->pSvcParam->bEnableLongTermReference) {
-    if (pRequest->uiFeedbackType == LTR_RECOVERY_REQUEST &&  pRequest->uiIDRPicId == pCtx->sPSOVector.uiIdrPicId) {
+    if (pRequest->uiFeedbackType == LTR_RECOVERY_REQUEST &&  pRequest->uiIDRPicId == pCtx->uiIdrPicId) {
       if (pRequest->iLastCorrectFrameNum == -1) {
         pCtx->bEncCurFrmAsIdrFlag = true;
         return true;
@@ -533,7 +532,7 @@ void FilterLTRMarkingFeedback (sWelsEncCtx* pCtx, SLTRMarkingFeedback* pLTRMarki
   SLTRState* pLtr = &pCtx->pLtr[pCtx->uiDependencyId];
   assert (pLTRMarkingFeedback);
   if (pCtx->pSvcParam->bEnableLongTermReference)	{
-    if (pLTRMarkingFeedback->uiIDRPicId == pCtx->sPSOVector.uiIdrPicId
+    if (pLTRMarkingFeedback->uiIDRPicId == pCtx->uiIdrPicId
         && (pLTRMarkingFeedback->uiFeedbackType == LTR_MARKING_SUCCESS
             || pLTRMarkingFeedback->uiFeedbackType == LTR_MARKING_FAILED)) { // avoid error pData
       pLtr->uiLtrMarkState = pLTRMarkingFeedback->uiFeedbackType;
@@ -541,13 +540,13 @@ void FilterLTRMarkingFeedback (sWelsEncCtx* pCtx, SLTRMarkingFeedback* pLTRMarki
       WelsLog (& (pCtx->sLogCtx), WELS_LOG_INFO,
                "Receive valid LTR marking feedback, feedback_type = %d , uiIdrPicId = %d , LTR_frame_num = %d , cur_idr_pic_id = %d",
                pLTRMarkingFeedback->uiFeedbackType, pLTRMarkingFeedback->uiIDRPicId, pLTRMarkingFeedback->iLTRFrameNum ,
-               pCtx->sPSOVector.uiIdrPicId);
+               pCtx->uiIdrPicId);
 
     } else {
       WelsLog (& (pCtx->sLogCtx), WELS_LOG_INFO,
                "Receive LTR marking feedback, feedback_type = %d , uiIdrPicId = %d , LTR_frame_num = %d , cur_idr_pic_id = %d",
                pLTRMarkingFeedback->uiFeedbackType, pLTRMarkingFeedback->uiIDRPicId, pLTRMarkingFeedback->iLTRFrameNum ,
-               pCtx->sPSOVector.uiIdrPicId);
+               pCtx->uiIdrPicId);
     }
   }
 }
@@ -555,8 +554,7 @@ void FilterLTRMarkingFeedback (sWelsEncCtx* pCtx, SLTRMarkingFeedback* pLTRMarki
 /*
  *	build reference picture list
  */
-bool WelsBuildRefList (void* pEncCtx, const int32_t iPOC, int32_t iBestLtrRefIdx) {
-  sWelsEncCtx* pCtx     = (sWelsEncCtx*)pEncCtx;
+bool WelsBuildRefList (sWelsEncCtx* pCtx, const int32_t iPOC, int32_t iBestLtrRefIdx) {
   SRefList* pRefList		=  pCtx->ppRefPicListExt[pCtx->uiDependencyId];
   SLTRState* pLtr			= &pCtx->pLtr[pCtx->uiDependencyId];
   const int32_t kiNumRef	= pCtx->pSvcParam->iNumRefFrame;
@@ -599,6 +597,9 @@ bool WelsBuildRefList (void* pEncCtx, const int32_t iPOC, int32_t iBestLtrRefIdx
   } else {	// safe for IDR
     WelsResetRefList (pCtx);  //for IDR, SHOULD reset pRef list.
     ResetLtrState (&pCtx->pLtr[pCtx->uiDependencyId]); //SHOULD update it when IDR.
+    for (int32_t k = 0; k < MAX_TEMPORAL_LEVEL; k++) {
+      pCtx->bRefOfCurTidIsLtr[pCtx->uiDependencyId][k] = false;
+    }
     pCtx->pRefList0[0]	= NULL;
   }
 
@@ -607,8 +608,7 @@ bool WelsBuildRefList (void* pEncCtx, const int32_t iPOC, int32_t iBestLtrRefIdx
   return (pCtx->iNumRef0 > 0 || pCtx->eSliceType == I_SLICE) ? (true) : (false);
 }
 
-static void UpdateBlockStatic (void* pEncCtx) {
-  sWelsEncCtx* pCtx     = (sWelsEncCtx*)pEncCtx;
+static void UpdateBlockStatic (sWelsEncCtx* pCtx) {
   SVAAFrameInfoExt* pVaaExt			= static_cast<SVAAFrameInfoExt*> (pCtx->pVaa);
   assert (pCtx->iNumRef0 == 1); //multi-ref is not support yet?
   for (int32_t idx = 0; idx < pCtx->iNumRef0; idx++) {
@@ -694,8 +694,7 @@ static inline void UpdateOriginalPicInfo (SPicture* pOrigPic, SPicture* pReconPi
   pOrigPic->iFrameAverageQp = pReconPic->iFrameAverageQp;
 }
 
-static void UpdateSrcPicListLosslessScreenRefSelectionWithLtr (void* pEncCtx) {
-  sWelsEncCtx* pCtx     = (sWelsEncCtx*)pEncCtx;
+static void UpdateSrcPicListLosslessScreenRefSelectionWithLtr (sWelsEncCtx* pCtx) {
   int32_t iDIdx = pCtx->uiDependencyId;
   //update info in src list
   UpdateOriginalPicInfo (pCtx->pEncPic, pCtx->pDecPic);
@@ -704,8 +703,7 @@ static void UpdateSrcPicListLosslessScreenRefSelectionWithLtr (void* pEncCtx) {
       pCtx->ppRefPicListExt[iDIdx]->pLongRefList);
 }
 
-static void UpdateSrcPicList (void* pEncCtx) {
-  sWelsEncCtx* pCtx     = (sWelsEncCtx*)pEncCtx;
+static void UpdateSrcPicList (sWelsEncCtx* pCtx) {
   int32_t iDIdx = pCtx->uiDependencyId;
   //update info in src list
   UpdateOriginalPicInfo (pCtx->pEncPic, pCtx->pDecPic);
@@ -714,8 +712,7 @@ static void UpdateSrcPicList (void* pEncCtx) {
                              pCtx->ppRefPicListExt[iDIdx]->uiShortRefCount);
 }
 
-bool WelsUpdateRefListScreen (void* pEncCtx) {
-  sWelsEncCtx* pCtx     = (sWelsEncCtx*)pEncCtx;
+bool WelsUpdateRefListScreen (sWelsEncCtx* pCtx) {
   SRefList* pRefList		= pCtx->ppRefPicListExt[pCtx->uiDependencyId];
   SLTRState* pLtr			= &pCtx->pLtr[pCtx->uiDependencyId];
   SSpatialLayerInternal* pParamD	= &pCtx->pSvcParam->sDependencyLayers[pCtx->uiDependencyId];
@@ -763,8 +760,7 @@ bool WelsUpdateRefListScreen (void* pEncCtx) {
   pCtx->pFuncList->pEndofUpdateRefList (pCtx);
   return true;
 }
-bool WelsBuildRefListScreen (void* pEncCtx, const int32_t iPOC, int32_t iBestLtrRefIdx) {
-  sWelsEncCtx* pCtx     = (sWelsEncCtx*)pEncCtx;
+bool WelsBuildRefListScreen (sWelsEncCtx* pCtx, const int32_t iPOC, int32_t iBestLtrRefIdx) {
   SRefList* pRefList		=  pCtx->ppRefPicListExt[pCtx->uiDependencyId];
   SWelsSvcCodingParam* pParam = pCtx->pSvcParam;
   SVAAFrameInfoExt* pVaaExt = static_cast<SVAAFrameInfoExt*> (pCtx->pVaa);
@@ -847,9 +843,8 @@ static inline bool IsValidFrameNum (const int32_t kiFrameNum) {
   return (kiFrameNum < (1 << 30)); // TODO: use the original judge first, may be improved
 }
 
-void WelsMarkPicScreen (void* pEncCtx) {
+void WelsMarkPicScreen (sWelsEncCtx* pCtx) {
 #define STR_ROOM 1
-  sWelsEncCtx* pCtx     = (sWelsEncCtx*)pEncCtx;
   SLTRState* pLtr = &pCtx->pLtr[pCtx->uiDependencyId];
   int32_t iMaxTid = WELS_LOG2 (pCtx->pSvcParam->uiGopSize);
   int32_t iMaxActualLtrIdx = -1;
@@ -942,7 +937,7 @@ void WelsMarkPicScreen (void* pEncCtx) {
   return;
 }
 
-void DoNothing (void* pointer) {
+void DoNothing (sWelsEncCtx* pointer) {
 }
 
 void InitRefListMgrFunc (SWelsFuncPtrList* pFuncList, const bool bWithLtr, const bool bScreenContent) {

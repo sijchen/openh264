@@ -99,18 +99,6 @@
 //  }
 .endm
 #endif
-// r0    int8_t* non_zero_count,
-WELS_ASM_FUNC_BEGIN SetNonZeroCount_neon
-    vld1.64 {d0-d2}, [r0]
-    vceq.s8 q0, q0, #0
-    vceq.s8 d2, d2, #0
-    vmvn    q0, q0
-    vmvn    d2, d2
-    vabs.s8 q0, q0
-    vabs.s8 d2, d2
-    vst1.64 {d0-d2}, [r0]
-WELS_ASM_FUNC_END
-
 
 //  uint8_t *pred, const int32_t stride, int16_t *rs
 WELS_ASM_FUNC_BEGIN IdctResAddPred_neon
@@ -155,5 +143,23 @@ WELS_ASM_FUNC_BEGIN IdctResAddPred_neon
     vst1.32     {d20[1]},[r2],r1
     vst1.32     {d22[0]},[r2],r1
     vst1.32     {d22[1]},[r2]
+WELS_ASM_FUNC_END
+
+
+WELS_ASM_FUNC_BEGIN WelsBlockZero16x16_neon
+    veor q0, q0
+    veor q1, q1
+    lsl r1, r1, 1
+.rept 16
+    vst1.64 {q0, q1}, [r0], r1
+.endr
+WELS_ASM_FUNC_END
+
+WELS_ASM_FUNC_BEGIN WelsBlockZero8x8_neon
+    veor q0, q0
+    lsl r1, r1, 1
+.rept 8
+    vst1.64 {q0}, [r0], r1
+.endr
 WELS_ASM_FUNC_END
 #endif
