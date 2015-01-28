@@ -5,7 +5,7 @@ from optparse import OptionParser
 import textwrap
 import string
 
-VERSION = '0.1'
+VERSION = '0.2'
 __all__ = ['DoxyGen2RST']
 LINE_BREAKER = "\n"
 MAX_COLUMN = 80
