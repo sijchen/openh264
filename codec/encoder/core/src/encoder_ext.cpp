@@ -698,9 +698,9 @@ static inline int32_t AcquireLayersNals (sWelsEncCtx** ppCtx, SWelsSvcCodingPara
   // count parasets
   iCountNumNals += 1 + iNumDependencyLayers + (iCountNumLayers << 1) +
                    iCountNumLayers // plus iCountNumLayers for reserved application
-                   + ((SPS_LISTING & pParam->eSpsPpsIdStrategy) ? MAX_SPS_COUNT : 0) //for Sps
-                   + (((SPS_LISTING & pParam->eSpsPpsIdStrategy) && (iNumDependencyLayers > 1)) ? MAX_SPS_COUNT : 0) //for SubsetSps
-                   + ((SPS_PPS_LISTING == pParam->eSpsPpsIdStrategy) ? MAX_PPS_COUNT : 0);
+                   + (*ppCtx)->GetNeededSpsNum()
+                   + (*ppCtx)->GetNeededSubsetSpsNum()
+                   + (*ppCtx)->GetNeededPpsNum();
 
   // to check number of layers / nals / slices dependencies, 12/8/2010
   if (iCountNumLayers > MAX_LAYER_NUM_OF_FRAME) {
@@ -1194,53 +1194,38 @@ static inline int32_t InitDqLayers (sWelsEncCtx** ppCtx, SExistingParasetList* p
   }
 
   // for dynamically malloc for parameter sets memory instead of maximal items for standard to reduce size, 3/18/2010
-  // SPS
-  if (!pParam->bSimulcastAVC) {
-    if (! (SPS_LISTING & pParam->eSpsPpsIdStrategy)) {
-      (*ppCtx)->pSpsArray	= (SWelsSPS*)pMa->WelsMalloc (sizeof (SWelsSPS), "pSpsArray");
-      WELS_VERIFY_RETURN_PROC_IF (1, (NULL == (*ppCtx)->pSpsArray), FreeMemorySvc (ppCtx))
-      if (iDlayerCount > 1) {
-        (*ppCtx)->pSubsetArray	= (SSubsetSps*)pMa->WelsMalloc ((iDlayerCount - 1) * sizeof (SSubsetSps), "pSubsetArray");
-        WELS_VERIFY_RETURN_PROC_IF (1, (NULL == (*ppCtx)->pSubsetArray), FreeMemorySvc (ppCtx))
-      }
-    } else {
-      // pParam->eSpsPpsIdStrategy == SPS_LISTING_AND_PPS_INCREASING
-      // new memory
-      (*ppCtx)->pSpsArray	= (SWelsSPS*)pMa->WelsMalloc (MAX_SPS_COUNT * sizeof (SWelsSPS), "pSpsArray");
-      WELS_VERIFY_RETURN_PROC_IF (1, (NULL == (*ppCtx)->pSpsArray), FreeMemorySvc (ppCtx))
-
-      (*ppCtx)->pSubsetArray	= (SSubsetSps*)pMa->WelsMalloc (MAX_SPS_COUNT * sizeof (SSubsetSps), "pSubsetArray");
-      WELS_VERIFY_RETURN_PROC_IF (1, (NULL == (*ppCtx)->pSubsetArray), FreeMemorySvc (ppCtx))
-
-      // copy from existing if the pointer exists
-      if (NULL != pExistingParasetList) {
-        (*ppCtx)->sPSOVector.uiInUseSpsNum = pExistingParasetList->uiInUseSpsNum;
-        (*ppCtx)->sPSOVector.uiInUseSubsetSpsNum = pExistingParasetList->uiInUseSubsetSpsNum;
-        memcpy ((*ppCtx)->pSpsArray, pExistingParasetList->sSps, MAX_SPS_COUNT * sizeof (SWelsSPS));
-        memcpy ((*ppCtx)->pSubsetArray, pExistingParasetList->sSubsetSps, MAX_SPS_COUNT * sizeof (SSubsetSps));
-      }
-    }
+  const int32_t kiNeededSpsNum = (*ppCtx)->GetNeededSpsNum();
+  const int32_t kiNeededSubsetSpsNum = (*ppCtx)->GetNeededSubsetSpsNum();
+  (*ppCtx)->pSpsArray	= (SWelsSPS*)pMa->WelsMalloc (kiNeededSpsNum * sizeof (SWelsSPS), "pSpsArray");
+  WELS_VERIFY_RETURN_PROC_IF (1, (NULL == (*ppCtx)->pSpsArray), FreeMemorySvc (ppCtx))
+  if (kiNeededSubsetSpsNum > 0) {
+    (*ppCtx)->pSubsetArray	= (SSubsetSps*)pMa->WelsMalloc (kiNeededSubsetSpsNum * sizeof (SSubsetSps), "pSubsetArray");
+    WELS_VERIFY_RETURN_PROC_IF (1, (NULL == (*ppCtx)->pSubsetArray), FreeMemorySvc (ppCtx))
   } else {
-    //bSimulcastAVC
-    (*ppCtx)->pSpsArray	= (SWelsSPS*)pMa->WelsMalloc (iDlayerCount * sizeof (SWelsSPS), "pSpsArray");
-    WELS_VERIFY_RETURN_PROC_IF (1, (NULL == (*ppCtx)->pSpsArray), FreeMemorySvc (ppCtx))
     (*ppCtx)->pSubsetArray = NULL;
   }
-  // PPS
-  if (! (SPS_PPS_LISTING == pParam->eSpsPpsIdStrategy)) {
-    (*ppCtx)->pPPSArray	= (SWelsPPS*)pMa->WelsMalloc (iDlayerCount * sizeof (SWelsPPS), "pPPSArray");
-    WELS_VERIFY_RETURN_PROC_IF (1, (NULL == (*ppCtx)->pPPSArray), FreeMemorySvc (ppCtx))
-  } else {
-    (*ppCtx)->pPPSArray	= (SWelsPPS*)pMa->WelsMalloc (MAX_PPS_COUNT * sizeof (SWelsPPS), "pPPSArray");
-    WELS_VERIFY_RETURN_PROC_IF (1, (NULL == (*ppCtx)->pPPSArray), FreeMemorySvc (ppCtx))
 
+  if ((SPS_LISTING & pParam->eSpsPpsIdStrategy) && (NULL != pExistingParasetList)) {
+    (*ppCtx)->sPSOVector.uiInUseSpsNum = pExistingParasetList->uiInUseSpsNum;
+    memcpy ((*ppCtx)->pSpsArray, pExistingParasetList->sSps, MAX_SPS_COUNT * sizeof (SWelsSPS));
 
-    // copy from existing if the pointer exists
-    if (NULL != pExistingParasetList) {
-      (*ppCtx)->sPSOVector.uiInUsePpsNum = pExistingParasetList->uiInUsePpsNum;
-      memcpy ((*ppCtx)->pPPSArray, pExistingParasetList->sPps, MAX_PPS_COUNT * sizeof (SWelsPPS));
+    if (kiNeededSubsetSpsNum > 0) {
+      (*ppCtx)->sPSOVector.uiInUseSubsetSpsNum = pExistingParasetList->uiInUseSubsetSpsNum;
+      memcpy ((*ppCtx)->pSubsetArray, pExistingParasetList->sSubsetSps, MAX_SPS_COUNT * sizeof (SSubsetSps));
     }
   }
+
+  // PPS
+  const int32_t kiNeededPpsNum = (*ppCtx)->GetNeededPpsNum();
+  (*ppCtx)->pPPSArray	= (SWelsPPS*)pMa->WelsMalloc (kiNeededPpsNum * sizeof (SWelsPPS), "pPPSArray");
+  WELS_VERIFY_RETURN_PROC_IF (1, (NULL == (*ppCtx)->pPPSArray), FreeMemorySvc (ppCtx))
+
+  // copy from existing if the pointer exists
+  if ((SPS_PPS_LISTING == pParam->eSpsPpsIdStrategy) && (NULL != pExistingParasetList)) {
+    (*ppCtx)->sPSOVector.uiInUsePpsNum = pExistingParasetList->uiInUsePpsNum;
+    memcpy ((*ppCtx)->pPPSArray, pExistingParasetList->sPps, MAX_PPS_COUNT * sizeof (SWelsPPS));
+  }
+
 
   if (INCREASING_ID & pParam->eSpsPpsIdStrategy) {
     (*ppCtx)->pPSOVector = & ((*ppCtx)->sPSOVector);
@@ -1727,8 +1712,8 @@ int32_t RequestMemorySvc (sWelsEncCtx** ppCtx, SExistingParasetList* pExistingPa
     return 1;
   }
 
-  const int32_t kiSpsSize = (pParam->eSpsPpsIdStrategy & SPS_LISTING) ? (MAX_SPS_COUNT * SPS_BUFFER_SIZE): (pParam->iSpatialLayerNum * SPS_BUFFER_SIZE);
-  const int32_t kiPpsSize = (pParam->eSpsPpsIdStrategy & SPS_PPS_LISTING) ? (MAX_PPS_COUNT * SPS_BUFFER_SIZE) : ((1 + pParam->iSpatialLayerNum) * PPS_BUFFER_SIZE);
+  const int32_t kiSpsSize = (*ppCtx)->GetNeededSpsNum() * SPS_BUFFER_SIZE;
+  const int32_t kiPpsSize = (*ppCtx)->GetNeededPpsNum() * PPS_BUFFER_SIZE;
   iNonVclLayersBsSizeCount = SSEI_BUFFER_SIZE + kiSpsSize + kiPpsSize;
 
   int32_t iLayerBsSize = 0;
@@ -3468,7 +3453,8 @@ int32_t WriteSavcParaset (sWelsEncCtx* pCtx, const int32_t kiSpatialNum,
 
   // write SPS
   iNonVclSize = 0;
-  assert (kiSpatialNum == pCtx->iSpsNum);
+
+  assert ((kiSpatialNum == pCtx->iSpsNum) || (SPS_LISTING & pCtx->pSvcParam->eSpsPpsIdStrategy));
 
   for (int32_t iIdx = 0; iIdx < pCtx->iSpsNum; iIdx++) {
     //writing one NAL
@@ -4251,13 +4237,16 @@ int32_t WelsEncoderParamAdjust (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pNewPa
   pOldParam	= (*ppCtx)->pSvcParam;
 
   if (pOldParam->iUsageType != pNewParam->iUsageType) {
-    WelsLog (& (*ppCtx)->sLogCtx, WELS_LOG_ERROR, "WelsEncoderParamAdjust(), does not expect in-middle change of iUsgaeType from %d to %d", pOldParam->iUsageType, pNewParam->iUsageType);
+    WelsLog (& (*ppCtx)->sLogCtx, WELS_LOG_ERROR,
+             "WelsEncoderParamAdjust(), does not expect in-middle change of iUsgaeType from %d to %d", pOldParam->iUsageType,
+             pNewParam->iUsageType);
     return ENC_RETURN_UNSUPPORTED_PARA;
   }
 
   /* Decide whether need reset for IDR frame based on adjusting prarameters changed */
   /* Temporal levels, spatial settings and/ or quality settings changed need update parameter sets related. */
   bNeedReset	=	(pOldParam == NULL) ||
+                (pOldParam->bSimulcastAVC != pNewParam->bSimulcastAVC) ||
                 (pOldParam->iSpatialLayerNum != pNewParam->iSpatialLayerNum) ||
                 (pOldParam->iPicWidth != pNewParam->iPicWidth
                  || pOldParam->iPicHeight != pNewParam->iPicHeight) ||
@@ -4338,20 +4327,25 @@ int32_t WelsEncoderParamAdjust (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pNewPa
           && (SPS_LISTING & pNewParam->eSpsPpsIdStrategy)) {
         pExistingParasetList = &sExistingParasetList;
         sExistingParasetList.uiInUseSpsNum = (*ppCtx)->sPSOVector.uiInUseSpsNum;
-        sExistingParasetList.uiInUseSubsetSpsNum = (*ppCtx)->sPSOVector.uiInUseSubsetSpsNum;
         memcpy (sExistingParasetList.sSps, (*ppCtx)->pSpsArray, MAX_SPS_COUNT * sizeof (SWelsSPS));
-        memcpy (sExistingParasetList.sSubsetSps, (*ppCtx)->pSubsetArray, MAX_SPS_COUNT * sizeof (SSubsetSps));
+        if (((*ppCtx)->sPSOVector.uiInUseSubsetSpsNum > 0) && (NULL != (*ppCtx)->pSubsetArray)) {
+          sExistingParasetList.uiInUseSubsetSpsNum = (*ppCtx)->sPSOVector.uiInUseSubsetSpsNum;
+          memcpy (sExistingParasetList.sSubsetSps, (*ppCtx)->pSubsetArray, MAX_SPS_COUNT * sizeof (SSubsetSps));
+        }
       }
 
       if ((SPS_PPS_LISTING == iOldSpsPpsIdStrategy)
           && (SPS_PPS_LISTING == pNewParam->eSpsPpsIdStrategy)) {
         pExistingParasetList = &sExistingParasetList;
         sExistingParasetList.uiInUseSpsNum = (*ppCtx)->sPSOVector.uiInUseSpsNum;
-        sExistingParasetList.uiInUseSubsetSpsNum = (*ppCtx)->sPSOVector.uiInUseSubsetSpsNum;
         sExistingParasetList.uiInUsePpsNum = (*ppCtx)->sPSOVector.uiInUsePpsNum;
         memcpy (sExistingParasetList.sSps, (*ppCtx)->pSpsArray, MAX_SPS_COUNT * sizeof (SWelsSPS));
-        memcpy (sExistingParasetList.sSubsetSps, (*ppCtx)->pSubsetArray, MAX_SPS_COUNT * sizeof (SSubsetSps));
         memcpy (sExistingParasetList.sPps, (*ppCtx)->pPps, MAX_PPS_COUNT * sizeof (SWelsPPS));
+
+        if (((*ppCtx)->sPSOVector.uiInUseSubsetSpsNum > 0) && (NULL != (*ppCtx)->pSubsetArray)) {
+          sExistingParasetList.uiInUseSubsetSpsNum = (*ppCtx)->sPSOVector.uiInUseSubsetSpsNum;
+          memcpy (sExistingParasetList.sSubsetSps, (*ppCtx)->pSubsetArray, MAX_SPS_COUNT * sizeof (SSubsetSps));
+        }
 
         memcpy (iTmpPpsIdList, ((*ppCtx)->sPSOVector.iPpsIdList), MAX_DQ_LAYER_NUM * MAX_PPS_COUNT * sizeof (int32_t));
       }
