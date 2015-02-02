@@ -335,22 +335,18 @@ int32_t ParamValidationExt (SLogContext* pLogCtx, SWelsSvcCodingParam* pCodingPa
   }
 
   // eSpsPpsIdStrategy checkings
-  if (pCodingParam->iSpatialLayerNum > 1 && (SPS_LISTING & pCodingParam->eSpsPpsIdStrategy)) {
+  if (pCodingParam->iSpatialLayerNum > 1 && (!pCodingParam->bSimulcastAVC)
+      && (SPS_LISTING & pCodingParam->eSpsPpsIdStrategy)) {
     WelsLog (pLogCtx, WELS_LOG_WARNING,
-             "ParamValidationExt(), eSpsPpsIdStrategy setting (%d) with multiple SpatialLayers (%d) not supported! eSpsPpsIdStrategy adjusted to CONSTANT_ID", pCodingParam->eSpsPpsIdStrategy, pCodingParam->iSpatialLayerNum);
+             "ParamValidationExt(), eSpsPpsIdStrategy setting (%d) with multiple svc SpatialLayers (%d) not supported! eSpsPpsIdStrategy adjusted to CONSTANT_ID",
+             pCodingParam->eSpsPpsIdStrategy, pCodingParam->iSpatialLayerNum);
     pCodingParam->eSpsPpsIdStrategy = CONSTANT_ID;
   }
   if (pCodingParam->iUsageType == SCREEN_CONTENT_REAL_TIME && (SPS_LISTING & pCodingParam->eSpsPpsIdStrategy)) {
     WelsLog (pLogCtx, WELS_LOG_WARNING,
-             "ParamValidationExt(), eSpsPpsIdStrategy setting (%d) with iUsageType (%d) not supported! eSpsPpsIdStrategy adjusted to CONSTANT_ID", pCodingParam->eSpsPpsIdStrategy, pCodingParam->iUsageType);
+             "ParamValidationExt(), eSpsPpsIdStrategy setting (%d) with iUsageType (%d) not supported! eSpsPpsIdStrategy adjusted to CONSTANT_ID",
+             pCodingParam->eSpsPpsIdStrategy, pCodingParam->iUsageType);
     pCodingParam->eSpsPpsIdStrategy = CONSTANT_ID;
-  }
-
-  if (pCodingParam->bSimulcastAVC && (SPS_LISTING & pCodingParam->eSpsPpsIdStrategy)) {
-    WelsLog (pLogCtx, WELS_LOG_INFO,
-             "ParamValidationExt(), eSpsPpsIdStrategy(%d) under bSimulcastAVC(%d) not supported yet, adjusted to INCREASING_ID",
-             pCodingParam->eSpsPpsIdStrategy, pCodingParam->bSimulcastAVC);
-    pCodingParam->eSpsPpsIdStrategy = INCREASING_ID;
   }
 
   for (i = 0; i < pCodingParam->iSpatialLayerNum; ++ i) {
