@@ -1026,7 +1026,6 @@ int32_t FindExistingPps (SWelsSPS* pSps, SSubsetSps* pSubsetSps, const bool kbUs
   return INVALID_ID;
 }
 
-
 /*!
  * \brief	initialize ppDqLayerList and slicepEncCtx_list due to count number of layers available
  * \pParam	pCtx			sWelsEncCtx*
