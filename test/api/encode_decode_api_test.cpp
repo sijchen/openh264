@@ -3022,7 +3022,7 @@ TEST_F (EncodeDecodeTestAPI, ParameterSetStrategy_SPS_PPS_LISTING3) {
 
 
 TEST_F (EncodeDecodeTestAPI, SimulcastSVC) {
-  int iSpatialLayerNum = WelsClip3 ((rand() % MAX_SPATIAL_LAYER_NUM), 2, MAX_SPATIAL_LAYER_NUM);;
+  int iSpatialLayerNum = WelsClip3 ((rand() % MAX_SPATIAL_LAYER_NUM), 2, MAX_SPATIAL_LAYER_NUM);
   int iWidth       = WelsClip3 ((((rand() % MAX_WIDTH) >> 1)  + 1) << 1, 1 << iSpatialLayerNum, MAX_WIDTH);
   int iHeight      = WelsClip3 ((((rand() % MAX_HEIGHT) >> 1)  + 1) << 1, 1 << iSpatialLayerNum, MAX_HEIGHT);
   float fFrameRate = rand() + 0.5f;
@@ -3136,7 +3136,7 @@ TEST_F (EncodeDecodeTestAPI, SimulcastSVC) {
 
 TEST_F (EncodeDecodeTestAPI, SimulcastAVC) {
 //#define DEBUG_FILE_SAVE3
-  int iSpatialLayerNum = WelsClip3 ((rand() % MAX_SPATIAL_LAYER_NUM), 2, MAX_SPATIAL_LAYER_NUM);;
+  int iSpatialLayerNum = WelsClip3 ((rand() % MAX_SPATIAL_LAYER_NUM), 2, MAX_SPATIAL_LAYER_NUM);
   int iWidth       = WelsClip3 ((((rand() % MAX_WIDTH) >> 1)  + 1) << 1, 1 << iSpatialLayerNum, MAX_WIDTH);
   int iHeight      = WelsClip3 ((((rand() % MAX_HEIGHT) >> 1)  + 1) << 1, 1 << iSpatialLayerNum, MAX_HEIGHT);
   float fFrameRate = rand() + 0.5f;
