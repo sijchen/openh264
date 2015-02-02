@@ -415,6 +415,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\encoder\EncUT_MotionCompensation.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\encoder\EncUT_MotionEstimate.cpp"
 				>
 			</File>
@@ -619,7 +623,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\..\..\decoder\DecUT_MotionCompensation.cpp"
+				RelativePath="..\..\..\decoder\DecUT_ParseSyntax.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"

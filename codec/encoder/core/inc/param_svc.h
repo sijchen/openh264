@@ -174,7 +174,7 @@ typedef struct TagWelsSvcCodingParam: SEncParamExt {
     param.bIsLosslessLink = false;
     for (int32_t iLayer = 0; iLayer < MAX_SPATIAL_LAYER_NUM; iLayer++) {
       param.sSpatialLayers[iLayer].uiProfileIdc = PRO_BASELINE;
-      param.sSpatialLayers[iLayer].uiLevelIdc = LEVEL_5_0;
+      param.sSpatialLayers[iLayer].uiLevelIdc = LEVEL_UNKNOWN;
       param.sSpatialLayers[iLayer].iDLayerQp = SVC_QUALITY_BASE_QP;
       param.sSpatialLayers[iLayer].fFrameRate = param.fMaxFrameRate;
       param.sSpatialLayers[iLayer].sSliceCfg.uiSliceMode = SM_SINGLE_SLICE;
@@ -230,6 +230,7 @@ typedef struct TagWelsSvcCodingParam: SEncParamExt {
     while (iIdxSpatial < iSpatialLayerNum) {
 
       sSpatialLayers->uiProfileIdc		= uiProfileIdc;
+      sSpatialLayers->uiLevelIdc		= LEVEL_UNKNOWN;
       sSpatialLayers[iIdxSpatial].fFrameRate	= WELS_CLIP3 (pCodingParam.fMaxFrameRate,
           MIN_FRAME_RATE, MAX_FRAME_RATE);
       pDlp->fInputFrameRate	=
@@ -244,9 +245,10 @@ typedef struct TagWelsSvcCodingParam: SEncParamExt {
       sSpatialLayers->iSpatialBitrate	=
         sSpatialLayers[iIdxSpatial].iSpatialBitrate = pCodingParam.iTargetBitrate;	// target bitrate for current spatial layer
 
+      sSpatialLayers->iMaxSpatialBitrate	= UNSPECIFIED_BIT_RATE;
       sSpatialLayers->iDLayerQp = SVC_QUALITY_BASE_QP;
 
-      uiProfileIdc	= PRO_SCALABLE_BASELINE;
+      uiProfileIdc	= (!bSimulcastAVC) ? PRO_SCALABLE_BASELINE : PRO_BASELINE;
       ++ pDlp;
       ++ iIdxSpatial;
     }
@@ -287,6 +289,7 @@ typedef struct TagWelsSvcCodingParam: SEncParamExt {
 
     /* Rate Control */
     iRCMode = pCodingParam.iRCMode;    // rc mode
+    bSimulcastAVC = pCodingParam.bSimulcastAVC;
     iPaddingFlag = pCodingParam.iPaddingFlag;
 
     iTargetBitrate		= pCodingParam.iTargetBitrate;	// target bitrate
@@ -369,8 +372,7 @@ typedef struct TagWelsSvcCodingParam: SEncParamExt {
     while (iIdxSpatial < iSpatialLayerNum) {
       pSpatialLayer->uiProfileIdc		= (pCodingParam.sSpatialLayers[iIdxSpatial].uiProfileIdc == PRO_UNKNOWN) ? uiProfileIdc :
                                       pCodingParam.sSpatialLayers[iIdxSpatial].uiProfileIdc;
-      pSpatialLayer->uiLevelIdc        = (pCodingParam.sSpatialLayers[iIdxSpatial].uiLevelIdc == LEVEL_UNKNOWN) ? LEVEL_5_0 :
-                                         pCodingParam.sSpatialLayers[iIdxSpatial].uiLevelIdc;
+      pSpatialLayer->uiLevelIdc        = pCodingParam.sSpatialLayers[iIdxSpatial].uiLevelIdc;
 
       float fLayerFrameRate	= WELS_CLIP3 (pCodingParam.sSpatialLayers[iIdxSpatial].fFrameRate,
                                           MIN_FRAME_RATE, fParamMaxFrameRate);
@@ -404,7 +406,7 @@ typedef struct TagWelsSvcCodingParam: SEncParamExt {
 
       pSpatialLayer->iDLayerQp = pCodingParam.sSpatialLayers[iIdxSpatial].iDLayerQp;
 
-      uiProfileIdc	= PRO_SCALABLE_BASELINE;
+      uiProfileIdc	= (!bSimulcastAVC) ? PRO_SCALABLE_BASELINE : PRO_BASELINE;
       ++ pDlp;
       ++ pSpatialLayer;
       ++ iIdxSpatial;
@@ -474,7 +476,8 @@ typedef struct TagWelsSvcCodingParam: SEncParamExt {
         return ENC_RETURN_INVALIDINPUT;
       }
 
-      uiProfileIdc	= iEntropyCodingModeFlag ? PRO_SCALABLE_HIGH : PRO_SCALABLE_BASELINE;
+      uiProfileIdc	= bSimulcastAVC ? (iEntropyCodingModeFlag ? PRO_HIGH : PRO_BASELINE) :
+                      (iEntropyCodingModeFlag ? PRO_SCALABLE_HIGH : PRO_SCALABLE_BASELINE);
       ++ pDlp;
       ++ pSpatialLayer;
       ++ i;
