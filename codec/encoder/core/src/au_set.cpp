@@ -477,23 +477,10 @@ int32_t WelsInitSps (SWelsSPS* pSps, SSpatialLayerConfig* pLayerParam, SSpatialL
     uiLevel = LEVEL_1_1;
     pSps->bConstraintSet3Flag = true;
   }
-
   if ((pLayerParam->uiLevelIdc == LEVEL_UNKNOWN) || (pLayerParam->uiLevelIdc < uiLevel)) {
     pLayerParam->uiLevelIdc = uiLevel;
   }
   pSps->iLevelIdc = g_kuiLevelMaps[pLayerParam->uiLevelIdc - 1];
-
-
-  if (pLayerParam->uiProfileIdc == PRO_BASELINE) {
-    pSps->bConstraintSet0Flag = true;
-  }
-  if (pLayerParam->uiProfileIdc <= PRO_MAIN) {
-    pSps->bConstraintSet1Flag = true;
-  }
-  if (kiDlayerCount > 1) {
-    pSps->bConstraintSet2Flag = true;
-  }
-
   return 0;
 }
 
