@@ -141,7 +141,7 @@ void CheckLevelSetting (SLogContext* pLogCtx, SWelsSvcCodingParam* pParam, int32
   SSpatialLayerConfig* pLayerInfo = &pParam->sSpatialLayers[iLayer];
   pLayerInfo->uiLevelIdc = uiLevelIdc;
   if (uiLevelIdc > LEVEL_5_2) {
-    WelsLog (pLogCtx, WELS_LOG_INFO, "change unexpected levelidc(%d) setting to LEVEL_UNKNOWN", pLayerInfo->uiLevelIdc );
+    WelsLog (pLogCtx, WELS_LOG_INFO, "change unexpected levelidc(%d) setting to LEVEL_UNKNOWN", pLayerInfo->uiLevelIdc);
     pLayerInfo->uiLevelIdc = LEVEL_UNKNOWN;
   }
 }
@@ -337,12 +337,14 @@ int32_t ParamValidationExt (SLogContext* pLogCtx, SWelsSvcCodingParam* pCodingPa
   // eSpsPpsIdStrategy checkings
   if (pCodingParam->iSpatialLayerNum > 1 && (SPS_LISTING & pCodingParam->eSpsPpsIdStrategy)) {
     WelsLog (pLogCtx, WELS_LOG_WARNING,
-             "ParamValidationExt(), eSpsPpsIdStrategy setting (%d) with multiple SpatialLayers (%d) not supported! eSpsPpsIdStrategy adjusted to CONSTANT_ID", pCodingParam->eSpsPpsIdStrategy, pCodingParam->iSpatialLayerNum);
+             "ParamValidationExt(), eSpsPpsIdStrategy setting (%d) with multiple SpatialLayers (%d) not supported! eSpsPpsIdStrategy adjusted to CONSTANT_ID",
+             pCodingParam->eSpsPpsIdStrategy, pCodingParam->iSpatialLayerNum);
     pCodingParam->eSpsPpsIdStrategy = CONSTANT_ID;
   }
   if (pCodingParam->iUsageType == SCREEN_CONTENT_REAL_TIME && (SPS_LISTING & pCodingParam->eSpsPpsIdStrategy)) {
     WelsLog (pLogCtx, WELS_LOG_WARNING,
-             "ParamValidationExt(), eSpsPpsIdStrategy setting (%d) with iUsageType (%d) not supported! eSpsPpsIdStrategy adjusted to CONSTANT_ID", pCodingParam->eSpsPpsIdStrategy, pCodingParam->iUsageType);
+             "ParamValidationExt(), eSpsPpsIdStrategy setting (%d) with iUsageType (%d) not supported! eSpsPpsIdStrategy adjusted to CONSTANT_ID",
+             pCodingParam->eSpsPpsIdStrategy, pCodingParam->iUsageType);
     pCodingParam->eSpsPpsIdStrategy = CONSTANT_ID;
   }
 
@@ -502,7 +504,8 @@ int32_t ParamValidationExt (SLogContext* pLogCtx, SWelsSvcCodingParam* pCodingPa
       iMbHeight	= (kiPicHeight + 15) >> 4;
       iMaxSliceNum = MAX_SLICES_NUM;
       if (iMbHeight > iMaxSliceNum) {
-        WelsLog (pLogCtx, WELS_LOG_ERROR, "ParamValidationExt(), invalid uiSliceNum (%d) settings more than MAX(%d)!", iMbHeight, MAX_SLICES_NUM);
+        WelsLog (pLogCtx, WELS_LOG_ERROR, "ParamValidationExt(), invalid uiSliceNum (%d) settings more than MAX(%d)!",
+                 iMbHeight, MAX_SLICES_NUM);
         return ENC_RETURN_UNSUPPORTED_PARA;
       }
       pSpatialLayer->sSliceCfg.sSliceArgument.uiSliceNum	= iMbHeight;
@@ -1212,6 +1215,8 @@ static inline int32_t InitDqLayers (sWelsEncCtx** ppCtx, SExistingParasetList* p
     if (kiNeededSubsetSpsNum > 0) {
       (*ppCtx)->sPSOVector.uiInUseSubsetSpsNum = pExistingParasetList->uiInUseSubsetSpsNum;
       memcpy ((*ppCtx)->pSubsetArray, pExistingParasetList->sSubsetSps, MAX_SPS_COUNT * sizeof (SSubsetSps));
+    } else {
+      (*ppCtx)->sPSOVector.uiInUseSubsetSpsNum = 0;
     }
   }
 
@@ -4328,9 +4333,11 @@ int32_t WelsEncoderParamAdjust (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pNewPa
         pExistingParasetList = &sExistingParasetList;
         sExistingParasetList.uiInUseSpsNum = (*ppCtx)->sPSOVector.uiInUseSpsNum;
         memcpy (sExistingParasetList.sSps, (*ppCtx)->pSpsArray, MAX_SPS_COUNT * sizeof (SWelsSPS));
-        if (((*ppCtx)->sPSOVector.uiInUseSubsetSpsNum > 0) && (NULL != (*ppCtx)->pSubsetArray)) {
+        if (NULL != (*ppCtx)->pSubsetArray) {
           sExistingParasetList.uiInUseSubsetSpsNum = (*ppCtx)->sPSOVector.uiInUseSubsetSpsNum;
           memcpy (sExistingParasetList.sSubsetSps, (*ppCtx)->pSubsetArray, MAX_SPS_COUNT * sizeof (SSubsetSps));
+        } else {
+          sExistingParasetList.uiInUseSubsetSpsNum = 0;
         }
       }
 
@@ -4342,9 +4349,11 @@ int32_t WelsEncoderParamAdjust (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pNewPa
         memcpy (sExistingParasetList.sSps, (*ppCtx)->pSpsArray, MAX_SPS_COUNT * sizeof (SWelsSPS));
         memcpy (sExistingParasetList.sPps, (*ppCtx)->pPps, MAX_PPS_COUNT * sizeof (SWelsPPS));
 
-        if (((*ppCtx)->sPSOVector.uiInUseSubsetSpsNum > 0) && (NULL != (*ppCtx)->pSubsetArray)) {
+        if (NULL != (*ppCtx)->pSubsetArray) {
           sExistingParasetList.uiInUseSubsetSpsNum = (*ppCtx)->sPSOVector.uiInUseSubsetSpsNum;
           memcpy (sExistingParasetList.sSubsetSps, (*ppCtx)->pSubsetArray, MAX_SPS_COUNT * sizeof (SSubsetSps));
+        } else {
+          sExistingParasetList.uiInUseSubsetSpsNum = 0;
         }
 
         memcpy (iTmpPpsIdList, ((*ppCtx)->sPSOVector.iPpsIdList), MAX_DQ_LAYER_NUM * MAX_PPS_COUNT * sizeof (int32_t));
