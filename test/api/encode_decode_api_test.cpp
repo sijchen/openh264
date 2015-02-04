@@ -227,6 +227,7 @@ class EncodeDecodeTestAPI : public EncodeDecodeTestBase {
   }
 
   void TestOneSimulcastAVC (SEncParamExt* pParam, ISVCDecoder** decoder, unsigned char** pBsBuf, int iSpatialLayerNum,
+                            int iEncFrameNum,
                             int iCallTimes) {
 //#define DEBUG_FILE_SAVE4
     int aLen[MAX_SPATIAL_LAYER_NUM] = {0, 0, 0, 0};
@@ -248,7 +249,7 @@ class EncodeDecodeTestAPI : public EncodeDecodeTestBase {
     int rv = encoder_->SetOption (ENCODER_OPTION_SVC_ENCODE_PARAM_EXT, pParam);
     ASSERT_TRUE (rv == cmResultSuccess) << "SetOption Failed pParam: rv = " << rv;
 
-    int iEncFrameNum = 10, iIdx;
+    int iIdx;
     //begin testing
     for (int iFrame = 0; iFrame < iEncFrameNum; iFrame++) {
       int iResult;
@@ -3363,8 +3364,8 @@ TEST_F (EncodeDecodeTestAPI, SimulcastAVC_SPS_PPS_LISTING) {
     ASSERT_EQ (0, rv);
   }
 
-  TestOneSimulcastAVC (&sParam1, decoder, pBsBuf, iSpatialLayerNum, 0);
-  TestOneSimulcastAVC (&sParam2, decoder, pBsBuf, iSpatialLayerNum, 1);
+  TestOneSimulcastAVC (&sParam1, decoder, pBsBuf, iSpatialLayerNum, iEncFrameNum, 0);
+  TestOneSimulcastAVC (&sParam2, decoder, pBsBuf, iSpatialLayerNum, iEncFrameNum, 1);
 
   for (iIdx = 0; iIdx < iSpatialLayerNum; iIdx++) {
     free (pBsBuf[iIdx]);
