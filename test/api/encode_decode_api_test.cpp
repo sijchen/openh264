@@ -228,7 +228,7 @@ class EncodeDecodeTestAPI : public EncodeDecodeTestBase {
 
   void TestOneSimulcastAVC (SEncParamExt* pParam, ISVCDecoder** decoder, unsigned char** pBsBuf, int iSpatialLayerNum,
                             int iCallTimes) {
-#define DEBUG_FILE_SAVE4
+//#define DEBUG_FILE_SAVE4
     int aLen[MAX_SPATIAL_LAYER_NUM] = {0, 0, 0, 0};
 #ifdef DEBUG_FILE_SAVE4
     FILE* fEnc[MAX_SPATIAL_LAYER_NUM];
@@ -270,7 +270,7 @@ class EncodeDecodeTestAPI : public EncodeDecodeTestBase {
         }
 
         iIdx = layerInfo.uiSpatialId;
-        EXPECT_TRUE (iIdx < iSpatialLayerNum);
+        EXPECT_TRUE (iIdx < iSpatialLayerNum) << "iIdx = " << iIdx << ", iSpatialLayerNum = " << iSpatialLayerNum;
         memcpy ((pBsBuf[iIdx] + aLen[iIdx]), layerInfo.pBsBuf, iLayerLen * sizeof (unsigned char));
         aLen[iIdx] += iLayerLen;
       }
@@ -283,10 +283,10 @@ class EncodeDecodeTestAPI : public EncodeDecodeTestBase {
         fwrite (pBsBuf[iIdx], aLen[iIdx], 1, fEnc[iIdx]);
 #endif
         iResult = decoder[iIdx]->DecodeFrame2 (pBsBuf[iIdx], aLen[iIdx], pData, &dstBufInfo_);
-        EXPECT_TRUE (iResult == cmResultSuccess) << "iResult=" << iResult << "LayerIdx=" << iIdx;
+        EXPECT_TRUE (iResult == cmResultSuccess) << "iResult=" << iResult << ", LayerIdx=" << iIdx;
 
         iResult = decoder[iIdx]->DecodeFrame2 (NULL, 0, pData, &dstBufInfo_);
-        EXPECT_TRUE (iResult == cmResultSuccess) << "iResult=" << iResult << "LayerIdx=" << iIdx;
+        EXPECT_TRUE (iResult == cmResultSuccess) << "iResult=" << iResult << ", LayerIdx=" << iIdx;
         EXPECT_EQ (dstBufInfo_.iBufferStatus, 1) << "LayerIdx=" << iIdx;
       }
     }
@@ -3325,7 +3325,7 @@ TEST_F (EncodeDecodeTestAPI, SimulcastAVC_SPS_PPS_LISTING) {
   encoder_->GetDefaultParams (&sParam1);
   prepareParamDefault (iSpatialLayerNum, iSliceNum, iWidth, iHeight, fFrameRate, &sParam1);
   //set flag of SPS_PPS_LISTING
-  sParam1.eSpsPpsIdStrategy = SPS_PPS_LISTING;
+  sParam1.eSpsPpsIdStrategy = SPS_PPS_LISTING;//SPS_LISTING;//
   //set flag of bSimulcastAVC
   sParam1.bSimulcastAVC = true;
   //prepare param2
