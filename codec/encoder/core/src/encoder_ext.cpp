@@ -348,6 +348,20 @@ int32_t ParamValidationExt (SLogContext* pLogCtx, SWelsSvcCodingParam* pCodingPa
     pCodingParam->eSpsPpsIdStrategy = CONSTANT_ID;
   }
 
+  if (pCodingParam->bSimulcastAVC && (SPS_LISTING & pCodingParam->eSpsPpsIdStrategy)) {
+    WelsLog (pLogCtx, WELS_LOG_INFO,
+             "ParamValidationExt(), eSpsPpsIdStrategy(%d) under bSimulcastAVC(%d) not supported yet, adjusted to INCREASING_ID",
+             pCodingParam->eSpsPpsIdStrategy, pCodingParam->bSimulcastAVC);
+    pCodingParam->eSpsPpsIdStrategy = INCREASING_ID;
+  }
+
+  if (pCodingParam->bSimulcastAVC && pCodingParam->bPrefixNalAddingCtrl) {
+    WelsLog (pLogCtx, WELS_LOG_INFO,
+             "ParamValidationExt(), bSimulcastAVC(%d) is not compatible with bPrefixNalAddingCtrl(%d) true, adjusted bPrefixNalAddingCtrl to false",
+             pCodingParam->eSpsPpsIdStrategy, pCodingParam->bSimulcastAVC);
+    pCodingParam->bPrefixNalAddingCtrl = false;
+  }
+
   for (i = 0; i < pCodingParam->iSpatialLayerNum; ++ i) {
     SSpatialLayerConfig* pSpatialLayer = &pCodingParam->sSpatialLayers[i];
     const int32_t kiPicWidth = pSpatialLayer->iVideoWidth;
@@ -526,7 +540,8 @@ int32_t ParamValidationExt (SLogContext* pLogCtx, SWelsSvcCodingParam* pCodingPa
       }
 
       if (pCodingParam->uiMaxNalSize < (NAL_HEADER_ADD_0X30BYTES + MAX_MACROBLOCK_SIZE_IN_BYTE)) {
-        WelsLog (pLogCtx, WELS_LOG_ERROR, "ParamValidationExt(), invalid uiMaxNalSize (%d) settings! should be larger than (NAL_HEADER_ADD_0X30BYTES + MAX_MACROBLOCK_SIZE_IN_BYTE)(%d)",
+        WelsLog (pLogCtx, WELS_LOG_ERROR,
+                 "ParamValidationExt(), invalid uiMaxNalSize (%d) settings! should be larger than (NAL_HEADER_ADD_0X30BYTES + MAX_MACROBLOCK_SIZE_IN_BYTE)(%d)",
                  pCodingParam->uiMaxNalSize, (NAL_HEADER_ADD_0X30BYTES + MAX_MACROBLOCK_SIZE_IN_BYTE));
         return ENC_RETURN_UNSUPPORTED_PARA;
       }
@@ -3429,6 +3444,7 @@ int32_t GetSubSequenceId (sWelsEncCtx* pCtx, EVideoFrameType eFrameType) {
   return iSubSeqId;
 }
 
+// writing parasets for (simulcast) svc
 int32_t WriteSsvcParaset (sWelsEncCtx* pCtx, const int32_t kiSpatialNum,
                           SLayerBSInfo*& pLayerBsInfo, int32_t& iLayerNum, int32_t& iFrameSize) {
   int32_t iNonVclSize = 0, iCountNal = 0, iReturn;
@@ -3451,6 +3467,7 @@ int32_t WriteSsvcParaset (sWelsEncCtx* pCtx, const int32_t kiSpatialNum,
   return iReturn;
 }
 
+// writing parasets for simulcast avc
 int32_t WriteSavcParaset (sWelsEncCtx* pCtx, const int32_t kiSpatialNum,
                           SLayerBSInfo*& pLayerBsInfo, int32_t& iLayerNum, int32_t& iFrameSize) {
   int32_t iNonVclSize = 0, iCountNal = 0, iReturn;
@@ -3528,6 +3545,7 @@ int32_t WriteSavcParaset (sWelsEncCtx* pCtx, const int32_t kiSpatialNum,
   return iReturn;
 }
 
+//cover the logic of simulcast avc + sps_pps_listing
 int32_t WriteSavcParaset_Listing (sWelsEncCtx* pCtx, const int32_t kiSpatialNum,
                                   SLayerBSInfo*& pLayerBsInfo, int32_t& iLayerNum, int32_t& iFrameSize) {
   int32_t iNonVclSize = 0, iCountNal = 0, iReturn;
@@ -3603,7 +3621,7 @@ int32_t WriteSavcParaset_Listing (sWelsEncCtx* pCtx, const int32_t kiSpatialNum,
   if (iLayerNum > MAX_LAYER_NUM_OF_FRAME) {
     WelsLog (& pCtx->sLogCtx, WELS_LOG_ERROR, "WriteSavcParaset(), iLayerNum(%d) > MAX_LAYER_NUM_OF_FRAME(%d)!",
              iLayerNum, MAX_LAYER_NUM_OF_FRAME);
-    return 1;
+    return ENC_RETURN_UNEXPECTED;
   }
 
   iFrameSize += iNonVclSize;
@@ -3771,9 +3789,9 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo* pFbi, const SSour
 
     iNalIdxInLayer	= 0;
     bAvcBased	= ((pSvcParam->bSimulcastAVC) || (iCurDid == BASE_DEPENDENCY_ID));
-    pCtx->bNeedPrefixNalFlag	= (bAvcBased &&
+    pCtx->bNeedPrefixNalFlag	= ((!pSvcParam->bSimulcastAVC) && (bAvcBased &&
                                  (pSvcParam->bPrefixNalAddingCtrl ||
-                                  (pSvcParam->iSpatialLayerNum > 1)));
+                                  (pSvcParam->iSpatialLayerNum > 1))));
 
     if (eFrameType == videoFrameTypeP) {
       eNalType	= bAvcBased ? NAL_UNIT_CODED_SLICE : NAL_UNIT_CODED_SLICE_EXT;
@@ -4294,23 +4312,30 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo* pFbi, const SSour
   pFbi->iFrameSizeInBytes = iFrameSize;
 
 #ifdef _DEBUG
-  assert (pFbi->iLayerNum < MAX_LAYER_NUM_OF_FRAME);
+  if (pFbi->iLayerNum > MAX_LAYER_NUM_OF_FRAME) {
+    WelsLog (& pCtx->sLogCtx, WELS_LOG_ERROR, "WelsEncoderEncodeExt(), iLayerNum(%d) > MAX_LAYER_NUM_OF_FRAME(%d)!",
+             pFbi->iLayerNum, MAX_LAYER_NUM_OF_FRAME);
+    return ENC_RETURN_UNEXPECTED;
+  }
 
   int32_t iTotalNal = 0;
   for (int32_t k = 0; k < pFbi->iLayerNum; k++) {
     iTotalNal += pFbi->sLayerInfo[k].iNalCount;
 
-    if (MAX_NAL_UNITS_IN_LAYER < pFbi->sLayerInfo[k].iNalCount) {
-      WelsLog (& pCtx->sLogCtx, WELS_LOG_ERROR, "AcquireLayersNals(), iCountNumNals(%d) > MAX_NAL_UNITS_IN_LAYER(%d)!",
-               pFbi->sLayerInfo[k].iNalCount, MAX_NAL_UNITS_IN_LAYER);
-      return 1;
+    if ((pCtx->iActiveThreadsNum > 1) && (MAX_NAL_UNITS_IN_LAYER < pFbi->sLayerInfo[k].iNalCount)) {
+      WelsLog (& pCtx->sLogCtx, WELS_LOG_ERROR,
+               "WelsEncoderEncodeExt(), iCountNumNals(%d) > MAX_NAL_UNITS_IN_LAYER(%d) under multi-thread(%d) NOT supported!",
+               pFbi->sLayerInfo[k].iNalCount, MAX_NAL_UNITS_IN_LAYER), pCtx->iActiveThreadsNum;
+      return ENC_RETURN_UNEXPECTED;
     }
   }
 
-  assert (iTotalNal < pCtx->pOut->iCountNals);
+  if (iTotalNal > pCtx->pOut->iCountNals) {
+    WelsLog (& pCtx->sLogCtx, WELS_LOG_ERROR, "WelsEncoderEncodeExt(), iTotalNal(%d) > iCountNals(%d)!",
+             iTotalNal, pCtx->pOut->iCountNals);
+    return ENC_RETURN_UNEXPECTED;
+  }
 #endif
-
-
 
   return ENC_RETURN_SUCCESS;
 }

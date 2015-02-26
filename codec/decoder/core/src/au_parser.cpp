@@ -948,11 +948,17 @@ int32_t ParseSps (PWelsDecoderContext pCtx, PBitStringAux pBsAux, int32_t* pPicW
 
     WELS_READ_VERIFY (BsGetUe (pBs, &uiCode)); //chroma_format_idc
     pSps->uiChromaFormatIdc = uiCode;
-    if (pSps->uiChromaFormatIdc != 1) {
-      WelsLog (& (pCtx->sLogCtx), WELS_LOG_WARNING, "ParseSps(): chroma_format_idc (%d) = 1 supported.",
+//    if (pSps->uiChromaFormatIdc != 1) {
+//      WelsLog (& (pCtx->sLogCtx), WELS_LOG_WARNING, "ParseSps(): chroma_format_idc (%d) = 1 supported.",
+//               pSps->uiChromaFormatIdc);
+//      return GENERATE_ERROR_NO (ERR_LEVEL_PARAM_SETS, ERR_INFO_UNSUPPORTED_NON_BASELINE);
+//    }
+    if (pSps->uiChromaFormatIdc > 1) {
+      WelsLog (& (pCtx->sLogCtx), WELS_LOG_WARNING, "ParseSps(): chroma_format_idc (%d) <=1 supported.",
                pSps->uiChromaFormatIdc);
       return GENERATE_ERROR_NO (ERR_LEVEL_PARAM_SETS, ERR_INFO_UNSUPPORTED_NON_BASELINE);
-    }
+
+    }// To support 4:0:0; 4:2:0
     pSps->uiChromaArrayType = pSps->uiChromaFormatIdc;
     WELS_READ_VERIFY (BsGetUe (pBs, &uiCode)); //bit_depth_luma_minus8
     if (uiCode != 0) {
@@ -1075,14 +1081,16 @@ int32_t ParseSps (PWelsDecoderContext pCtx, PBitStringAux pBsAux, int32_t* pPicW
     WELS_READ_VERIFY (BsGetUe (pBs, &uiCode)); //frame_crop_right_offset
     pSps->sFrameCrop.iRightOffset	= uiCode;
     if ((pSps->sFrameCrop.iLeftOffset + pSps->sFrameCrop.iRightOffset) > ((int32_t)pSps->iMbWidth * 16 / 2)) {
-      WelsLog (& (pCtx->sLogCtx), WELS_LOG_WARNING, "frame_crop_left_offset + frame_crop_right_offset exceeds limits!");
+      WelsLog (& (pCtx->sLogCtx), WELS_LOG_ERROR, "frame_crop_left_offset + frame_crop_right_offset exceeds limits!");
+      return GENERATE_ERROR_NO (ERR_LEVEL_PARAM_SETS, ERR_INFO_INVALID_CROPPING_DATA);
     }
     WELS_READ_VERIFY (BsGetUe (pBs, &uiCode)); //frame_crop_top_offset
     pSps->sFrameCrop.iTopOffset		= uiCode;
     WELS_READ_VERIFY (BsGetUe (pBs, &uiCode)); //frame_crop_bottom_offset
     pSps->sFrameCrop.iBottomOffset	= uiCode;
     if ((pSps->sFrameCrop.iTopOffset + pSps->sFrameCrop.iBottomOffset) > ((int32_t)pSps->iMbHeight * 16 / 2)) {
-      WelsLog (& (pCtx->sLogCtx), WELS_LOG_WARNING, "frame_crop_top_offset + frame_crop_right_offset exceeds limits!");
+      WelsLog (& (pCtx->sLogCtx), WELS_LOG_ERROR, "frame_crop_top_offset + frame_crop_right_offset exceeds limits!");
+      return GENERATE_ERROR_NO (ERR_LEVEL_PARAM_SETS, ERR_INFO_INVALID_CROPPING_DATA);
     }
   } else {
     pSps->sFrameCrop.iLeftOffset	= 0;				// frame_crop_left_offset
