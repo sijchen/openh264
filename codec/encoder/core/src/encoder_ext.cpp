@@ -2421,7 +2421,7 @@ int32_t WelsInitEncoderExt (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pCodingPar
   iRet	=	pCodingParam->DetermineTemporalSettings();
   if (iRet != ENC_RETURN_SUCCESS) {
     WelsLog (pLogCtx, WELS_LOG_ERROR,
-             "WelsInitEncoderExt(), DetermineTemporalSettings failed return %d (check in/out frame rate and temporal layer setting!)",
+             "WelsInitEncoderExt(), DetermineTemporalSettings failed return %d (check in/out frame rate and temporal layer setting! -- in/out = 2^x, x <= temppral_layer_num)",
              iRet);
     return iRet;
   }
