@@ -593,17 +593,8 @@ void MeRefineFracPixelNull (sWelsEncCtx* pEncCtx, uint8_t* pMemPredInterMb, SWel
   pMe->uiSatdCost = iBestCost;
 
   //No half or quarter pixel best, so do MC with integer pixel MV
-  if (MB_WIDTH_LUMA == iWidth && MB_HEIGHT_LUMA == iHeight) { //P16x16
-    pFunc->pfCopy16x16NotAligned (pMemPredInterMb, MB_WIDTH_LUMA, pBestPredInter,
-                                  kiStrideRef);	// dst can be align with 16 bytes, but not sure at pSrc, 12/29/2011
-  } else if (MB_WIDTH_LUMA == iWidth && MB_HEIGHT_CHROMA == iHeight) { //P16x8
-    pFunc->pfCopy16x8NotAligned (pMemPredInterMb, MB_WIDTH_LUMA, pBestPredInter,
-                                 kiStrideRef);	// dst can be align with 16 bytes, but not sure at pSrc, 12/29/2011
-  } else if (MB_WIDTH_CHROMA == iWidth && MB_HEIGHT_LUMA == iHeight) { //P8x16
-    pFunc->pfCopy8x16Aligned (pMemPredInterMb, MB_WIDTH_LUMA, pBestPredInter, kiStrideRef);
-  } else { //P8x8
-    pFunc->pfCopy8x8Aligned (pMemPredInterMb, MB_WIDTH_LUMA, pBestPredInter, kiStrideRef);
-  }
+  pMeRefine->pfCopyBlockByMode(pMemPredInterMb, MB_WIDTH_LUMA, pBestPredInter,
+                               iInterBlk4Stride);
 }
 
 void MeRefineFracPixel (sWelsEncCtx* pEncCtx, uint8_t* pMemPredInterMb, SWelsME* pMe,
