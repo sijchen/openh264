@@ -79,7 +79,6 @@ void WelsInitMeFunc (SWelsFuncPtrList* pFuncList, uint32_t uiCpuFlag, bool bScre
       pFuncList->pfCalculateBlockFeatureOfFrame[1] = NULL;
     pFuncList->pfCalculateSingleBlockFeature[0] =
       pFuncList->pfCalculateSingleBlockFeature[1] = NULL;
-
   } else {
     pFuncList->pfCheckDirectionalMv = CheckDirectionalMv;
 

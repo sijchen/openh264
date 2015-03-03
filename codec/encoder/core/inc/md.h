@@ -149,6 +149,8 @@ uint8_t MdInterAnalysisVaaInfo_c (int32_t* pSad8x8);
 void InitMeRefinePointer (SMeRefinePointer* pMeRefine, SMbCache* pMbCache, int32_t iStride);
 void MeRefineFracPixel (sWelsEncCtx* pEncCtx, uint8_t* pMemPredInterMb, SWelsME* pMe,
                         SMeRefinePointer* pMeRefine, int32_t iWidth, int32_t iHeight);
+void MeRefineSkipFracPixel (sWelsEncCtx* pEncCtx, uint8_t* pMemPredInterMb, SWelsME* pMe,
+                              SMeRefinePointer* pMeRefine, int32_t iWidth, int32_t iHeight);
 
 void InitBlkStrideWithRef (int32_t* pBlkStride, const int32_t kiStrideRef);
 

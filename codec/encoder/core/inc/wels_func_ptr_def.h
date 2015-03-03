@@ -54,6 +54,7 @@ typedef struct TagVAAFrameInfo SVAAFrameInfo;
 
 typedef struct TagWelsME SWelsME;
 typedef struct TagWelsMD SWelsMD;
+typedef struct TagMeRefinePointer SMeRefinePointer;
 
 typedef void (*PSetMemoryZero) (void* pDst, int32_t iSize);
 typedef void (*PDctFunc) (int16_t* pDct, uint8_t* pSample1, int32_t iStride1, uint8_t* pSample2, int32_t iStride2);
@@ -128,6 +129,9 @@ typedef int32_t (*PIntraPred4x4Combined3Func) (uint8_t*, int32_t, uint8_t*, int3
 typedef int32_t (*PIntraPred16x16Combined3Func) (uint8_t*, int32_t, uint8_t*, int32_t, int32_t*, int32_t, uint8_t*);
 typedef int32_t (*PIntraPred8x8Combined3Func) (uint8_t*, int32_t, uint8_t*, int32_t, int32_t*, int32_t, uint8_t*,
     uint8_t*, uint8_t*);
+
+typedef void (*PMotionFracPixelSearchFunc) (sWelsEncCtx* pEncCtx, uint8_t*, SWelsME* pMe, SMeRefinePointer* pMeRefine,
+    int32_t iWidth, int32_t);
 
 typedef uint32_t (*PSampleSadHor8Func) (uint8_t*, int32_t, uint8_t*, int32_t, uint16_t*, int32_t*);
 typedef void (*PMotionSearchFunc) (SWelsFuncPtrList* pFuncList, SDqLayer* pCurDqLayer, SWelsME* pMe,
@@ -219,6 +223,7 @@ struct TagWelsFuncPointerList {
   PMotionSearchFunc
   pfMotionSearch[BLOCK_STATIC_IDC_ALL]; //svc_encode_slice.c svc_mode_decision.c svc_enhance_layer_md.c svc_base_layer_md.c
   PSearchMethodFunc pfSearchMethod[BLOCK_SIZE_ALL];
+  PMotionFracPixelSearchFunc pfFracPixelSearchFunc;
   PCalculateSatdFunc pfCalculateSatd;
   PCheckDirectionalMv pfCheckDirectionalMv;
 

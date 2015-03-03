@@ -1452,7 +1452,7 @@ void WelsMdInterMbRefinement (sWelsEncCtx* pEncCtx, SWelsMD* pWelsMd, SMB* pCurM
     InitMeRefinePointer (&sMeRefine, pMbCache, 0);
     sMeRefine.pfCopyBlockByMode =
       pFunc->pfCopy16x16NotAligned; // dst can be align with 16 bytes, but not sure at pSrc, 12/29/2011
-    MeRefineFracPixel (pEncCtx, pDstLuma, &pWelsMd->sMe.sMe16x16, &sMeRefine, 16, 16);
+    pFunc->pfFracPixelSearchFunc (pEncCtx, pDstLuma, &pWelsMd->sMe.sMe16x16, &sMeRefine, 16, 16);
     UpdateP16x16MotionInfo (pMbCache, pCurMb, pWelsMd->uiRef, &pWelsMd->sMe.sMe16x16.sMv);
 
     pMbCache->sMbMvp[0] = pWelsMd->sMe.sMe16x16.sMvp;
@@ -1486,7 +1486,8 @@ void WelsMdInterMbRefinement (sWelsEncCtx* pEncCtx, SWelsMD* pWelsMd, SMB* pCurM
       InitMeRefinePointer (&sMeRefine, pMbCache, iPixStride);
       iPixStride += ME_REFINE_BUF_STRIDE_BLK8;
       PredInter16x8Mv (pMbCache, iIdx, pWelsMd->uiRef, &pWelsMd->sMe.sMe16x8[i].sMvp);
-      MeRefineFracPixel (pEncCtx, pDstLuma + g_kuiSmb4AddrIn256[iIdx], &pWelsMd->sMe.sMe16x8[i], &sMeRefine, 16, 8);
+      pFunc->pfFracPixelSearchFunc (pEncCtx, pDstLuma + g_kuiSmb4AddrIn256[iIdx], &pWelsMd->sMe.sMe16x8[i], &sMeRefine, 16,
+                                    8);
       UpdateP16x8MotionInfo (pMbCache, pCurMb, iIdx, pWelsMd->uiRef, &pWelsMd->sMe.sMe16x8[i].sMv);
       pMbCache->sMbMvp[i] = pWelsMd->sMe.sMe16x8[i].sMvp;
       //save the best cost of final mode
@@ -1516,7 +1517,8 @@ void WelsMdInterMbRefinement (sWelsEncCtx* pEncCtx, SWelsMD* pWelsMd, SMB* pCurM
       InitMeRefinePointer (&sMeRefine, pMbCache, iPixStride);
       iPixStride += ME_REFINE_BUF_WIDTH_BLK8;
       PredInter8x16Mv (pMbCache, iIdx, pWelsMd->uiRef, &pWelsMd->sMe.sMe8x16[i].sMvp);
-      MeRefineFracPixel (pEncCtx, pDstLuma + g_kuiSmb4AddrIn256[iIdx], &pWelsMd->sMe.sMe8x16[i], &sMeRefine, 8, 16);
+      pFunc->pfFracPixelSearchFunc (pEncCtx, pDstLuma + g_kuiSmb4AddrIn256[iIdx], &pWelsMd->sMe.sMe8x16[i], &sMeRefine, 8,
+                                    16);
       update_P8x16_motion_info (pMbCache, pCurMb, iIdx, pWelsMd->uiRef, &pWelsMd->sMe.sMe8x16[i].sMv);
       pMbCache->sMbMvp[i] = pWelsMd->sMe.sMe8x16[i].sMvp;
       //save the best cost of final mode
@@ -1546,7 +1548,8 @@ void WelsMdInterMbRefinement (sWelsEncCtx* pEncCtx, SWelsMD* pWelsMd, SMB* pCurM
       //luma
       InitMeRefinePointer (&sMeRefine, pMbCache, g_kiPixStrideIdx8x8[i]);
       PredMv (&pMbCache->sMvComponents, iBlk8Idx, 2, pWelsMd->uiRef, &pWelsMd->sMe.sMe8x8[i].sMvp);
-      MeRefineFracPixel (pEncCtx, pDstLuma + g_kuiSmb4AddrIn256[iBlk8Idx], &pWelsMd->sMe.sMe8x8[i], &sMeRefine, 8, 8);
+      pFunc->pfFracPixelSearchFunc (pEncCtx, pDstLuma + g_kuiSmb4AddrIn256[iBlk8Idx], &pWelsMd->sMe.sMe8x8[i], &sMeRefine, 8,
+                                    8);
       UpdateP8x8MotionInfo (pMbCache, pCurMb, iBlk8Idx, pWelsMd->uiRef, &pWelsMd->sMe.sMe8x8[i].sMv);
       pMbCache->sMbMvp[i] = pWelsMd->sMe.sMe8x8[i].sMvp;
       iBestSadCost += pWelsMd->sMe.sMe8x8[i].uiSadCost;

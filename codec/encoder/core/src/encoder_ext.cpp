@@ -3040,6 +3040,9 @@ void PreprocessSliceCoding (sWelsEncCtx* pCtx) {
           pFuncList->pfUpdateFMESwitch = UpdateFMESwitchNull;
         }
       }//if (pFeatureSearchPreparation)
+      // decide subpel search
+      pFuncList->pfFracPixelSearchFunc = ((pFeatureSearchPreparation->bFMESwitchFlag) ? MeRefineSkipFracPixel :
+                                          MeRefineFracPixel);
     } else {
       //reset some status when at I_SLICE
       pCurLayer->pFeatureSearchPreparation->bFMESwitchFlag = true;

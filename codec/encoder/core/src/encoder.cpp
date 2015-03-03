@@ -195,6 +195,7 @@ int32_t InitFunctionPointers (sWelsEncCtx* pEncCtx, SWelsSvcCodingParam* pParam,
 
   /* ME func */
   WelsInitMeFunc (pFuncList, uiCpuFlag, bScreenContent);
+  pFuncList->pfFracPixelSearchFunc = (bScreenContent ? MeRefineSkipFracPixel : MeRefineFracPixel);
 
   /* sad, satd, average */
   WelsInitSampleSadFunc (pFuncList, uiCpuFlag);

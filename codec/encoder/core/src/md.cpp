@@ -571,30 +571,26 @@ inline void MeRefineQuarPixel (SWelsFuncPtrList* pFunc, SWelsME* pMe, SMeRefineP
     SWITCH_BEST_TMP_BUF (pMeRefine->pQuarPixBest, pMeRefine->pQuarPixTmp);
   }
 }
-void MeRefineFracPixelNull (sWelsEncCtx* pEncCtx, uint8_t* pMemPredInterMb, SWelsME* pMe,
+void MeRefineSkipFracPixel (sWelsEncCtx* pEncCtx, uint8_t* pMemPredInterMb, SWelsME* pMe,
                             SMeRefinePointer* pMeRefine, int32_t iWidth, int32_t iHeight) {
   SWelsFuncPtrList* pFunc = pEncCtx->pFuncList;
-  int32_t iBestCost;
   int16_t iMvx = pMe->sMv.iMvX;
   int16_t iMvy = pMe->sMv.iMvY;
-  uint8_t* pEncData = pMe->pEncMb;
   uint8_t* pBestPredInter = pMe->pRefMb;
-
-  const int32_t kiStrideEnc = pEncCtx->pCurDqLayer->iEncStride[0];
   const int32_t kiStrideRef = pEncCtx->pCurDqLayer->pRefPic->iLineSize[0];
-
-  if ((pFunc->sSampleDealingFuncs.pfMeCost == pFunc->sSampleDealingFuncs.pfSampleSatd)
-      && (pFunc->sSampleDealingFuncs.pfMdCost == pFunc->sSampleDealingFuncs.pfSampleSatd)) {
-    iBestCost = pMe->uSadPredISatd.uiSatd + COST_MVD (pMe->pMvdCost, iMvx - pMe->sMvp.iMvX, iMvy - pMe->sMvp.iMvY);
+  if (pEncCtx->pCurDqLayer->bSatdInMdFlag) {
+    pMe->uiSatdCost = pMe->uSadPredISatd.uiSatd + COST_MVD (pMe->pMvdCost, iMvx - pMe->sMvp.iMvX, iMvy - pMe->sMvp.iMvY);
   } else {
-    iBestCost = pFunc->sSampleDealingFuncs.pfMeCost[pMe->uiBlockSize] (pEncData, kiStrideEnc, pBestPredInter, kiStrideRef) +
-                COST_MVD (pMe->pMvdCost, iMvx - pMe->sMvp.iMvX, iMvy - pMe->sMvp.iMvY);
+    uint8_t* pEncData = pMe->pEncMb;
+    const int32_t kiStrideEnc = pEncCtx->pCurDqLayer->iEncStride[0];
+    pMe->uiSatdCost = pFunc->sSampleDealingFuncs.pfMeCost[pMe->uiBlockSize] (pEncData, kiStrideEnc, pBestPredInter,
+                      kiStrideRef) +
+                      COST_MVD (pMe->pMvdCost, iMvx - pMe->sMvp.iMvX, iMvy - pMe->sMvp.iMvY);
   }
-  pMe->uiSatdCost = iBestCost;
 
   //No half or quarter pixel best, so do MC with integer pixel MV
-  pMeRefine->pfCopyBlockByMode(pMemPredInterMb, MB_WIDTH_LUMA, pBestPredInter,
-                               iInterBlk4Stride);
+  pMeRefine->pfCopyBlockByMode (pMemPredInterMb, MB_WIDTH_LUMA, pBestPredInter,
+                                kiStrideRef);
 }
 
 void MeRefineFracPixel (sWelsEncCtx* pEncCtx, uint8_t* pMemPredInterMb, SWelsME* pMe,
