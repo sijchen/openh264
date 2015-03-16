@@ -246,9 +246,9 @@ uint8_t* ParseNalHeader (PWelsDecoderContext pCtx, SNalUnitHeader* pNalUnitHeade
       pBs = &pCtx->sBs;
       iBitSize = (iNalSize << 3) - BsGetTrailingBits (pNal + iNalSize - 1); // convert into bit
 
-      iErr = InitBits (pBs, pNal, iBitSize);
+      iErr = DecInitBits (pBs, pNal, iBitSize);
       if (iErr) {
-        WelsLog (pLogCtx, WELS_LOG_ERROR, "NAL_UNIT_PREFIX: InitBits() fail due invalid access.");
+        WelsLog (pLogCtx, WELS_LOG_ERROR, "NAL_UNIT_PREFIX: DecInitBits() fail due invalid access.");
         pCtx->iErrorCode	|= dsBitstreamError;
         return NULL;
       }
@@ -375,7 +375,7 @@ uint8_t* ParseNalHeader (PWelsDecoderContext pCtx, SNalUnitHeader* pNalUnitHeade
 
     pBs = &pCurAu->pNalUnitsList[uiAvailNalNum - 1]->sNalData.sVclNal.sSliceBitsRead;
     iBitSize = (iNalSize << 3) - BsGetTrailingBits (pNal + iNalSize - 1); // convert into bit
-    iErr = InitBits (pBs, pNal, iBitSize);
+    iErr = DecInitBits (pBs, pNal, iBitSize);
     if (iErr) {
       ForceClearCurrentNal (pCurAu);
       if (uiAvailNalNum > 1) {
@@ -384,7 +384,7 @@ uint8_t* ParseNalHeader (PWelsDecoderContext pCtx, SNalUnitHeader* pNalUnitHeade
           pCtx->bAuReadyFlag = true;
         }
       }
-      WelsLog (pLogCtx, WELS_LOG_ERROR, "NAL_UNIT_CODED_SLICE: InitBits() fail due invalid access.");
+      WelsLog (pLogCtx, WELS_LOG_ERROR, "NAL_UNIT_CODED_SLICE: DecInitBits() fail due invalid access.");
       pCtx->iErrorCode	|= dsBitstreamError;
       return NULL;
     }
@@ -592,7 +592,7 @@ int32_t ParseNonVclNal (PWelsDecoderContext pCtx, uint8_t* pRbsp, const int32_t 
   case NAL_UNIT_SPS:
   case NAL_UNIT_SUBSET_SPS:
     if (iBitSize > 0) {
-      iErr = InitBits (pBs, pRbsp, iBitSize);
+      iErr = DecInitBits (pBs, pRbsp, iBitSize);
       if (ERR_NONE != iErr) {
         if (pCtx->eErrorConMethod == ERROR_CON_DISABLE)
           pCtx->iErrorCode |= dsNoParamSets;
@@ -614,7 +614,7 @@ int32_t ParseNonVclNal (PWelsDecoderContext pCtx, uint8_t* pRbsp, const int32_t 
 
   case NAL_UNIT_PPS:
     if (iBitSize > 0) {
-      iErr = InitBits (pBs, pRbsp, iBitSize);
+      iErr = DecInitBits (pBs, pRbsp, iBitSize);
       if (ERR_NONE != iErr) {
         if (pCtx->eErrorConMethod == ERROR_CON_DISABLE)
           pCtx->iErrorCode |= dsNoParamSets;
@@ -1149,46 +1149,46 @@ int32_t ParseSps (PWelsDecoderContext pCtx, PBitStringAux pBsAux, int32_t* pPicW
         pCtx->iErrorCode |= dsOutOfMemory;
         return pCtx->iErrorCode;
       }
-      DecInitBitsForEncoding (&sSubsetSpsBs, pBsBuf, (int32_t) (pBs->pEndBuf - pBs->pStartBuf));
-      DecBsWriteBits (&sSubsetSpsBs, 8, 77); //profile_idc, forced to Main profile
-      DecBsWriteOneBit (&sSubsetSpsBs, pSps->bConstraintSet0Flag); // constraint_set0_flag
-      DecBsWriteOneBit (&sSubsetSpsBs, pSps->bConstraintSet1Flag); // constraint_set1_flag
-      DecBsWriteOneBit (&sSubsetSpsBs, pSps->bConstraintSet2Flag); // constraint_set2_flag
-      DecBsWriteOneBit (&sSubsetSpsBs, pSps->bConstraintSet3Flag); // constraint_set3_flag
-      DecBsWriteBits (&sSubsetSpsBs, 4, 0); //constraint_set4_flag, constraint_set5_flag, reserved_zero_2bits
-      DecBsWriteBits (&sSubsetSpsBs, 8, pSps->uiLevelIdc); //level_idc
-      DecBsWriteUe (&sSubsetSpsBs, pSps->iSpsId); //sps_id
-      DecBsWriteUe (&sSubsetSpsBs, pSps->uiLog2MaxFrameNum - 4); //log2_max_frame_num_minus4
-      DecBsWriteUe (&sSubsetSpsBs, pSps->uiPocType); //pic_order_cnt_type
+      InitBits (&sSubsetSpsBs, pBsBuf, (int32_t) (pBs->pEndBuf - pBs->pStartBuf));
+      BsWriteBits (&sSubsetSpsBs, 8, 77); //profile_idc, forced to Main profile
+      BsWriteOneBit (&sSubsetSpsBs, pSps->bConstraintSet0Flag); // constraint_set0_flag
+      BsWriteOneBit (&sSubsetSpsBs, pSps->bConstraintSet1Flag); // constraint_set1_flag
+      BsWriteOneBit (&sSubsetSpsBs, pSps->bConstraintSet2Flag); // constraint_set2_flag
+      BsWriteOneBit (&sSubsetSpsBs, pSps->bConstraintSet3Flag); // constraint_set3_flag
+      BsWriteBits (&sSubsetSpsBs, 4, 0); //constraint_set4_flag, constraint_set5_flag, reserved_zero_2bits
+      BsWriteBits (&sSubsetSpsBs, 8, pSps->uiLevelIdc); //level_idc
+      BsWriteUE (&sSubsetSpsBs, pSps->iSpsId); //sps_id
+      BsWriteUE (&sSubsetSpsBs, pSps->uiLog2MaxFrameNum - 4); //log2_max_frame_num_minus4
+      BsWriteUE (&sSubsetSpsBs, pSps->uiPocType); //pic_order_cnt_type
       if (pSps->uiPocType == 0) {
-        DecBsWriteUe (&sSubsetSpsBs, pSps->iLog2MaxPocLsb - 4); //log2_max_pic_order_cnt_lsb_minus4
+        BsWriteUE (&sSubsetSpsBs, pSps->iLog2MaxPocLsb - 4); //log2_max_pic_order_cnt_lsb_minus4
       } else if (pSps->uiPocType == 1) {
-        DecBsWriteOneBit (&sSubsetSpsBs, pSps->bDeltaPicOrderAlwaysZeroFlag); //delta_pic_order_always_zero_flag
-        DecBsWriteSe (&sSubsetSpsBs, pSps->iOffsetForNonRefPic); //offset_for_no_ref_pic
-        DecBsWriteSe (&sSubsetSpsBs, pSps->iOffsetForTopToBottomField); //offset_for_top_to_bottom_field
-        DecBsWriteUe (&sSubsetSpsBs, pSps->iNumRefFramesInPocCycle); //num_ref_frames_in_pic_order_cnt_cycle
+        BsWriteOneBit (&sSubsetSpsBs, pSps->bDeltaPicOrderAlwaysZeroFlag); //delta_pic_order_always_zero_flag
+        BsWriteSE (&sSubsetSpsBs, pSps->iOffsetForNonRefPic); //offset_for_no_ref_pic
+        BsWriteSE (&sSubsetSpsBs, pSps->iOffsetForTopToBottomField); //offset_for_top_to_bottom_field
+        BsWriteUE (&sSubsetSpsBs, pSps->iNumRefFramesInPocCycle); //num_ref_frames_in_pic_order_cnt_cycle
         for (int32_t i = 0; i < pSps->iNumRefFramesInPocCycle; ++i) {
-          DecBsWriteSe (&sSubsetSpsBs, pSps->iOffsetForRefFrame[i]); //offset_for_ref_frame[i]
+          BsWriteSE (&sSubsetSpsBs, pSps->iOffsetForRefFrame[i]); //offset_for_ref_frame[i]
         }
       }
-      DecBsWriteUe (&sSubsetSpsBs, pSps->iNumRefFrames); //max_num_ref_frames
-      DecBsWriteOneBit (&sSubsetSpsBs, pSps->bGapsInFrameNumValueAllowedFlag); //gaps_in_frame_num_value_allowed_flag
-      DecBsWriteUe (&sSubsetSpsBs, pSps->iMbWidth - 1); //pic_width_in_mbs_minus1
-      DecBsWriteUe (&sSubsetSpsBs, pSps->iMbHeight - 1); //pic_height_in_map_units_minus1
-      DecBsWriteOneBit (&sSubsetSpsBs, pSps->bFrameMbsOnlyFlag); //frame_mbs_only_flag
+      BsWriteUE (&sSubsetSpsBs, pSps->iNumRefFrames); //max_num_ref_frames
+      BsWriteOneBit (&sSubsetSpsBs, pSps->bGapsInFrameNumValueAllowedFlag); //gaps_in_frame_num_value_allowed_flag
+      BsWriteUE (&sSubsetSpsBs, pSps->iMbWidth - 1); //pic_width_in_mbs_minus1
+      BsWriteUE (&sSubsetSpsBs, pSps->iMbHeight - 1); //pic_height_in_map_units_minus1
+      BsWriteOneBit (&sSubsetSpsBs, pSps->bFrameMbsOnlyFlag); //frame_mbs_only_flag
       if (!pSps->bFrameMbsOnlyFlag) {
-        DecBsWriteOneBit (&sSubsetSpsBs, pSps->bMbaffFlag); //mb_adaptive_frame_field_flag
+        BsWriteOneBit (&sSubsetSpsBs, pSps->bMbaffFlag); //mb_adaptive_frame_field_flag
       }
-      DecBsWriteOneBit (&sSubsetSpsBs, pSps->bDirect8x8InferenceFlag); //direct_8x8_inference_flag
-      DecBsWriteOneBit (&sSubsetSpsBs, pSps->bFrameCroppingFlag); //frame_cropping_flag
+      BsWriteOneBit (&sSubsetSpsBs, pSps->bDirect8x8InferenceFlag); //direct_8x8_inference_flag
+      BsWriteOneBit (&sSubsetSpsBs, pSps->bFrameCroppingFlag); //frame_cropping_flag
       if (pSps->bFrameCroppingFlag) {
-        DecBsWriteUe (&sSubsetSpsBs, pSps->sFrameCrop.iLeftOffset); //frame_crop_left_offset
-        DecBsWriteUe (&sSubsetSpsBs, pSps->sFrameCrop.iRightOffset); //frame_crop_right_offset
-        DecBsWriteUe (&sSubsetSpsBs, pSps->sFrameCrop.iTopOffset); //frame_crop_top_offset
-        DecBsWriteUe (&sSubsetSpsBs, pSps->sFrameCrop.iBottomOffset); //frame_crop_bottom_offset
+        BsWriteUE (&sSubsetSpsBs, pSps->sFrameCrop.iLeftOffset); //frame_crop_left_offset
+        BsWriteUE (&sSubsetSpsBs, pSps->sFrameCrop.iRightOffset); //frame_crop_right_offset
+        BsWriteUE (&sSubsetSpsBs, pSps->sFrameCrop.iTopOffset); //frame_crop_top_offset
+        BsWriteUE (&sSubsetSpsBs, pSps->sFrameCrop.iBottomOffset); //frame_crop_bottom_offset
       }
-      DecBsWriteOneBit (&sSubsetSpsBs, 0); //vui_parameters_present_flag
-      DecBsRbspTrailingBits (&sSubsetSpsBs); //finished, rbsp trailing bit
+      BsWriteOneBit (&sSubsetSpsBs, 0); //vui_parameters_present_flag
+      BsRbspTrailingBits (&sSubsetSpsBs); //finished, rbsp trailing bit
       int32_t iRbspSize = (int32_t) (sSubsetSpsBs.pCurBuf - sSubsetSpsBs.pStartBuf);
       RBSP2EBSP (pSpsBs->pSpsBsBuf + 5, sSubsetSpsBs.pStartBuf, iRbspSize);
       pSpsBs->uiSpsBsLen = (uint16_t) (sSubsetSpsBs.pCurBuf - sSubsetSpsBs.pStartBuf + 5);
@@ -1504,7 +1504,7 @@ int32_t ParseScalingList (PSps pSps, PBitStringAux pBs, bool bPPS, bool* pScalin
                           uint8_t (*iScalingList4x4)[16], uint8_t (*iScalingList8x8)[64]) {
   uint32_t uiScalingListNum;
   uint32_t uiCode;
-  int32_t iRetTmp;
+
   bool bUseDefaultScalingMatrixFlag4x4 = false;
   bool bUseDefaultScalingMatrixFlag8x8 = false;
   bool bInit = false;
@@ -1526,28 +1526,21 @@ int32_t ParseScalingList (PSps pSps, PBitStringAux pBs, bool bPPS, bool* pScalin
     WELS_READ_VERIFY (BsGetOneBit (pBs, &uiCode));
     pScalingListPresentFlag[i] = !!uiCode;
     if (!!uiCode) {
-      if (i < 6) {
-        iRetTmp = SetScalingListValue (iScalingList4x4[i], 16, &bUseDefaultScalingMatrixFlag4x4, pBs);
-        if (iRetTmp == ERR_NONE) {
-          if (bUseDefaultScalingMatrixFlag4x4) {
-            bUseDefaultScalingMatrixFlag4x4 = false;
-            memcpy (iScalingList4x4[i], g_kuiDequantScaling4x4Default[i / 3], sizeof (uint8_t) * 16);
-          }
-        } else
-          return iRetTmp;
+      if (i < 6) {//4x4 scaling list
+        WELS_READ_VERIFY (SetScalingListValue (iScalingList4x4[i], 16, &bUseDefaultScalingMatrixFlag4x4, pBs));
+        if (bUseDefaultScalingMatrixFlag4x4) {
+          bUseDefaultScalingMatrixFlag4x4 = false;
+          memcpy (iScalingList4x4[i], g_kuiDequantScaling4x4Default[i / 3], sizeof (uint8_t) * 16);
+        }
+
 
       } else {
-        SetScalingListValue (iScalingList8x8[i - 6], 64, &bUseDefaultScalingMatrixFlag8x8, pBs);
-        //if(iRetTmp == ERR_NONE)
-        //{
+        WELS_READ_VERIFY (SetScalingListValue (iScalingList8x8[i - 6], 64, &bUseDefaultScalingMatrixFlag8x8, pBs));
+
         if (bUseDefaultScalingMatrixFlag8x8) {
           bUseDefaultScalingMatrixFlag8x8 = false;
           memcpy (iScalingList8x8[i - 6], g_kuiDequantScaling8x8Default[ (i - 6) & 1], sizeof (uint8_t) * 64);
         }
-        // }
-
-        //else
-        // return iRetTmp;
       }
 
     } else {
@@ -1561,7 +1554,7 @@ int32_t ParseScalingList (PSps pSps, PBitStringAux pBs, bool bPPS, bool* pScalin
         if ((i == 6) || (i == 7))
           memcpy (iScalingList8x8[i - 6], defaultScaling[ (i & 1) + 2], sizeof (uint8_t) * 64);
         else
-          memcpy (iScalingList8x8[i - 6], iScalingList8x8[ (i - 6) / 3], sizeof (uint8_t) * 64);
+          memcpy (iScalingList8x8[i - 6], iScalingList8x8[i - 8], sizeof (uint8_t) * 64);
 
       }
     }
