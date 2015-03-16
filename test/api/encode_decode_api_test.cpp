@@ -2217,8 +2217,6 @@ TEST_F (EncodeDecodeTestAPI, SetOptionEncParamExt) {
     int iResult;
     int len = 0;
     unsigned char* pData[3] = { NULL };
-    int iTotalSliceSize = 0;
-
 
     RandomParamExtCombination();
     iResult = encoder_->SetOption (ENCODER_OPTION_SVC_ENCODE_PARAM_EXT, &param_);
@@ -2235,11 +2233,11 @@ TEST_F (EncodeDecodeTestAPI, SetOptionEncParamExt) {
       pData[0] = pData[1] = pData[2] = 0;
       memset (&dstBufInfo_, 0, sizeof (SBufferInfo));
 
-      iResult = decoder_->DecodeFrame2 (info.sLayerInfo[0].pBsBuf, iTotalSliceSize, pData, &dstBufInfo_);
+      iResult = decoder_->DecodeFrame2 (info.sLayerInfo[0].pBsBuf, len, pData, &dstBufInfo_);
       ASSERT_TRUE (iResult == cmResultSuccess);
       iResult = decoder_->DecodeFrame2 (NULL, 0, pData, &dstBufInfo_);
       ASSERT_TRUE (iResult == cmResultSuccess);
-      EXPECT_EQ (dstBufInfo_.iBufferStatus, 0);
+      EXPECT_EQ (dstBufInfo_.iBufferStatus, 1);
     }
   }
 
@@ -2316,14 +2314,20 @@ struct EncodeDecodeParamBase {
   int iTarBitrate;
 };
 
-
+#define NUM_OF_POSSIBLE_RESOLUTION (9)
 static const EncodeDecodeParamBase kParamArray[] = {
   {160, 90, 6.0f, 250000},
+  {90, 160, 6.0f, 250000},
   {320, 180, 12.0f, 500000},
+  {180, 320, 12.0f, 500000},
+  {480, 270, 12.0f, 600000},
+  {270, 480, 12.0f, 600000},
   {640, 360, 24.0f, 800000},
+  {360, 640, 24.0f, 800000},
+  {1280, 720, 24.0f, 1000000},
 };
 
-//#define DEBUG_FILE_SAVE
+//#define DEBUG_FILE_SAVE_CRA
 TEST_F (DecodeCrashTestAPI, DecoderCrashTest) {
   uint32_t uiGet;
   encoder_->Uninitialize();
@@ -2332,33 +2336,62 @@ TEST_F (DecodeCrashTestAPI, DecoderCrashTest) {
   unsigned int uiLoopRound = 0;
   unsigned char* pucBuf = ucBuf_;
   int iDecAuSize;
-#ifdef DEBUG_FILE_SAVE
+#ifdef DEBUG_FILE_SAVE_CRA
   //open file to save tested BS
-  FILE* f = fopen ("test_crash.264", "wb");
+  FILE* fDataFile = fopen ("test_crash.264", "wb");
+  FILE* fLenFile = fopen ("test_crash_len.log", "w");
   int iFileSize = 0;
 #endif
 
+  //set eCurStrategy for one test
+  EParameterSetStrategy eCurStrategy = CONSTANT_ID;
+  switch (rand() % 7) {
+  case 1:
+    eCurStrategy = INCREASING_ID;
+    break;
+  case 2:
+    eCurStrategy = SPS_LISTING;
+    break;
+  case 3:
+    eCurStrategy = SPS_LISTING_AND_PPS_INCREASING;
+    break;
+  case 6:
+    eCurStrategy = SPS_PPS_LISTING;
+    break;
+  default:
+    //using the initial value
+    break;
+  }
+
   do {
     int iTotalFrameNum = (rand() % 100) + 1;
-    int iSeed = rand() % 3; //3 indicates the length of kParamArray[] used in the following
+    int iSeed = rand() % NUM_OF_POSSIBLE_RESOLUTION;
     EncodeDecodeParamBase p = kParamArray[iSeed];
+#ifdef DEBUG_FILE_SAVE_CRA
+    printf ("using param set %d in loop %d\n", iSeed, uiLoopRound);
+#endif
     //Initialize Encoder
     prepareParam (1, 1, p.width, p.height, p.frameRate, &param_);
-    param_.iRCMode = RC_BITRATE_MODE;
+    param_.iRCMode = RC_TIMESTAMP_MODE;
     param_.iTargetBitrate = p.iTarBitrate;
     param_.uiIntraPeriod = 0;
-    param_.eSpsPpsIdStrategy = INCREASING_ID;
+    param_.eSpsPpsIdStrategy = eCurStrategy;
     param_.bEnableBackgroundDetection = true;
-    param_.bEnableSceneChangeDetect = true;
-    param_.bPrefixNalAddingCtrl = true;
+    param_.bEnableSceneChangeDetect = (rand() % 3) ? true : false;
+    param_.bPrefixNalAddingCtrl = (rand() % 2) ? true : false;
     param_.iEntropyCodingModeFlag = 0;
     param_.bEnableFrameSkip = true;
-    param_.uiMaxNalSize = 1400;
     param_.iMultipleThreadIdc = 0;
     param_.sSpatialLayers[0].iSpatialBitrate = p.iTarBitrate;
     param_.sSpatialLayers[0].iMaxSpatialBitrate = p.iTarBitrate << 1;
-    param_.sSpatialLayers[0].sSliceCfg.uiSliceMode = SM_DYN_SLICE;
-    param_.sSpatialLayers[0].sSliceCfg.sSliceArgument.uiSliceSizeConstraint = 1000;
+    param_.sSpatialLayers[0].sSliceCfg.uiSliceMode = (rand() % 2) ? SM_DYN_SLICE : SM_SINGLE_SLICE;
+    if (param_.sSpatialLayers[0].sSliceCfg.uiSliceMode == SM_DYN_SLICE) {
+      param_.sSpatialLayers[0].sSliceCfg.sSliceArgument.uiSliceSizeConstraint = 1400;
+      param_.uiMaxNalSize = 1400;
+    } else {
+      param_.sSpatialLayers[0].sSliceCfg.sSliceArgument.uiSliceSizeConstraint = 0;
+      param_.uiMaxNalSize = 0;
+    }
 
     int rv = encoder_->InitializeExt (&param_);
     ASSERT_TRUE (rv == cmResultSuccess);
@@ -2379,11 +2412,11 @@ TEST_F (DecodeCrashTestAPI, DecoderCrashTest) {
     prepareEncDecParam (pInput);
     while (iIdx++ < iTotalFrameNum) { // loop in frame
       EncodeOneFrame();
-#ifdef DEBUG_FILE_SAVE
+#ifdef DEBUG_FILE_SAVE_CRA
       //reset file if file size large
       if ((info.eFrameType == videoFrameTypeIDR) && (iFileSize >= (1 << 25))) {
-        fclose (f);
-        f = fopen ("test_crash.264", "wb");
+        fclose (fDataFile);
+        fDataFile = fopen ("test_crash.264", "wb");
         iFileSize = 0;
         decoder_->Uninitialize();
 
@@ -2411,7 +2444,8 @@ TEST_F (DecodeCrashTestAPI, DecoderCrashTest) {
         for (int iNalCnt = 0; iNalCnt < iTotalNalCnt; iNalCnt++) {  //loop in NAL
           int iPacketSize = pLayerBsInfo->pNalLengthInByte[iNalCnt];
           //packet loss
-          int iLossRate = (rand() % 11); //loss rate among 0 ~ 10%
+          int iLossRateRange = (uiLoopRound % 100) + 1; //1-100
+          int iLossRate = (rand() % iLossRateRange);
           bool bPacketLost = (rand() % 101) > (100 -
                                                iLossRate);   // [0, (100-iLossRate)] indicates NO LOSS, (100-iLossRate, 100] indicates LOSS
           if (!bPacketLost) { //no loss
@@ -2419,15 +2453,29 @@ TEST_F (DecodeCrashTestAPI, DecoderCrashTest) {
             pucBuf += iPacketSize;
             iDecAuSize += iPacketSize;
           }
+#ifdef DEBUG_FILE_SAVE_CRA
+          else {
+            printf ("lost packet size=%d at frame-type=%d at loss rate %d (%d)\n", iPacketSize, info.eFrameType, iLossRate,
+                    iLossRateRange);
+          }
+#endif
           //update bs info
           pBsBuf += iPacketSize;
         } //nal
       } //layer
 
-#ifdef DEBUG_FILE_SAVE
+#ifdef DEBUG_FILE_SAVE_CRA
       //save to file
-      fwrite (ucBuf_, 1, iDecAuSize, f);
+      fwrite (ucBuf_, 1, iDecAuSize, fDataFile);
+      fflush (fDataFile);
       iFileSize += iDecAuSize;
+
+      //save to len file
+      unsigned long ulTmp[4];
+      ulTmp[0] = ulTmp[1] = ulTmp[2] = iIdx;
+      ulTmp[3] = iDecAuSize;
+      fwrite (ulTmp, sizeof (unsigned long), 4, fLenFile); // index, timeStamp, data size
+      fflush (fLenFile);
 #endif
 
       //decode
@@ -2443,11 +2491,12 @@ TEST_F (DecodeCrashTestAPI, DecoderCrashTest) {
     uiLoopRound ++;
     if (uiLoopRound >= (1 << 30))
       uiLoopRound = 0;
-#ifdef DEBUG_FILE_SAVE
+#ifdef DEBUG_FILE_SAVE_CRA
     if (uiLoopRound % 100 == 0)
       printf ("run %d times.\n", uiLoopRound);
   } while (1); //while (iLoopRound<100);
-  fclose (f);
+  fclose (fDataFile);
+  fclose (fLenFile);
 #else
   }
   while (uiLoopRound < 10);
@@ -2461,7 +2510,6 @@ const uint32_t kiWidth = 160; //DO NOT CHANGE!
 const uint32_t kiHeight = 96; //DO NOT CHANGE!
 const uint32_t kiFrameRate = 12; //DO NOT CHANGE!
 const uint32_t kiFrameNum = 100; //DO NOT CHANGE!
-const uint32_t kiMaxBsSize = 10000000; //DO NOT CHANGE!
 const char* pHashStr[] = { //DO NOT CHANGE!
   "d1c255a57aa2c5e1192a90680c00e6ee3e73fe59",
   "f350001c333902029800bd291fbed915a4bdf19a",
@@ -2487,9 +2535,6 @@ class DecodeParseAPI : public ::testing::TestWithParam<EncodeDecodeFileParamBase
     int rv = decoder_->Initialize (&decParam);
     ASSERT_EQ (0, rv);
     memset (&BsInfo_, 0, sizeof (SParserBsInfo));
-    BsInfo_.pDstBuff = NULL;
-    BsInfo_.pDstBuff = new unsigned char [kiMaxBsSize];
-    ASSERT_TRUE (BsInfo_.pDstBuff != NULL);
     fYuv_ = fopen ("./res/CiscoVT2people_160x96_6fps.yuv", "rb");
     ASSERT_TRUE (fYuv_ != NULL);
     iWidth_ = kiWidth;
@@ -2497,10 +2542,6 @@ class DecodeParseAPI : public ::testing::TestWithParam<EncodeDecodeFileParamBase
   }
   void TearDown() {
     EncodeDecodeTestBase::TearDown();
-    if (BsInfo_.pDstBuff) {
-      delete[] BsInfo_.pDstBuff;
-      BsInfo_.pDstBuff = NULL;
-    }
     fclose (fYuv_);
   }
 
@@ -3449,7 +3490,7 @@ class EncodeTestAPI : public ::testing::TestWithParam<EncodeOptionParam>, public
     uint8_t* ptr = buf_.data();
     uint8_t uiVal = rand() % 256;
     for (int i = 0; i < frameSize; i++) {
-      ptr[i] = bAllRandom? (rand() % 256) :uiVal;
+      ptr[i] = bAllRandom ? (rand() % 256) : uiVal;
     }
     int rv = encoder_->EncodeFrame (&EncPic, &info);
     if (0 == iCheckTypeIndex)
@@ -3464,9 +3505,9 @@ INSTANTIATE_TEST_CASE_P (EncodeDecodeTestAPIBase, EncodeTestAPI,
 
 TEST_P (EncodeTestAPI, SetEncOptionSize) {
   EncodeOptionParam p = GetParam();
-  FILE * pFile = NULL;
-  if (p.sFileSave != NULL && strlen(p.sFileSave) > 0) {
-    pFile = fopen(p.sFileSave, "wb");
+  FILE* pFile = NULL;
+  if (p.sFileSave != NULL && strlen (p.sFileSave) > 0) {
+    pFile = fopen (p.sFileSave, "wb");
   }
   memset (&param_, 0, sizeof (SEncParamExt));
   encoder_->GetDefaultParams (&param_);
@@ -3502,16 +3543,16 @@ TEST_P (EncodeTestAPI, SetEncOptionSize) {
   unsigned char* pData[3] = { NULL };
   while (iIdx <= p.iNumframes) {
     EncodeOneFrameRandom (0, p.bAllRandom);
-    encToDecData(info, iLen);
-    if( pFile ) {
+    encToDecData (info, iLen);
+    if (pFile) {
       fwrite (info.sLayerInfo[0].pBsBuf, iLen, 1, pFile);
       fflush (pFile);
     }
-    memset(&dstBufInfo_, 0, sizeof(SBufferInfo));
-    if(iLen && p.bTestDecoder) {
-      rv = decoder_->DecodeFrameNoDelay(info.sLayerInfo[0].pBsBuf, iLen, pData, &dstBufInfo_);
-      ASSERT_EQ(rv, 0);
-      ASSERT_EQ(dstBufInfo_.iBufferStatus, 1);
+    memset (&dstBufInfo_, 0, sizeof (SBufferInfo));
+    if (iLen && p.bTestDecoder) {
+      rv = decoder_->DecodeFrameNoDelay (info.sLayerInfo[0].pBsBuf, iLen, pData, &dstBufInfo_);
+      ASSERT_EQ (rv, 0);
+      ASSERT_EQ (dstBufInfo_.iBufferStatus, 1);
     }
     int iLayer = 0;
     while (iLayer < info.iLayerNum) {
@@ -3529,7 +3570,7 @@ TEST_P (EncodeTestAPI, SetEncOptionSize) {
     }
     iIdx++;
   }
-  if( pFile ) {
+  if (pFile) {
     fclose (pFile);
   }
 }
