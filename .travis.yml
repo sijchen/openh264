@@ -1,4 +1,4 @@
-nguage: objective-c 
+language: objective-c 
 
 compiler:
   - clang
