@@ -226,6 +226,72 @@ typedef struct TagBitStringAux {
   // need pointer to next byte start position in case 0 bit left then 8 instead
 } SBitStringAux, *PBitStringAux;
 
+/* NAL Unix Header in AVC, refer to Page 56 in JVT X201wcm */
+typedef struct TagNalUnitHeader {
+  uint8_t             uiForbiddenZeroBit;
+  uint8_t             uiNalRefIdc;
+  EWelsNalUnitType    eNalUnitType;
+  uint8_t             uiReservedOneByte;		// only padding usage
+} SNalUnitHeader, *PNalUnitHeader;
+
+/* NAL Unit Header in scalable extension syntax, refer to Page 390 in JVT X201wcm */
+typedef struct TagNalUnitHeaderExt {
+  SNalUnitHeader	sNalUnitHeader;
+
+  //	uint8_t		reserved_one_bit;
+  bool      bIdrFlag;
+  uint8_t   uiPriorityId;
+  int8_t    iNoInterLayerPredFlag;	// change as int8_t to support 3 values probably in encoder
+  uint8_t   uiDependencyId;
+
+  uint8_t   uiQualityId;
+  uint8_t   uiTemporalId;
+  bool      bUseRefBasePicFlag;
+  bool      bDiscardableFlag;
+
+  bool      bOutputFlag;
+  uint8_t   uiReservedThree2Bits;
+  // Derived variable(s)
+  uint8_t   uiLayerDqId;
+  bool      bNalExtFlag;
+} SNalUnitHeaderExt, *PNalUnitHeaderExt;
+
+/* AVC MB types*/
+#define MB_TYPE_INTRA4x4    0x00000001
+#define MB_TYPE_INTRA16x16  0x00000002
+#define MB_TYPE_INTRA8x8    0x00000004
+#define MB_TYPE_16x16       0x00000008
+#define MB_TYPE_16x8        0x00000010
+#define MB_TYPE_8x16        0x00000020
+#define MB_TYPE_8x8         0x00000040
+#define MB_TYPE_8x8_REF0    0x00000080
+#define MB_TYPE_SKIP        0x00000100
+#define MB_TYPE_INTRA_PCM   0x00000200
+#define MB_TYPE_INTRA_BL    0x00000400
+
+#define MB_TYPE_DIRECT2     0x00004000
+
+#define SUB_MB_TYPE_8x8     0x00000001
+#define SUB_MB_TYPE_8x4     0x00000002
+#define SUB_MB_TYPE_4x8     0x00000004
+#define SUB_MB_TYPE_4x4     0x00000008
+
+#define MB_TYPE_INTRA     (MB_TYPE_INTRA4x4 | MB_TYPE_INTRA16x16 | MB_TYPE_INTRA8x8 | MB_TYPE_INTRA_PCM)
+#define MB_TYPE_INTER     (MB_TYPE_16x16 | MB_TYPE_16x8 | MB_TYPE_8x16 | MB_TYPE_8x8 | MB_TYPE_8x8_REF0 | MB_TYPE_SKIP)
+#define IS_INTRA4x4(type) ( MB_TYPE_INTRA4x4 == (type) )
+#define IS_INTRA16x16(type) ( MB_TYPE_INTRA16x16 == (type) )
+#define IS_INTRA(type) ( (type)&MB_TYPE_INTRA )
+#define IS_INTER(type) ( (type)&MB_TYPE_INTER )
+
+#define IS_SKIP(type) ( (type) == MB_TYPE_SKIP )
+#define IS_SVC_INTER(type) IS_INTER(type)
+#define IS_I_BL(type) ( (type) == MB_TYPE_INTRA_BL )
+#define IS_SVC_INTRA(type) ( IS_I_BL(type) || IS_INTRA(type) )
+#define IS_Inter_8x8(type) ( (type) == MB_TYPE_8x8)
+
+#define REF_NOT_AVAIL   -2
+#define REF_NOT_IN_LIST -1  //intra
+
 /////////intra16x16  Luma
 #define I16_PRED_INVALID   -1
 #define I16_PRED_V       0

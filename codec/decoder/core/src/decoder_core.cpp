@@ -74,7 +74,6 @@ static inline int32_t DecodeFrameConstruction (PWelsDecoderContext pCtx, uint8_t
 
   if (pCtx->bParseOnly) { //should exit for parse only to prevent access NULL pDstInfo
     PAccessUnit pCurAu = pCtx->pAccessUnitList;
-    static bool bFirstIDR = true;
     if (dsErrorFree == pCtx->iErrorCode) { //correct decoding, add to data buffer
       SParserBsInfo* pParser = pCtx->pParserBsInfo;
       SNalUnit* pCurNal = NULL;
@@ -94,7 +93,7 @@ static inline int32_t DecodeFrameConstruction (PWelsDecoderContext pCtx, uint8_t
       pParser->iSpsHeightInPixel = (pCtx->pSps->iMbHeight << 4);
 
       if (pCurAu->pNalUnitsList [iIdx]->sNalHeaderExt.bIdrFlag) { //IDR
-        if (bFirstIDR) { //add required sps/pps
+        if (pCtx->bFrameFinish) { //add required sps/pps
           bool bSubSps = (NAL_UNIT_CODED_SLICE_EXT == pCurAu->pNalUnitsList [iIdx]->sNalHeaderExt.sNalUnitHeader.eNalUnitType);
           SSpsBsInfo* pSpsBs = NULL;
           SPpsBsInfo* pPpsBs = NULL;
@@ -111,10 +110,10 @@ static inline int32_t DecodeFrameConstruction (PWelsDecoderContext pCtx, uint8_t
           memcpy (pDstBuf, pPpsBs->pPpsBsBuf, pPpsBs->uiPpsBsLen);
           pParser->iNalLenInByte [pParser->iNalNum ++] = pPpsBs->uiPpsBsLen;
           pDstBuf += pPpsBs->uiPpsBsLen;
-          bFirstIDR = false;
+          pCtx->bFrameFinish = false;
         }
       } else { //IDR required SPS, PPS
-        bFirstIDR = true;
+        pCtx->bFrameFinish = true;
       }
       //then VCL data re-write
       while (iIdx <= iEndIdx) {
@@ -1230,7 +1229,7 @@ int32_t InitialDqLayersContext (PWelsDecoderContext pCtx, const int32_t kiMaxWid
 
     memset (pDq, 0, sizeof (SDqLayer));
 
-    pCtx->sMb.pMbType[i] = (int8_t*)WelsMallocz (pCtx->sMb.iMbWidth * pCtx->sMb.iMbHeight * sizeof (int8_t),
+    pCtx->sMb.pMbType[i] = (int16_t*)WelsMallocz (pCtx->sMb.iMbWidth * pCtx->sMb.iMbHeight * sizeof (int16_t),
                            "pCtx->sMb.pMbType[]");
     pCtx->sMb.pMv[i][0] = (int16_t (*)[16][2])WelsMallocz (pCtx->sMb.iMbWidth * pCtx->sMb.iMbHeight * sizeof (
                             int16_t) * MV_A * MB_BLOCK4x4_NUM, "pCtx->sMb.pMv[][]");
@@ -1265,8 +1264,6 @@ int32_t InitialDqLayersContext (PWelsDecoderContext pCtx, const int32_t kiMaxWid
                                 int8_t) * MB_PARTITION_SIZE, "pCtx->sMb.pSubMbType[]");
     pCtx->sMb.pSliceIdc[i] = (int32_t*) WelsMallocz (pCtx->sMb.iMbWidth * pCtx->sMb.iMbHeight * sizeof (int32_t),
                              "pCtx->sMb.pSliceIdc[]");	// using int32_t for slice_idc, 4/21/2010
-    if (pCtx->sMb.pSliceIdc[i] != NULL)
-      memset (pCtx->sMb.pSliceIdc[i], 0xff, (pCtx->sMb.iMbWidth * pCtx->sMb.iMbHeight * sizeof (int32_t)));
     pCtx->sMb.pResidualPredFlag[i] = (int8_t*) WelsMallocz (pCtx->sMb.iMbWidth * pCtx->sMb.iMbHeight * sizeof (int8_t),
                                      "pCtx->sMb.pResidualPredFlag[]");
     //pCtx->sMb.pMotionPredFlag[i] = (uint8_t *) WelsMallocz(pCtx->sMb.iMbWidth * pCtx->sMb.iMbHeight * sizeof(uint8_t), "pCtx->sMb.pMotionPredFlag[]");
@@ -1302,6 +1299,8 @@ int32_t InitialDqLayersContext (PWelsDecoderContext pCtx, const int32_t kiMaxWid
                             (NULL == pCtx->sMb.pMbCorrectlyDecodedFlag[i])
                            )
                           )
+
+    memset (pCtx->sMb.pSliceIdc[i], 0xff, (pCtx->sMb.iMbWidth * pCtx->sMb.iMbHeight * sizeof (int32_t)));
 
     pCtx->pDqLayersList[i] = pDq;
     ++ i;
@@ -2364,6 +2363,7 @@ bool CheckAndFinishLastPic (PWelsDecoderContext pCtx, uint8_t** ppDst, SBufferIn
       }
     } else if (pCtx->bParseOnly) { //clear parse only internal data status
       pCtx->pParserBsInfo->iNalNum = 0;
+      pCtx->bFrameFinish = true; //clear frame pending status here!
     } else {
       if (DecodeFrameConstruction (pCtx, ppDst, pDstInfo)) {
         pCtx->pDec = NULL;

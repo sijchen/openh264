@@ -31,186 +31,10 @@
  */
 
 #ifdef HAVE_NEON_AARCH64
-.text
 #include "arm_arch64_common_macro.S"
 .align 4
 filter_para: .short 0, 1, -5, 20, 0, 0, 0, 0
 
-#ifdef __APPLE__
-
-.macro FILTER_6TAG_8BITS1
-//  {   // input:src[-2], src[-1], src[0], src[1], src[2], src[3], dst_d, multiplier a/b; working: v18, v19
-    uaddl v18.8h, $0.8b, $5.8b //v18=src[-2]+src[3]
-    uaddl v19.8h, $2.8b, $3.8b  //src[0]+src[1]
-    mla v18.8h, v19.8h, $7.8h  //v18 += 20*(src[0]+src[1]), 2 cycles
-    uaddl v19.8h, $1.8b, $4.8b  //src[-1]+src[2]
-    mls v18.8h, v19.8h, $8.8h  //v18 -= 5*(src[-1]+src[2]), 2 cycles
-    sqrshrun $6.8b, v18.8h, #5
-//  }
-.endm
-
-.macro FILTER_6TAG_8BITS2
-//  {   // input:src[-2], src[-1], src[0], src[1], src[2], src[3], dst_d, multiplier a/b; working: v18, v19
-    uaddl2 v18.8h, $0.16b, $5.16b //v18=src[-2]+src[3]
-    uaddl2 v19.8h, $2.16b, $3.16b   //src[0]+src[1]
-    mla v18.8h, v19.8h, $7.8h  //v18 += 20*(src[0]+src[1]), 2 cycles
-    uaddl2 v19.8h, $1.16b, $4.16b  //src[-1]+src[2]
-    mls v18.8h, v19.8h, $8.8h  //v18 -= 5*(src[-1]+src[2]), 2 cycles
-    sqrshrun2 $6.16b, v18.8h, #5
-//  }
-.endm
-
-.macro FILTER_6TAG_8BITS1_AVERAGE_WITH_0
-//  {   // input:src[-2], src[-1], src[0], src[1], src[2], src[3], dst_d, multiplier a/b; working: v18, v19
-    uaddl v18.8h, $0.8b, $5.8b //v18=src[-2]+src[3]
-    uaddl v19.8h, $2.8b, $3.8b  //src[0]+src[1]
-    mla v18.8h, v19.8h, $7.8h  //v18 += 20*(src[0]+src[1]), 2 cycles
-    uaddl v19.8h, $1.8b, $4.8b  //src[-1]+src[2]
-    mls v18.8h, v19.8h, $8.8h  //v18 -= 5*(src[-1]+src[2]), 2 cycles
-    sqrshrun $6.8b, v18.8h, #5
-    uaddl  v19.8h, $2.8b, $6.8b
-    rshrn $6.8b, v19.8h, #1
-//  }
-.endm
-
-.macro FILTER_6TAG_8BITS2_AVERAGE_WITH_0
-//  {   // input:src[-2], src[-1], src[0], src[1], src[2], src[3], dst_d, multiplier a/b; working: v18, v19
-    uaddl2 v18.8h, $0.16b, $5.16b //v18=src[-2]+src[3]
-    uaddl2 v19.8h, $2.16b, $3.16b   //src[0]+src[1]
-    mla v18.8h, v19.8h, $7.8h  //v18 += 20*(src[0]+src[1]), 2 cycles
-    uaddl2 v19.8h, $1.16b, $4.16b  //src[-1]+src[2]
-    mls v18.8h, v19.8h, $8.8h  //v18 -= 5*(src[-1]+src[2]), 2 cycles
-    sqrshrun2 $6.16b, v18.8h, #5
-    uaddl2  v19.8h, $2.16b, $6.16b
-    rshrn2 $6.16b, v19.8h, #1
-//  }
-.endm
-
-.macro FILTER_6TAG_8BITS1_AVERAGE_WITH_1
-//  {   // input:src[-2], src[-1], src[0], src[1], src[2], src[3], dst_d, multiplier a/b; working: v18, v19
-    uaddl v18.8h, $0.8b, $5.8b //v18=src[-2]+src[3]
-    uaddl v19.8h, $2.8b, $3.8b  //src[0]+src[1]
-    mla v18.8h, v19.8h, $7.8h  //v18 += 20*(src[0]+src[1]), 2 cycles
-    uaddl v19.8h, $1.8b, $4.8b  //src[-1]+src[2]
-    mls v18.8h, v19.8h, $8.8h  //v18 -= 5*(src[-1]+src[2]), 2 cycles
-    sqrshrun $6.8b, v18.8h, #5
-    uaddl  v19.8h, $3.8b, $6.8b
-    rshrn $6.8b, v19.8h, #1
-//  }
-.endm
-
-.macro FILTER_6TAG_8BITS2_AVERAGE_WITH_1
-//  {   // input:src[-2], src[-1], src[0], src[1], src[2], src[3], dst_d, multiplier a/b; working: v18, v19
-    uaddl2 v18.8h, $0.16b, $5.16b //v18=src[-2]+src[3]
-    uaddl2 v19.8h, $2.16b, $3.16b   //src[0]+src[1]
-    mla v18.8h, v19.8h, $7.8h  //v18 += 20*(src[0]+src[1]), 2 cycles
-    uaddl2 v19.8h, $1.16b, $4.16b  //src[-1]+src[2]
-    mls v18.8h, v19.8h, $8.8h  //v18 -= 5*(src[-1]+src[2]), 2 cycles
-    sqrshrun2 $6.16b, v18.8h, #5
-    uaddl2  v19.8h, $3.16b, $6.16b
-    rshrn2 $6.16b, v19.8h, #1
-//  }
-.endm
-
-.macro FILTER_6TAG_8BITS_TO_16BITS1
-//  {   // input:d_src[-2], d_src[-1], d_src[0], d_src[1], d_src[2], d_src[3], dst_q, multiplier a/b; working:v31
-    uaddl   $6.8h, $0.8b, $5.8b     //dst_q=src[-2]+src[3]
-    uaddl   v31.8h, $2.8b, $3.8b    //src[0]+src[1]
-    mla $6.8h, v31.8h, $7.8h    //dst_q += 20*(src[0]+src[1]), 2 cycles
-    uaddl   v31.8h, $1.8b, $4.8b    //src[-1]+src[2]
-    mls $6.8h, v31.8h, $8.8h    //dst_q -= 5*(src[-1]+src[2]), 2 cycles
-//  }
-.endm
-
-.macro FILTER_6TAG_8BITS_TO_16BITS2
-//  {   // input:d_src[-2], d_src[-1], d_src[0], d_src[1], d_src[2], d_src[3], dst_q, multiplier a/b; working:v31
-    uaddl2  $6.8h, $0.16b, $5.16b       //dst_q=src[-2]+src[3]
-    uaddl2  v31.8h, $2.16b, $3.16b  //src[0]+src[1]
-    mla $6.8h, v31.8h, $7.8h    //dst_q += 20*(src[0]+src[1]), 2 cycles
-    uaddl2  v31.8h, $1.16b, $4.16b  //src[-1]+src[2]
-    mls $6.8h, v31.8h, $8.8h    //dst_q -= 5*(src[-1]+src[2]), 2 cycles
-//  }
-.endm
-
-.macro FILTER_3_IN_16BITS_TO_8BITS1
-//  {   // input:a, b, c, dst_d;
-    sub $0.8h, $0.8h, $1.8h         //a-b
-    sshr    $0.8h, $0.8h, #2            //(a-b)/4
-    sub $0.8h, $0.8h, $1.8h         //(a-b)/4-b
-    add $0.8h, $0.8h, $2.8h         //(a-b)/4-b+c
-    sshr    $0.8h, $0.8h, #2            //((a-b)/4-b+c)/4
-    add $0.8h, $0.8h, $2.8h         //((a-b)/4-b+c)/4+c = (a-5*b+20*c)/16
-    sqrshrun    $3.8b, $0.8h, #6        //(+32)>>6
-//  }
-.endm
-
-.macro FILTER_3_IN_16BITS_TO_8BITS2
-//  {   // input:a, b, c, dst_d;
-    sub $0.8h, $0.8h, $1.8h         //a-b
-    sshr    $0.8h, $0.8h, #2            //(a-b)/4
-    sub $0.8h, $0.8h, $1.8h         //(a-b)/4-b
-    add $0.8h, $0.8h, $2.8h         //(a-b)/4-b+c
-    sshr    $0.8h, $0.8h, #2            //((a-b)/4-b+c)/4
-    add $0.8h, $0.8h, $2.8h         //((a-b)/4-b+c)/4+c = (a-5*b+20*c)/16
-    sqrshrun2   $3.16b, $0.8h, #6       //(+32)>>6
-//  }
-.endm
-
-.macro UNPACK_2_16BITS_TO_ABC
-//  {   // input:q_src[-2:5], q_src[6:13](avail 8+5)/q_src[6:**](avail 4+5), dst_a, dst_b, dst_c;
-    ext $4.16b, $0.16b, $1.16b, #4      //src[0]
-    ext $3.16b, $0.16b, $1.16b, #6      //src[1]
-    add $4.8h, $4.8h, $3.8h                 //c=src[0]+src[1]
-
-    ext $3.16b, $0.16b, $1.16b, #2      //src[-1]
-    ext $2.16b, $0.16b, $1.16b, #8      //src[2]
-    add $3.8h, $3.8h, $2.8h                 //b=src[-1]+src[2]
-
-    ext $2.16b, $0.16b, $1.16b, #10     //src[3]
-    add $2.8h, $2.8h, $0.8h                 //a=src[-2]+src[3]
-//  }
-.endm
-
-.macro AVERAGE_TWO_8BITS1
-//  {   // input:dst_d, src_d A and B; working: v5
-    uaddl   v30.8h, $2.8b, $1.8b
-    rshrn   $0.8b, v30.8h, #1
-//  }
-.endm
-
-.macro AVERAGE_TWO_8BITS2
-//  {   // input:dst_d, src_d A and B; working: v5
-    uaddl2  v30.8h, $2.16b, $1.16b
-    rshrn2  $0.16b, v30.8h, #1
-//  }
-.endm
-
-.macro FILTER_SINGLE_TAG_8BITS      // when width=17/9, used
-//  {   // input: src_d{Y[0][1][2][3][4][5]X},
-    rev64   $2.8b, $0.8b                // X[5][4][3][2][1][0]O
-    uaddl   $2.8h, $0.8b, $2.8b         // each 16bits, *[50][41][32][23][14][05]*
-    mul $2.4h, $2.4h, $1.4h         // 0+1*[50]-5*[41]+20[32]
-    addv $3, $2.4h
-    sqrshrun $0.8b, $0.8h, #5
-//  }
-.endm
-
-.macro UNPACK_FILTER_SINGLE_TAG_16BITS // v0, v1, v22, v23
-//  {   // each 16bits; input: d_dst, d_src[0:5], para, working, working, d(low part of d_dst)
-    ext $3.16b, $1.16b, $1.16b, #14       // X[0][1][2][3][4][5]O
-    ext $4.16b, $3.16b, $3.16b, #8      // [3][4][5]OX[0][1][2]
-    rev64  $4.8h, $4.8h         // X[5][4][3][2][1][0]O
-    add   $3.8h, $3.8h, $4.8h    // each 16bits, *[50][41][32][23][14][05]*
-    smull $3.4s, $3.4h, $2.4h           // 0+1*[50]-5*[41]+20[32]
-    saddlv $5, $3.4s
-    //sshr $0.2d, $0.2d, #4
-    sqrshrun $0.2s, $0.2d, #10
-    uqxtn $0.4h, $0.4s
-    uqxtn $0.8b, $0.8h
-   //   }
-.endm
-
-#else
 .macro FILTER_6TAG_8BITS1 arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8
 //  {   // input:src[-2], src[-1], src[0], src[1], src[2], src[3], dst_d, multiplier a/b; working: v18, v19
     uaddl v18.8h, \arg0\().8b, \arg5\().8b //v18=src[-2]+src[3]
@@ -383,7 +207,6 @@ filter_para: .short 0, 1, -5, 20, 0, 0, 0, 0
     uqxtn \arg0\().8b, \arg0\().8h
    //   }
 .endm
-#endif
 
 //(const uint8_t* pSrc {x0}, int32_t iSrcStride{x1}, uint8_t* pDst{x2}, int32_t iDstStride{x3}, int32_t iHeight{x4})
 WELS_ASM_AARCH64_FUNC_BEGIN McHorVer20WidthEq16_AArch64_neon
@@ -696,12 +519,12 @@ w16_xy_01_mc_luma_loop:
     FILTER_6TAG_8BITS2_AVERAGE_WITH_0 v3, v4, v5, v6, v7, v2, v20, v0, v1
     st1 {v20.16b}, [x2], x3 //write 16Byte : 7 line
 
-    mov.16b v3, v5
-    mov.16b v5, v7
-    mov.16b v7, v2
-    mov.16b v2, v4
-    mov.16b v4, v6
-    mov.16b v6, v7
+    mov v3.16b, v5.16b
+    mov v5.16b, v7.16b
+    mov v7.16b, v2.16b
+    mov v2.16b, v4.16b
+    mov v4.16b, v6.16b
+    mov v6.16b, v7.16b
     sub x4, x4, #8
     cbnz x4, w16_xy_01_mc_luma_loop
 WELS_ASM_AARCH64_FUNC_END
@@ -746,12 +569,12 @@ w8_xy_01_mc_luma_loop:
     FILTER_6TAG_8BITS1_AVERAGE_WITH_0 v5, v6, v7, v2, v3, v4, v20, v0, v1
     st1 {v20.8b}, [x2], x3 //write 8Byte : 3 line
 
-    mov.16b v5, v3
-    mov.16b v3, v7
-    mov.16b v7, v2
-    mov.16b v2, v6
-    mov.16b v6, v4
-    mov.16b v4, v7
+    mov v5.16b, v3.16b
+    mov v3.16b, v7.16b
+    mov v7.16b, v2.16b
+    mov v2.16b, v6.16b
+    mov v6.16b, v4.16b
+    mov v4.16b, v7.16b
     sub x4, x4, #4
     cbnz x4, w8_xy_01_mc_luma_loop
 WELS_ASM_AARCH64_FUNC_END
@@ -799,14 +622,14 @@ w4_xy_01_mc_luma_loop:
     st1 {v20.s}[1], [x2], x3 //write 4Byte : 3 line
     mov v4.s[0], v3.s[1]
 
-    mov.8b v21, v6
-    mov.8b v6, v4
-    mov.8b v4, v2
-    mov.8b v2, v21
-    mov.8b v21, v3
-    mov.8b v3, v7
-    mov.8b v7, v5
-    mov.8b v5, v21
+    mov v21.8b, v6.8b
+    mov v6.8b, v4.8b
+    mov v4.8b, v2.8b
+    mov v2.8b, v21.8b
+    mov v21.8b, v3.8b
+    mov v3.8b, v7.8b
+    mov v7.8b, v5.8b
+    mov v5.8b, v21.8b
 
     sub x4, x4, #4
     cbnz x4, w4_xy_01_mc_luma_loop
@@ -885,12 +708,12 @@ w16_xy_03_mc_luma_loop:
     FILTER_6TAG_8BITS2_AVERAGE_WITH_1 v3, v4, v5, v6, v7, v2, v20, v0, v1
     st1 {v20.16b}, [x2], x3 //write 16Byte : 7 line
 
-    mov.16b v3, v5
-    mov.16b v5, v7
-    mov.16b v7, v2
-    mov.16b v2, v4
-    mov.16b v4, v6
-    mov.16b v6, v7
+    mov v3.16b, v5.16b
+    mov v5.16b, v7.16b
+    mov v7.16b, v2.16b
+    mov v2.16b, v4.16b
+    mov v4.16b, v6.16b
+    mov v6.16b, v7.16b
     sub x4, x4, #8
     cbnz x4, w16_xy_03_mc_luma_loop
 WELS_ASM_AARCH64_FUNC_END
@@ -935,12 +758,12 @@ w8_xy_03_mc_luma_loop:
     FILTER_6TAG_8BITS1_AVERAGE_WITH_1 v5, v6, v7, v2, v3, v4, v20, v0, v1
     st1 {v20.8b}, [x2], x3 //write 8Byte : 3 line
 
-    mov.16b v5, v3
-    mov.16b v3, v7
-    mov.16b v7, v2
-    mov.16b v2, v6
-    mov.16b v6, v4
-    mov.16b v4, v7
+    mov v5.16b, v3.16b
+    mov v3.16b, v7.16b
+    mov v7.16b, v2.16b
+    mov v2.16b, v6.16b
+    mov v6.16b, v4.16b
+    mov v4.16b, v7.16b
     sub x4, x4, #4
     cbnz x4, w8_xy_03_mc_luma_loop
 WELS_ASM_AARCH64_FUNC_END
@@ -988,14 +811,14 @@ w4_xy_03_mc_luma_loop:
     st1 {v20.s}[1], [x2], x3 //write 4Byte : 3 line
     mov v4.s[0], v3.s[1]
 
-    mov.8b v21, v6
-    mov.8b v6, v4
-    mov.8b v4, v2
-    mov.8b v2, v21
-    mov.8b v21, v3
-    mov.8b v3, v7
-    mov.8b v7, v5
-    mov.8b v5, v21
+    mov v21.8b, v6.8b
+    mov v6.8b, v4.8b
+    mov v4.8b, v2.8b
+    mov v2.8b, v21.8b
+    mov v21.8b, v3.8b
+    mov v3.8b, v7.8b
+    mov v7.8b, v5.8b
+    mov v5.8b, v21.8b
 
     sub x4, x4, #4
     cbnz x4, w4_xy_03_mc_luma_loop
@@ -1074,12 +897,12 @@ w16_xy_02_mc_luma_loop:
     FILTER_6TAG_8BITS2 v3, v4, v5, v6, v7, v2, v20, v0, v1
     st1 {v20.16b}, [x2], x3 //write 16Byte : 7 line
 
-    mov.16b v3, v5
-    mov.16b v5, v7
-    mov.16b v7, v2
-    mov.16b v2, v4
-    mov.16b v4, v6
-    mov.16b v6, v7
+    mov v3.16b, v5.16b
+    mov v5.16b, v7.16b
+    mov v7.16b, v2.16b
+    mov v2.16b, v4.16b
+    mov v4.16b, v6.16b
+    mov v6.16b, v7.16b
     sub x4, x4, #8
     cbnz x4, w16_xy_02_mc_luma_loop
 WELS_ASM_AARCH64_FUNC_END
@@ -1124,12 +947,12 @@ w8_xy_02_mc_luma_loop:
     FILTER_6TAG_8BITS1 v5, v6, v7, v2, v3, v4, v20, v0, v1
     st1 {v20.8b}, [x2], x3 //write 8Byte : 3 line
 
-    mov.16b v5, v3
-    mov.16b v3, v7
-    mov.16b v7, v2
-    mov.16b v2, v6
-    mov.16b v6, v4
-    mov.16b v4, v7
+    mov v5.16b, v3.16b
+    mov v3.16b, v7.16b
+    mov v7.16b, v2.16b
+    mov v2.16b, v6.16b
+    mov v6.16b, v4.16b
+    mov v4.16b, v7.16b
     sub x4, x4, #4
     cbnz x4, w8_xy_02_mc_luma_loop
 WELS_ASM_AARCH64_FUNC_END
@@ -1177,14 +1000,14 @@ w4_xy_02_mc_luma_loop:
     st1 {v20.s}[1], [x2], x3 //write 4Byte : 3 line
     mov v4.s[0], v3.s[1]
 
-    mov.8b v21, v6
-    mov.8b v6, v4
-    mov.8b v4, v2
-    mov.8b v2, v21
-    mov.8b v21, v3
-    mov.8b v3, v7
-    mov.8b v7, v5
-    mov.8b v5, v21
+    mov v21.8b, v6.8b
+    mov v6.8b, v4.8b
+    mov v4.8b, v2.8b
+    mov v2.8b, v21.8b
+    mov v21.8b, v3.8b
+    mov v3.8b, v7.8b
+    mov v7.8b, v5.8b
+    mov v5.8b, v21.8b
 
     sub x4, x4, #4
     cbnz x4, w4_xy_02_mc_luma_loop
@@ -1326,26 +1149,26 @@ w16_hv_mc_luma_loop:
     FILTER_3_IN_16BITS_TO_8BITS2 v23, v24, v25, v26 //output to v26[1]
     st1 {v26.16b}, [x2], x3 //write 16Byte : 7 line
 
-    mov.16b v5, v11
-    mov.16b v11, v17
-    mov.16b v30, v2
-    mov.16b v2, v8
-    mov.16b v8, v14
-    mov.16b v14, v30
+    mov v5.16b, v11.16b
+    mov v11.16b, v17.16b
+    mov v30.16b, v2.16b
+    mov v2.16b, v8.16b
+    mov v8.16b, v14.16b
+    mov v14.16b, v30.16b
 
-    mov.16b v6, v12
-    mov.16b v12, v18
-    mov.16b v30, v3
-    mov.16b v3, v9
-    mov.16b v9, v15
-    mov.16b v15, v30
+    mov v6.16b, v12.16b
+    mov v12.16b, v18.16b
+    mov v30.16b, v3.16b
+    mov v3.16b, v9.16b
+    mov v9.16b, v15.16b
+    mov v15.16b, v30.16b
 
-    mov.16b v7, v13
-    mov.16b v13, v19
-    mov.16b v30, v4
-    mov.16b v4, v10
-    mov.16b v10, v16
-    mov.16b v16, v30
+    mov v7.16b, v13.16b
+    mov v13.16b, v19.16b
+    mov v30.16b, v4.16b
+    mov v4.16b, v10.16b
+    mov v10.16b, v16.16b
+    mov v16.16b, v30.16b
 
     sub x4, x4, #8
     cbnz x4, w16_hv_mc_luma_loop
@@ -1416,12 +1239,12 @@ w8_hv_mc_luma_loop:
     st1 {v26.8b}, [x2], x3 //write 8Byte : 3 line
 
 
-    mov.16b v5, v3
-    mov.16b v3, v7
-    mov.16b v30, v2
-    mov.16b v2, v6
-    mov.16b v6, v4
-    mov.16b v4, v30
+    mov v5.16b, v3.16b
+    mov v3.16b, v7.16b
+    mov v30.16b, v2.16b
+    mov v2.16b, v6.16b
+    mov v6.16b, v4.16b
+    mov v4.16b, v30.16b
 
     sub x4, x4, #4
     cbnz x4, w8_hv_mc_luma_loop
@@ -1487,12 +1310,12 @@ w4_hv_mc_luma_loop:
     st1 {v27.s}[0], [x2], x3 //write 4Byte : 2 line
     st1 {v27.s}[1], [x2], x3 //write 4Byte : 3 line
 
-    mov.16b v5, v3
-    mov.16b v3, v7
-    mov.16b v30, v2
-    mov.16b v2, v6
-    mov.16b v6, v4
-    mov.16b v4, v30
+    mov v5.16b, v3.16b
+    mov v3.16b, v7.16b
+    mov v30.16b, v2.16b
+    mov v2.16b, v6.16b
+    mov v6.16b, v4.16b
+    mov v4.16b, v30.16b
 
     sub x4, x4, #4
     cbnz x4, w4_hv_mc_luma_loop
@@ -1735,8 +1558,8 @@ w8_mc_chroma_loop:
     rshrn v17.8b, v16.8h, #6
     st1 {v17.8b}, [x2], x3
 
-    mov.16b v0, v18
-    mov.16b v1, v19
+    mov v0.16b, v18.16b
+    mov v1.16b, v19.16b
     sub x5, x5, #2
     cbnz x5, w8_mc_chroma_loop
 WELS_ASM_AARCH64_FUNC_END
@@ -1764,8 +1587,8 @@ w4_mc_chroma_loop:
     st1 {v17.s}[0], [x2], x3
     st1 {v17.s}[1], [x2], x3
 
-    mov.8b v0, v18
-    mov.8b v1, v19
+    mov v0.8b, v18.8b
+    mov v1.8b, v19.8b
     sub x5, x5, #2
     cbnz x5, w4_mc_chroma_loop
 WELS_ASM_AARCH64_FUNC_END
@@ -1985,26 +1808,26 @@ w17_hv_mc_luma_loop:
     UNPACK_FILTER_SINGLE_TAG_16BITS v26, v22, v29, v27, v28, d26
     st1 {v26.b}[0], [x2], x3 //write 16th Byte : 7 line
 
-    mov.16b v5, v11
-    mov.16b v11, v17
-    mov.16b v30, v2
-    mov.16b v2, v8
-    mov.16b v8, v14
-    mov.16b v14, v30
+    mov v5.16b, v11.16b
+    mov v11.16b, v17.16b
+    mov v30.16b, v2.16b
+    mov v2.16b, v8.16b
+    mov v8.16b, v14.16b
+    mov v14.16b, v30.16b
 
-    mov.16b v6, v12
-    mov.16b v12, v18
-    mov.16b v30, v3
-    mov.16b v3, v9
-    mov.16b v9, v15
-    mov.16b v15, v30
+    mov v6.16b, v12.16b
+    mov v12.16b, v18.16b
+    mov v30.16b, v3.16b
+    mov v3.16b, v9.16b
+    mov v9.16b, v15.16b
+    mov v15.16b, v30.16b
 
-    mov.16b v7, v13
-    mov.16b v13, v19
-    mov.16b v30, v4
-    mov.16b v4, v10
-    mov.16b v10, v16
-    mov.16b v16, v30
+    mov v7.16b, v13.16b
+    mov v13.16b, v19.16b
+    mov v30.16b, v4.16b
+    mov v4.16b, v10.16b
+    mov v10.16b, v16.16b
+    mov v16.16b, v30.16b
 
     sub x4, x4, #8
     cbnz x4, w17_hv_mc_luma_loop
@@ -2104,12 +1927,12 @@ w9_hv_mc_luma_loop:
     st1 {v26.b}[0], [x2], x3 //write 8th Byte : 3 line
 
 
-    mov.16b v5, v3
-    mov.16b v3, v7
-    mov.16b v30, v2
-    mov.16b v2, v6
-    mov.16b v6, v4
-    mov.16b v4, v30
+    mov v5.16b, v3.16b
+    mov v3.16b, v7.16b
+    mov v30.16b, v2.16b
+    mov v2.16b, v6.16b
+    mov v6.16b, v4.16b
+    mov v4.16b, v30.16b
 
     sub x4, x4, #4
     cbnz x4, w9_hv_mc_luma_loop
@@ -2200,12 +2023,12 @@ w17_v_mc_luma_loop:
     FILTER_6TAG_8BITS2 v3, v4, v5, v6, v7, v2, v20, v0, v1
     st1 {v20.16b}, [x2], x3 //write 16Byte : 7 line
 
-    mov.16b v3, v5
-    mov.16b v5, v7
-    mov.16b v7, v2
-    mov.16b v2, v4
-    mov.16b v4, v6
-    mov.16b v6, v7
+    mov v3.16b, v5.16b
+    mov v5.16b, v7.16b
+    mov v7.16b, v2.16b
+    mov v2.16b, v4.16b
+    mov v4.16b, v6.16b
+    mov v6.16b, v7.16b
     sub x4, x4, #8
     cbnz x4, w17_v_mc_luma_loop
 
@@ -2255,12 +2078,12 @@ w9_v_mc_luma_loop:
     FILTER_6TAG_8BITS1 v5, v6, v7, v2, v3, v4, v20, v0, v1
     st1 {v20.8b}, [x2], x3 //write 8Byte : 3 line
 
-    mov.16b v5, v3
-    mov.16b v3, v7
-    mov.16b v7, v2
-    mov.16b v2, v6
-    mov.16b v6, v4
-    mov.16b v4, v7
+    mov v5.16b, v3.16b
+    mov v3.16b, v7.16b
+    mov v7.16b, v2.16b
+    mov v2.16b, v6.16b
+    mov v6.16b, v4.16b
+    mov v4.16b, v7.16b
     sub x4, x4, #4
     cbnz x4, w9_v_mc_luma_loop
 

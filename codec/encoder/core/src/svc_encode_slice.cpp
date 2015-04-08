@@ -267,7 +267,7 @@ void WelsSliceHeaderWrite (sWelsEncCtx* pCtx, SBitStringAux* pBs, SDqLayer* pCur
   if (!pNalHead->bIdrFlag)
     WriteReferenceReorder (pBs, pSliceHeader);
 
-  if (pNalHead->sNalHeader.uiNalRefIdc) {
+  if (pNalHead->sNalUnitHeader.uiNalRefIdc) {
     WriteRefPicMarking (pBs, pSliceHeader, pNalHead);
   }
 
@@ -292,7 +292,8 @@ void WelsSliceHeaderWrite (sWelsEncCtx* pCtx, SBitStringAux* pBs, SDqLayer* pCur
       BsWriteUE (pBs, 2);
       break;
     default:
-      WelsLog(&pCtx->sLogCtx, WELS_LOG_ERROR, "Invalid uiDisableDeblockingFilterIdc %d", pSliceHeader->uiDisableDeblockingFilterIdc);
+      WelsLog (&pCtx->sLogCtx, WELS_LOG_ERROR, "Invalid uiDisableDeblockingFilterIdc %d",
+               pSliceHeader->uiDisableDeblockingFilterIdc);
       break;
     }
     if (1 != pSliceHeader->uiDisableDeblockingFilterIdc) {
@@ -334,7 +335,7 @@ void WelsSliceHeaderExtWrite (sWelsEncCtx* pCtx, SBitStringAux* pBs, SDqLayer* p
   if (!pNalHead->bIdrFlag)
     WriteReferenceReorder (pBs, pSliceHeader);
 
-  if (pNalHead->sNalHeader.uiNalRefIdc) {
+  if (pNalHead->sNalUnitHeader.uiNalRefIdc) {
     WriteRefPicMarking (pBs, pSliceHeader, pNalHead);
 
     if (!pSubSps->sSpsSvcExt.bSliceHeaderRestrictionFlag) {
@@ -455,7 +456,8 @@ void WelsPMbChromaEncode (sWelsEncCtx* pEncCtx, SSlice* pSlice, SMB* pCurMb) {
 }
 
 void OutputPMbWithoutConstructCsRsNoCopy (sWelsEncCtx* pCtx, SDqLayer* pDq, SSlice* pSlice, SMB* pMb) {
-  if (IS_INTER (pMb->uiMbType) || IS_I_BL (pMb->uiMbType)) {	//intra have been reconstructed, NO COPY from CS to pDecPic--
+  if ((IS_INTER (pMb->uiMbType) && !IS_SKIP (pMb->uiMbType))
+      || IS_I_BL (pMb->uiMbType)) {	//intra have been reconstructed, NO COPY from CS to pDecPic--
     SMbCache* pMbCache			= &pSlice->sMbCacheInfo;
     uint8_t* pDecY				= pMbCache->SPicData.pDecMb[0];
     uint8_t* pDecU				= pMbCache->SPicData.pDecMb[1];
@@ -837,13 +839,13 @@ void AddSliceBoundary (sWelsEncCtx* pEncCtx, SSlice* pCurSlice, SSliceCtx* pSlic
 
   //init next pSlice info
   pNextSlice->bSliceHeaderExtFlag =
-    (NAL_UNIT_CODED_SLICE_EXT == pCurLayer->sLayerInfo.sNalHeaderExt.sNalHeader.eNalUnitType);
+    (NAL_UNIT_CODED_SLICE_EXT == pCurLayer->sLayerInfo.sNalHeaderExt.sNalUnitHeader.eNalUnitType);
   memcpy (&pNextSlice->sSliceHeaderExt, &pCurSlice->sSliceHeaderExt,
           sizeof (SSliceHeaderExt));	// confirmed_safe_unsafe_usage
 
   pSliceCtx->pFirstMbInSlice[iNextSliceIdc] = iFirstMbIdxOfNextSlice;
   WelsSetMemMultiplebytes_c (pSliceCtx->pOverallMbMap + iFirstMbIdxOfNextSlice, iNextSliceIdc,
-                             (kiLastMbIdxInPartition - iFirstMbIdxOfNextSlice + 1), sizeof(uint16_t));
+                             (kiLastMbIdxInPartition - iFirstMbIdxOfNextSlice + 1), sizeof (uint16_t));
 
   //DYNAMIC_SLICING_ONE_THREAD: update pMbList slice_neighbor_info
   UpdateMbNeighbourInfoForNextSlice (pSliceCtx, pMbList, iFirstMbIdxOfNextSlice, kiLastMbIdxInPartition);
