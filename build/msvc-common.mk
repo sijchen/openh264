@@ -1,6 +1,6 @@
 include $(SRC_PATH)build/arch.mk
 ifeq ($(ASM_ARCH), x86)
-ifeq ($(ENABLE64BIT), Yes)
+ifeq ($(ARCH), x86_64)
 ASMFLAGS += -f win64
 ASMFLAGS_PLATFORM = -DWIN64
 else
@@ -44,3 +44,6 @@ LDFLAGS += -link
 SHLDFLAGS=-pdb:$(PROJECT_NAME).pdb -def:openh264.def -implib:$(EXTRA_LIBRARY)
 STATIC_LDFLAGS=
 CODEC_UNITTEST_CFLAGS=-D_CRT_SECURE_NO_WARNINGS
+
+%.res: %.rc
+	$(QUIET_RC)rc -nologo $<

@@ -4,6 +4,7 @@ vpath %.cc $(SRC_PATH)
 vpath %.cpp $(SRC_PATH)
 vpath %.asm $(SRC_PATH)
 vpath %.S $(SRC_PATH)
+vpath %.rc $(SRC_PATH)
 
 OS=$(shell uname | tr A-Z a-z | tr -d \\-[:digit:].)
 ARCH=$(shell uname -m)
@@ -28,8 +29,10 @@ PROJECT_NAME=openh264
 MODULE_NAME=gmpopenh264
 GMP_API_BRANCH=Firefox39
 CCASFLAGS=$(CFLAGS)
-VERSION=1.4
 STATIC_LDFLAGS=-lstdc++
+
+VERSION=1.4
+SHAREDLIBVERSION=0
 
 ifeq (,$(wildcard $(SRC_PATH)gmp-api))
 HAVE_GMP_API=No
@@ -57,7 +60,9 @@ CFLAGS += -fsanitize=address
 LDFLAGS += -fsanitize=address
 endif
 
-SHAREDLIBVERSION=0
+# Make sure the all target is the first one
+all: libraries binaries
+
 include $(SRC_PATH)build/platform-$(OS).mk
 
 
@@ -71,12 +76,13 @@ endif
 
 #### No user-serviceable parts below this line
 ifneq ($(V),Yes)
-    QUIET_CXX = @printf "CXX\t$@\n";
-    QUIET_CC  = @printf "CC\t$@\n";
+    QUIET_CXX  = @printf "CXX\t$@\n";
+    QUIET_CC   = @printf "CC\t$@\n";
     QUIET_CCAS = @printf "CCAS\t$@\n";
-    QUIET_ASM = @printf "ASM\t$@\n";
-    QUIET_AR  = @printf "AR\t$@\n";
-    QUIET     = @
+    QUIET_ASM  = @printf "ASM\t$@\n";
+    QUIET_AR   = @printf "AR\t$@\n";
+    QUIET_RC   = @printf "RC\t$@\n";
+    QUIET      = @
 endif
 
 
@@ -136,8 +142,6 @@ COMMON_UNITTEST_CFLAGS += $(CODEC_UNITTEST_CFLAGS)
 
 .PHONY: test gtest-bootstrap clean $(PROJECT_NAME).pc $(PROJECT_NAME)-static.pc
 
-all: libraries binaries
-
 generate-version:
 	$(QUIET)cd $(SRC_PATH) && sh ./codec/common/generate_version.sh
 
@@ -148,7 +152,7 @@ clean:
 ifeq (android,$(OS))
 clean: clean_Android
 endif
-	$(QUIET)rm -f $(OBJS) $(OBJS:.$(OBJ)=.d) $(OBJS:.$(OBJ)=.obj) $(LIBRARIES) $(BINARIES) *.lib *.a *.dylib *.dll *.so *.exe *.pdb *.exp *.pc
+	$(QUIET)rm -f $(OBJS) $(OBJS:.$(OBJ)=.d) $(OBJS:.$(OBJ)=.obj) $(LIBRARIES) $(BINARIES) *.lib *.a *.dylib *.dll *.so *.exe *.pdb *.exp *.pc *.res
 
 gmp-bootstrap:
 	if [ ! -d gmp-api ] ; then git clone https://github.com/mozilla/gmp-api gmp-api ; fi
@@ -159,16 +163,22 @@ gtest-bootstrap:
 
 ifeq ($(HAVE_GTEST),Yes)
 
-test: codec_unittest$(EXEEXT)
 ifneq (android,$(OS))
 ifneq (ios,$(OS))
-	./codec_unittest
+ifneq (msvc-wp,$(OS))
+BUILD_UT_EXE=Yes
 endif
+endif
+endif
+
+test: codec_unittest$(EXEEXT)
+ifeq ($(BUILD_UT_EXE), Yes)
+	./codec_unittest
 endif
 
 else
 test:
-	@echo "./gtest : No such file or directory."
+	@echo "./gtest: No such file or directory."
 	@echo "You do not have gtest. Run make gtest-bootstrap to get gtest"
 endif
 
@@ -183,16 +193,19 @@ endif
 
 ifneq (android, $(OS))
 ifneq (ios, $(OS))
+ifneq (msvc-wp, $(OS))
 include $(SRC_PATH)codec/console/dec/targets.mk
 include $(SRC_PATH)codec/console/enc/targets.mk
 include $(SRC_PATH)codec/console/common/targets.mk
 endif
 endif
+endif
 
-ifneq (ios, $(OS))
-libraries: $(LIBPREFIX)$(PROJECT_NAME).$(LIBSUFFIX) $(LIBPREFIX)$(PROJECT_NAME).$(SHAREDLIBSUFFIX)
-else
 libraries: $(LIBPREFIX)$(PROJECT_NAME).$(LIBSUFFIX)
+
+# No point in building dylib for ios
+ifneq (ios, $(OS))
+libraries: $(LIBPREFIX)$(PROJECT_NAME).$(SHAREDLIBSUFFIX)
 endif
 
 LIBRARIES += $(LIBPREFIX)$(PROJECT_NAME).$(LIBSUFFIX) $(LIBPREFIX)$(PROJECT_NAME).$(SHAREDLIBSUFFIXVER)
@@ -215,7 +228,7 @@ plugin: $(LIBPREFIX)$(MODULE_NAME).$(SHAREDLIBSUFFIX)
 LIBRARIES += $(LIBPREFIX)$(MODULE_NAME).$(SHAREDLIBSUFFIXVER)
 else
 plugin:
-	@echo "./gmp-api : No such file or directory."
+	@echo "./gmp-api: No such file or directory."
 	@echo "You do not have gmp-api.  Run make gmp-bootstrap to get the gmp-api headers."
 endif
 
@@ -261,7 +274,10 @@ endif
 install: install-static-lib install-shared
 	@:
 
-ifeq ($(HAVE_GTEST),Yes)
+ifneq ($(HAVE_GTEST),Yes)
+binaries:
+	@:
+else
 include $(SRC_PATH)build/gtest-targets.mk
 include $(SRC_PATH)test/api/targets.mk
 include $(SRC_PATH)test/decoder/targets.mk
@@ -276,44 +292,42 @@ $(LIBPREFIX)ut.$(LIBSUFFIX): $(DECODER_UNITTEST_OBJS) $(ENCODER_UNITTEST_OBJS) $
 
 
 LIBRARIES +=$(LIBPREFIX)ut.$(SHAREDLIBSUFFIX)
-$(LIBPREFIX)ut.$(SHAREDLIBSUFFIX): $(DECODER_UNITTEST_OBJS) $(ENCODER_UNITTEST_OBJS) $(PROCESSING_UNITTEST_OBJS) $(API_TEST_OBJS) $(COMMON_UNITTEST_OBJS)  $(CODEC_UNITTEST_DEPS)
+$(LIBPREFIX)ut.$(SHAREDLIBSUFFIX): $(DECODER_UNITTEST_OBJS) $(ENCODER_UNITTEST_OBJS) $(PROCESSING_UNITTEST_OBJS) $(API_TEST_OBJS) $(COMMON_UNITTEST_OBJS) $(CODEC_UNITTEST_DEPS)
 	$(QUIET)rm -f $@
-	$(QUIET_CXX)$(CXX) $(SHARED) $(CXX_LINK_O) $+ $(LDFLAGS) $(CODEC_UNITTEST_LDFLAGS)
+	$(QUIET_CXX)$(CXX) $(SHARED) $(CXX_LINK_O) $+ $(LDFLAGS) $(UTSHLDFLAGS) $(CODEC_UNITTEST_LDFLAGS)
 
 binaries: codec_unittest$(EXEEXT)
 BINARIES += codec_unittest$(EXEEXT)
 
-ifeq (ios,$(OS))
-codec_unittest$(EXEEXT): $(LIBPREFIX)ut.$(LIBSUFFIX) $(LIBPREFIX)gtest.$(LIBSUFFIX) $(LIBPREFIX)$(PROJECT_NAME).$(LIBSUFFIX)
-
-else
-ifeq (android,$(OS))
-ifeq (./,$(SRC_PATH))
-codec_unittest$(EXEEXT): $(LIBPREFIX)ut.$(SHAREDLIBSUFFIX)
-	cd ./test/build/android && $(NDKROOT)/ndk-build -B APP_ABI=$(APP_ABI) && android update project -t $(TARGET) -p . && ant debug
-
-clean_Android: clean_Android_ut
-clean_Android_ut:
-	-cd ./test/build/android && $(NDKROOT)/ndk-build APP_ABI=$(APP_ABI) clean && ant clean
-
-else
-codec_unittest$(EXEEXT):
-	@:
-endif
-else
+ifeq ($(BUILD_UT_EXE), Yes)
+# Build a normal command line executable
 codec_unittest$(EXEEXT): $(DECODER_UNITTEST_OBJS) $(ENCODER_UNITTEST_OBJS) $(PROCESSING_UNITTEST_OBJS) $(API_TEST_OBJS) $(COMMON_UNITTEST_OBJS) $(CODEC_UNITTEST_DEPS) | res
 	$(QUIET)rm -f $@
 	$(QUIET_CXX)$(CXX) $(CXX_LINK_O) $+ $(CODEC_UNITTEST_LDFLAGS) $(LDFLAGS)
 
 res:
 	$(QUIET)if [ ! -e res ]; then ln -s $(SRC_PATH)res .; fi
-
-endif
-endif
-
 else
-binaries:
-	@:
+
+# Build the unit test suite into a library that is included in a project file
+ifeq (ios,$(OS))
+codec_unittest$(EXEEXT): $(LIBPREFIX)ut.$(LIBSUFFIX) $(LIBPREFIX)gtest.$(LIBSUFFIX) $(LIBPREFIX)$(PROJECT_NAME).$(LIBSUFFIX)
+else
+codec_unittest$(EXEEXT): $(LIBPREFIX)ut.$(SHAREDLIBSUFFIX)
+endif
+
+ifeq (android,$(OS))
+ifeq (./,$(SRC_PATH))
+codec_unittest$(EXEEXT):
+	cd ./test/build/android && $(NDKROOT)/ndk-build -B APP_ABI=$(APP_ABI) && android update project -t $(TARGET) -p . && ant debug
+
+clean_Android: clean_Android_ut
+clean_Android_ut:
+	-cd ./test/build/android && $(NDKROOT)/ndk-build APP_ABI=$(APP_ABI) clean && ant clean
+endif
+endif
+
+endif
 endif
 
 -include $(OBJS:.$(OBJ)=.d)
