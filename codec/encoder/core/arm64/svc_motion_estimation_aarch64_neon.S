@@ -30,7 +30,7 @@
  *
  */
 
-#ifdef  HAVE_NEON_AARCH64
+#ifdef HAVE_NEON_AARCH64
 #include "arm_arch64_common_macro.S"
 
 WELS_ASM_AARCH64_FUNC_BEGIN SumOf8x8SingleBlock_AArch64_neon
@@ -251,8 +251,8 @@ _hash_assign_with_copy_x4:
     st1 {v2.16b, v3.16b}, [x4], #32
 
 _assign_next:
-	subs x5, x5, #4
-	cbnz x5, _hash_assign_loop_x4
+    subs x5, x5, #4
+    cbnz x5, _hash_assign_loop_x4
 
     and x5, x2, x9
     cbz x5, _hash_assign_end
