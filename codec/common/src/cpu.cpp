@@ -29,11 +29,11 @@
  *     POSSIBILITY OF SUCH DAMAGE.
  *
  *
- * \file	cpu.cpp
+ * \file    cpu.cpp
  *
- * \brief	CPU compatibility detection
+ * \brief   CPU compatibility detection
  *
- * \date	04/29/2009 Created
+ * \date    04/29/2009 Created
  *
  *************************************************************************************
  */
@@ -134,6 +134,15 @@ uint32_t WelsCPUFeatureDetect (int32_t* pNumberOfLogicProcessors) {
   if (uiFeatureC & 0x00400000) {
     /* MOVBE checking */
     uiCPU |= WELS_CPU_MOVBE;
+  }
+
+  if (uiMaxCpuidLevel >= 7) {
+    uiFeatureC = 0;
+    WelsCPUId (7, &uiFeatureA, &uiFeatureB, &uiFeatureC, &uiFeatureD);
+    if ((uiCPU & WELS_CPU_AVX) && (uiFeatureB & 0x00000020)) {
+      /* AVX2 supported */
+      uiCPU |= WELS_CPU_AVX2;
+    }
   }
 
   if (pNumberOfLogicProcessors != NULL) {

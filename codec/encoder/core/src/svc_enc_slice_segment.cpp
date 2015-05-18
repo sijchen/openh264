@@ -29,11 +29,11 @@
  *     POSSIBILITY OF SUCH DAMAGE.
  *
  *
- * \file	slice_segment.c
+ * \file    slice_segment.c
  *
- * \brief	SSlice segment routine (Single slice/multiple slice/fmo arrangement exclusive)
+ * \brief   SSlice segment routine (Single slice/multiple slice/fmo arrangement exclusive)
  *
- * \date	2/4/2009 Created
+ * \date    2/4/2009 Created
  *
  *************************************************************************************
  */
@@ -42,12 +42,12 @@
 
 namespace WelsEnc {
 /*!
- * \brief	Assign MB map for single slice segment
+ * \brief   Assign MB map for single slice segment
  *
- * \param	pMbMap			overall MB map
- * \param	iCountMbNum	count number of MB
+ * \param   pMbMap          overall MB map
+ * \param   iCountMbNum     count number of MB
  *
- * \return	0 - successful; none 0 - failed
+ * \return  0 - successful; none 0 - failed
  */
 int32_t AssignMbMapSingleSlice (void* pMbMap, const int32_t kiCountMbNum, const int32_t kiMapUnitSize) {
   if (NULL == pMbMap || kiCountMbNum <= 0)
@@ -59,12 +59,12 @@ int32_t AssignMbMapSingleSlice (void* pMbMap, const int32_t kiCountMbNum, const 
 }
 
 /*!
- * \brief	Assign MB map for multiple slice(s) segment
+ * \brief   Assign MB map for multiple slice(s) segment
  *
- * \param	pMbMap			overall MB map
- * \param	iCountMbNum	count number of MB
+ * \param   pMbMap          overall MB map
+ * \param   iCountMbNum     count number of MB
  *
- * \return	0 - successful; none 0 - failed
+ * \return  0 - successful; none 0 - failed
  */
 int32_t AssignMbMapMultipleSlices (SSliceCtx* pSliceSeg, const SSliceConfig* kpMso) {
   if (NULL == pSliceSeg || SM_SINGLE_SLICE == pSliceSeg->uiSliceMode)
@@ -280,33 +280,33 @@ bool GomValidCheckSliceMbNum (const int32_t kiMbWidth, const int32_t kiMbHeight,
     iGomSize = kiMbWidth * GOM_ROW_MODE0_360P;
   else
     iGomSize = kiMbWidth * GOM_ROW_MODE0_720P;
+  // GOM boundary aligned
+  int32_t iNumMbAssigning = WELS_DIV_ROUND (INT_MULTIPLY * kiMbNumPerSlice, iGomSize * INT_MULTIPLY) * iGomSize;
+  int32_t iCurNumMbAssigning = 0;
 
   iMinimalMbNum	= iGomSize;
-  iMaximalMbNum	= kiMbNumInFrame - (kuiSliceNum - 1) * iMinimalMbNum;
-
   while (uiSliceIdx + 1 < kuiSliceNum) {
-    // GOM boundary aligned
-    int32_t iNumMbAssigning = WELS_DIV_ROUND (INT_MULTIPLY * kiMbNumPerSlice, iGomSize * INT_MULTIPLY) * iGomSize;
+    iMaximalMbNum	= iNumMbLeft - (kuiSliceNum - uiSliceIdx - 1) * iMinimalMbNum;	// get maximal num_mb in left parts
 
     // make sure one GOM at least in each slice for safe
     if (iNumMbAssigning < iMinimalMbNum)
-      iNumMbAssigning	= iMinimalMbNum;
+      iCurNumMbAssigning	= iMinimalMbNum;
     else if (iNumMbAssigning > iMaximalMbNum)
-      iNumMbAssigning	= iMaximalMbNum;
+      iCurNumMbAssigning	= ( iMaximalMbNum / iGomSize ) * iGomSize;
+    else
+      iCurNumMbAssigning = iNumMbAssigning;
 
-    if (iNumMbAssigning <= 0) {
+    if (iCurNumMbAssigning <= 0) {
       return false;
     }
 
-    iNumMbLeft -= iNumMbAssigning;
+    iNumMbLeft -= iCurNumMbAssigning;
     if (iNumMbLeft <= 0)  {
       return false;
     }
 
-    pSlicesAssignList[uiSliceIdx]	= iNumMbAssigning;
-
+    pSlicesAssignList[uiSliceIdx]	= iCurNumMbAssigning;
     ++ uiSliceIdx;
-    iMaximalMbNum	= iNumMbLeft - (kuiSliceNum - uiSliceIdx - 1) * iMinimalMbNum;	// get maximal num_mb in left parts
   }
   pSlicesAssignList[uiSliceIdx] = iNumMbLeft;
 
@@ -315,7 +315,7 @@ bool GomValidCheckSliceMbNum (const int32_t kiMbWidth, const int32_t kiMbHeight,
 
 
 /*!
- *	Get slice count for multiple slice segment
+ *  Get slice count for multiple slice segment
  *
  */
 int32_t GetInitialSliceNum (const int32_t kiMbWidth, const int32_t kiMbHeight, SSliceConfig* pMso) {
@@ -343,15 +343,15 @@ int32_t GetInitialSliceNum (const int32_t kiMbWidth, const int32_t kiMbHeight, S
 }
 
 /*!
- * \brief	Initialize slice segment (Single/multiple slices)
+ * \brief   Initialize slice segment (Single/multiple slices)
  *
- * \param	pSliceSeg			SSlice segment to be initialized
- * \param	uiSliceMode			SSlice mode
- * \param	multi_slice_argv	Multiple slices argument
- * \param	iMbWidth			MB width
- * \param	iMbHeight			MB height
+ * \param   pSliceSeg           SSlice segment to be initialized
+ * \param   uiSliceMode         SSlice mode
+ * \param   multi_slice_argv    Multiple slices argument
+ * \param   iMbWidth            MB width
+ * \param   iMbHeight           MB height
  *
- * \return	0 - successful; none 0 - failed;
+ * \return  0 - successful; none 0 - failed;
  */
 int32_t InitSliceSegment (SSliceCtx* pSliceSeg,
                           CMemoryAlign* pMa,
@@ -467,11 +467,11 @@ int32_t InitSliceSegment (SSliceCtx* pSliceSeg,
 }
 
 /*!
- * \brief	Uninitialize slice segment (Single/multiple slices)
+ * \brief   Uninitialize slice segment (Single/multiple slices)
  *
- * \param	pSliceSeg			SSlice segment to be uninitialized
+ * \param   pSliceSeg           SSlice segment to be uninitialized
  *
- * \return	none;
+ * \return  none;
  */
 void UninitSliceSegment (SSliceCtx* pSliceSeg, CMemoryAlign* pMa) {
   if (NULL != pSliceSeg) {
@@ -501,17 +501,17 @@ void UninitSliceSegment (SSliceCtx* pSliceSeg, CMemoryAlign* pMa) {
 
 
 /*!
- * \brief	Initialize Wels SSlice context (Single/multiple slices and FMO)
+ * \brief   Initialize Wels SSlice context (Single/multiple slices and FMO)
  *
- * \param	pSliceCtx		SSlice context to be initialized
- * \param	bFmoUseFlag	flag of using fmo
- * \param	iMbWidth		MB width
- * \param	iMbHeight		MB height
- * \param	uiSliceMode		slice mode
- * \param	mul_slice_arg	argument for multiple slice if it is applicable
- * \param	pPpsArg			argument for pPps parameter
+ * \param   pSliceCtx       SSlice context to be initialized
+ * \param   bFmoUseFlag     flag of using fmo
+ * \param   iMbWidth        MB width
+ * \param   iMbHeight       MB height
+ * \param   uiSliceMode     slice mode
+ * \param   mul_slice_arg   argument for multiple slice if it is applicable
+ * \param   pPpsArg         argument for pPps parameter
  *
- * \return	0 - successful; none 0 - failed;
+ * \return  0 - successful; none 0 - failed;
  */
 int32_t InitSlicePEncCtx (SSliceCtx* pSliceCtx,
                           CMemoryAlign* pMa,
@@ -532,11 +532,11 @@ int32_t InitSlicePEncCtx (SSliceCtx* pSliceCtx,
 }
 
 /*!
- * \brief	Uninitialize Wels SSlice context (Single/multiple slices and FMO)
+ * \brief   Uninitialize Wels SSlice context (Single/multiple slices and FMO)
  *
- * \param	pSliceCtx		SSlice context to be initialized
+ * \param   pSliceCtx       SSlice context to be initialized
  *
- * \return	NONE;
+ * \return  NONE;
  */
 void UninitSlicePEncCtx (SSliceCtx* pSliceCtx, CMemoryAlign* pMa) {
   if (NULL != pSliceCtx) {
@@ -545,12 +545,12 @@ void UninitSlicePEncCtx (SSliceCtx* pSliceCtx, CMemoryAlign* pMa) {
 }
 
 /*!
- * \brief	Get slice idc for given iMbXY (apply in Single/multiple slices and FMO)
+ * \brief   Get slice idc for given iMbXY (apply in Single/multiple slices and FMO)
  *
- * \param	pSliceCtx		SSlice context
- * \param	kiMbXY			MB xy index
+ * \param   pSliceCtx       SSlice context
+ * \param   kiMbXY          MB xy index
  *
- * \return	uiSliceIdc - successful; -1 - failed;
+ * \return  uiSliceIdc - successful; -1 - failed;
  */
 uint16_t WelsMbToSliceIdc (SSliceCtx* pSliceCtx, const int32_t kiMbXY) {
   if (NULL != pSliceCtx && kiMbXY < pSliceCtx->iMbNumInFrame && kiMbXY >= 0)
@@ -559,24 +559,24 @@ uint16_t WelsMbToSliceIdc (SSliceCtx* pSliceCtx, const int32_t kiMbXY) {
 }
 
 /*!
- * \brief	Get first mb in slice/slice_group: uiSliceIdc (apply in Single/multiple slices and FMO)
+ * \brief   Get first mb in slice/slice_group: uiSliceIdc (apply in Single/multiple slices and FMO)
  *
- * \param	pSliceCtx		SSlice context
- * \param	kuiSliceIdc		slice idc
+ * \param   pSliceCtx       SSlice context
+ * \param   kuiSliceIdc     slice idc
  *
- * \return	iFirstMb - successful; -1 - failed;
+ * \return  iFirstMb - successful; -1 - failed;
  */
 int32_t WelsGetFirstMbOfSlice (SSliceCtx* pSliceCtx, const int32_t kuiSliceIdc) {
   return pSliceCtx->pFirstMbInSlice[ kuiSliceIdc ];
 }
 
 /*!
- * \brief	Get successive mb to be processed in slice/slice_group: uiSliceIdc (apply in Single/multiple slices and FMO)
+ * \brief   Get successive mb to be processed in slice/slice_group: uiSliceIdc (apply in Single/multiple slices and FMO)
  *
- * \param	pSliceCtx		SSlice context
- * \param	kiMbXY			MB xy index
+ * \param   pSliceCtx       SSlice context
+ * \param   kiMbXY          MB xy index
  *
- * \return	next_mb - successful; -1 - failed;
+ * \return  next_mb - successful; -1 - failed;
  */
 int32_t WelsGetNextMbOfSlice (SSliceCtx* pSliceCtx, const int32_t kiMbXY) {
   if (NULL != pSliceCtx) {
@@ -605,12 +605,12 @@ int32_t WelsGetNextMbOfSlice (SSliceCtx* pSliceCtx, const int32_t kiMbXY) {
 }
 
 /*!
- * \brief	Get previous mb to be processed in slice/slice_group: uiSliceIdc (apply in Single/multiple slices and FMO)
+ * \brief   Get previous mb to be processed in slice/slice_group: uiSliceIdc (apply in Single/multiple slices and FMO)
  *
- * \param	pSliceCtx		SSlice context
- * \param	kiMbXY			MB xy index
+ * \param   pSliceCtx       SSlice context
+ * \param   kiMbXY          MB xy index
  *
- * \return	prev_mb - successful; -1 - failed;
+ * \return  prev_mb - successful; -1 - failed;
  */
 int32_t WelsGetPrevMbOfSlice (SSliceCtx* pSliceCtx, const int32_t kiMbXY) {
   if (NULL != pSliceCtx) {
@@ -635,12 +635,12 @@ int32_t WelsGetPrevMbOfSlice (SSliceCtx* pSliceCtx, const int32_t kiMbXY) {
 }
 
 /*!
- * \brief	Get number of mb in slice/slice_group: uiSliceIdc (apply in Single/multiple slices and FMO)
+ * \brief   Get number of mb in slice/slice_group: uiSliceIdc (apply in Single/multiple slices and FMO)
  *
- * \param	pSliceCtx		SSlice context
- * \param	kuiSliceIdc		slice/slice_group idc
+ * \param   pSliceCtx       SSlice context
+ * \param   kuiSliceIdc     slice/slice_group idc
  *
- * \return	count_num_of_mb - successful; -1 - failed;
+ * \return  count_num_of_mb - successful; -1 - failed;
  */
 int32_t WelsGetNumMbInSlice (SSliceCtx* pSliceCtx, const int32_t kuiSliceIdc) {
   if (NULL == pSliceCtx || kuiSliceIdc < 0)

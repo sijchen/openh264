@@ -28,9 +28,9 @@
  *     ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *     POSSIBILITY OF SUCH DAMAGE.
  *
- * \file	    :  denoise.h
+ * \file        :  denoise.h
  *
- * \brief	    :  denoise class of wels video processor class
+ * \brief       :  denoise class of wels video processor class
  *
  * \date        :  2011/03/15
  *
@@ -52,7 +52,7 @@
 #define DENOISE_GRAY_SIGMA  (2)
 
 #define UV_WINDOWS_RADIUS   (2)
-#define TAIL_OF_LINE8		(7)
+#define TAIL_OF_LINE8       (7)
 
 #define DENOISE_Y_COMPONENT (1)
 #define DENOISE_U_COMPONENT (2)

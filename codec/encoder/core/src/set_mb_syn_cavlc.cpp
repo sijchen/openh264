@@ -29,11 +29,11 @@
  *     POSSIBILITY OF SUCH DAMAGE.
  *
  *
- * \file	set_mb_syn_cavlc.h
+ * \file    set_mb_syn_cavlc.h
  *
- * \brief	Seting all syntax elements of mb and decoding residual with cavlc
+ * \brief   Seting all syntax elements of mb and decoding residual with cavlc
  *
- * \date	05/19/2009 Created
+ * \date    05/19/2009 Created
  *
  *************************************************************************************
  */
@@ -51,7 +51,7 @@ const  ALIGNED_DECLARE (uint8_t, g_kuiZeroLeftMap[16], 16) = {
 
 
 /*
- *	Exponential Golomb codes encoding routines
+ *  Exponential Golomb codes encoding routines
  */
 
 #define    CAVLC_BS_INIT( pBs )  \

@@ -29,11 +29,11 @@
  *     POSSIBILITY OF SUCH DAMAGE.
  *
  *
- * \file	picture_handle.c
+ * \file    picture_handle.c
  *
- * \brief	picture pData handling
+ * \brief   picture pData handling
  *
- * \date	5/20/2009 Created
+ * \date    5/20/2009 Created
  *
  *************************************************************************************/
 #include "picture_handle.h"
@@ -41,12 +41,12 @@
 
 namespace WelsEnc {
 /*!
- * \brief	alloc picture pData with borders for each plane based width and height of picture
- * \param	cx				width of picture in pixels
- * \param	cy				height of picture in pixels
- * \param	need_data		need pData allocation
- * \pram	need_expand		need borders expanding
- * \return	successful if effective picture pointer returned, otherwise failed with NULL
+ * \brief   alloc picture pData with borders for each plane based width and height of picture
+ * \param   cx              width of picture in pixels
+ * \param   cy              height of picture in pixels
+ * \param   need_data       need pData allocation
+ * \pram    need_expand     need borders expanding
+ * \return  successful if effective picture pointer returned, otherwise failed with NULL
  */
 SPicture* AllocPicture (CMemoryAlign* pMa, const int32_t kiWidth , const int32_t kiHeight,
                         bool bNeedMbInfo, int32_t iNeedFeatureStorage) {
@@ -122,9 +122,9 @@ SPicture* AllocPicture (CMemoryAlign* pMa, const int32_t kiWidth , const int32_t
 }
 
 /*!
- * \brief	free picture pData planes
- * \param	pPic		picture pointer to be destoryed
- * \return	none
+ * \brief   free picture pData planes
+ * \param   pPic        picture pointer to be destoryed
+ * \return  none
  */
 void FreePicture (CMemoryAlign* pMa, SPicture** ppPic) {
   if (NULL != ppPic && NULL != *ppPic) {

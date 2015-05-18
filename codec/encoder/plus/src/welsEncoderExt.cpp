@@ -57,7 +57,7 @@
 namespace WelsEnc {
 
 /*
- *	CWelsH264SVCEncoder class implementation
+ *  CWelsH264SVCEncoder class implementation
  */
 CWelsH264SVCEncoder::CWelsH264SVCEncoder()
   :	m_pEncContext (NULL),
@@ -178,7 +178,7 @@ int CWelsH264SVCEncoder::GetDefaultParams (SEncParamExt* argv) {
 }
 
 /*
- *	SVC Encoder Initialization
+ *  SVC Encoder Initialization
  */
 int CWelsH264SVCEncoder::Initialize (const SEncParamBase* argv) {
   if (m_pWelsTrace == NULL) {
@@ -348,7 +348,7 @@ int CWelsH264SVCEncoder::InitializeInternal (SWelsSvcCodingParam* pCfg) {
 }
 
 /*
- *	SVC Encoder Uninitialization
+ *  SVC Encoder Uninitialization
  */
 int32_t CWelsH264SVCEncoder::Uninitialize() {
   if (!m_bInitialFlag) {
@@ -370,7 +370,7 @@ int32_t CWelsH264SVCEncoder::Uninitialize() {
 
 
 /*
- *	SVC core encoding
+ *  SVC core encoding
  */
 int CWelsH264SVCEncoder::EncodeFrame (const SSourcePicture* kpSrcPic, SFrameBSInfo* pBsInfo) {
   if (! (kpSrcPic && m_bInitialFlag && pBsInfo)) {
@@ -469,7 +469,7 @@ int CWelsH264SVCEncoder::EncodeParameterSets (SFrameBSInfo* pBsInfo) {
 }
 
 /*
- *	Force key frame
+ *  Force key frame
  */
 int CWelsH264SVCEncoder::ForceIntraFrame (bool bIDR) {
   if (! (m_pEncContext && m_bInitialFlag)) {
@@ -486,9 +486,9 @@ int CWelsH264SVCEncoder::ForceIntraFrame (bool bIDR) {
 }
 void CWelsH264SVCEncoder::TraceParamInfo (SEncParamExt* pParam) {
   WelsLog (&m_pWelsTrace->m_sLogCtx, WELS_LOG_INFO,
-           "iUsageType = %d,iPicWidth= %d;iPicHeight= %d;iTargetBitrate= %d;iMaxBitrate= %d;iRCMode= %d;iPaddingFlag= %d;iTemporalLayerNum= %d;iSpatialLayerNum= %d;fFrameRate= %.6ff;uiIntraPeriod= %d;\
-             eSpsPpsIdStrategy = %d;bPrefixNalAddingCtrl = %d;bEnableDenoise= %d;bEnableBackgroundDetection= %d;bEnableAdaptiveQuant= %d;bEnableFrameSkip= %d;bEnableLongTermReference= %d;iLtrMarkPeriod= %d;\
-             iComplexityMode = %d;iNumRefFrame = %d;iEntropyCodingModeFlag = %d;uiMaxNalSize = %d;iLTRRefNum = %d;iMultipleThreadIdc = %d;iLoopFilterDisableIdc = %d (offset(alpha/beta): %d,%d)",
+           "iUsageType = %d,iPicWidth= %d;iPicHeight= %d;iTargetBitrate= %d;iMaxBitrate= %d;iRCMode= %d;iPaddingFlag= %d;iTemporalLayerNum= %d;iSpatialLayerNum= %d;fFrameRate= %.6ff;uiIntraPeriod= %d;"
+           "eSpsPpsIdStrategy = %d;bPrefixNalAddingCtrl = %d;bEnableDenoise= %d;bEnableBackgroundDetection= %d;bEnableAdaptiveQuant= %d;bEnableFrameSkip= %d;bEnableLongTermReference= %d;iLtrMarkPeriod= %d;"
+           "iComplexityMode = %d;iNumRefFrame = %d;iEntropyCodingModeFlag = %d;uiMaxNalSize = %d;iLTRRefNum = %d;iMultipleThreadIdc = %d;iLoopFilterDisableIdc = %d (offset(alpha/beta): %d,%d)",
            pParam->iUsageType,
            pParam->iPicWidth,
            pParam->iPicHeight,
@@ -524,8 +524,8 @@ void CWelsH264SVCEncoder::TraceParamInfo (SEncParamExt* pParam) {
   while (i < iSpatialLayers) {
     SSpatialLayerConfig* pSpatialCfg = &pParam->sSpatialLayers[i];
     WelsLog (&m_pWelsTrace->m_sLogCtx, WELS_LOG_INFO,
-             "sSpatialLayers[%d]: .iVideoWidth= %d; .iVideoHeight= %d; .fFrameRate= %.6ff; .iSpatialBitrate= %d; .iMaxSpatialBitrate= %d; .sSliceCfg.uiSliceMode= %d; .sSliceCfg.sSliceArgument.iSliceNum= %d; .sSliceCfg.sSliceArgument.uiSliceSizeConstraint= %d;\
-               uiProfileIdc = %d;uiLevelIdc = %d",
+             "sSpatialLayers[%d]: .iVideoWidth= %d; .iVideoHeight= %d; .fFrameRate= %.6ff; .iSpatialBitrate= %d; .iMaxSpatialBitrate= %d; .sSliceCfg.uiSliceMode= %d; .sSliceCfg.sSliceArgument.iSliceNum= %d; .sSliceCfg.sSliceArgument.uiSliceSizeConstraint= %d;"
+             "uiProfileIdc = %d;uiLevelIdc = %d",
              i, pSpatialCfg->iVideoWidth,
              pSpatialCfg->iVideoHeight,
              pSpatialCfg->fFrameRate,
@@ -571,8 +571,8 @@ void CWelsH264SVCEncoder::UpdateStatistics (const int64_t kiCurrentFrameTs, EVid
   } else {
     m_pEncContext->uiStartTimestamp = kiCurrentFrameTs;
   }
-  pStatistics->fLatestFrameRate = m_pEncContext->pWelsSvcRc->fLatestFrameRate; //TODO: finish the calculation in RC
-  pStatistics->uiBitRate = m_pEncContext->pWelsSvcRc->iActualBitRate; //TODO: finish the calculation in RC
+  //pStatistics->fLatestFrameRate = m_pEncContext->pWelsSvcRc->fLatestFrameRate; //TODO: finish the calculation in RC
+  //pStatistics->uiBitRate = m_pEncContext->pWelsSvcRc->iActualBitRate; //TODO: finish the calculation in RC
   pStatistics->uiAverageFrameQP = m_pEncContext->pWelsSvcRc->iAverageFrameQp;
 
   if (videoFrameTypeIDR == eFrameType || videoFrameTypeI == eFrameType) {
@@ -608,15 +608,16 @@ void CWelsH264SVCEncoder::UpdateStatistics (const int64_t kiCurrentFrameTs, EVid
     const int64_t kiTimeDiff = kiCurrentFrameTs - m_pEncContext->iLastStatisticsLogTs;
     if ((kiTimeDiff > m_pEncContext->iStatisticsLogInterval) || (0 == pStatistics->uiInputFrameCount % 300)) {
       WelsLog (&m_pWelsTrace->m_sLogCtx, WELS_LOG_INFO,
-               "EncoderStatistics: %dx%d, SpeedInMs: %f, fAverageFrameRate=%f, \
-               LastFrameRate=%f, LatestBitRate=%d, LastFrameQP=%d, uiInputFrameCount=%d, uiSkippedFrameCount=%d, \
-               uiResolutionChangeTimes=%d, uIDRReqNum=%d, uIDRSentNum=%d, uLTRSentNum=NA, iTotalEncodedBytes=%"PRId64,
+               "EncoderStatistics: %dx%d, SpeedInMs: %f, fAverageFrameRate=%f, "
+               "LastFrameRate=%f, LatestBitRate=%d, LastFrameQP=%d, uiInputFrameCount=%d, uiSkippedFrameCount=%d, "
+               "uiResolutionChangeTimes=%d, uIDRReqNum=%d, uIDRSentNum=%d, uLTRSentNum=NA, iTotalEncodedBytes=%" PRId64
+               "at Ts = %" PRId64,
                pStatistics->uiWidth, pStatistics->uiHeight,
                pStatistics->fAverageFrameSpeedInMs, pStatistics->fAverageFrameRate,
                pStatistics->fLatestFrameRate, pStatistics->uiBitRate, pStatistics->uiAverageFrameQP,
                pStatistics->uiInputFrameCount, pStatistics->uiSkippedFrameCount,
                pStatistics->uiResolutionChangeTimes, pStatistics->uiIDRReqNum, pStatistics->uiIDRSentNum,
-               m_pEncContext->iTotalEncodedBytes);
+               m_pEncContext->iTotalEncodedBytes, kiCurrentFrameTs);
       m_pEncContext->iLastStatisticsLogTs = kiCurrentFrameTs;
     }
   }

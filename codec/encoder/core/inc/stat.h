@@ -29,11 +29,11 @@
  *     POSSIBILITY OF SUCH DAMAGE.
  *
  *
- * \file	stat.h
+ * \file    stat.h
  *
- * \brief	statistical pData information
+ * \brief   statistical pData information
  *
- * \date	4/22/2009 Created
+ * \date    4/22/2009 Created
  *
  *************************************************************************************
  */
@@ -43,7 +43,7 @@
 namespace WelsEnc {
 
 /*
- *	Stat quality
+ *  Stat quality
  */
 typedef struct TagStatQuality {
 
@@ -54,7 +54,7 @@ float	rVPsnr[5];
 } SStatQuality;
 
 /*
- *	Stat complexity pData
+ *  Stat complexity pData
  */
 typedef struct TagComplexityStat {
 
@@ -70,7 +70,7 @@ int32_t		mvb_time;
 } SComplexityStat;
 
 /*
- *	Stat slice details information
+ *  Stat slice details information
  */
 typedef struct TagStatSliceInfo {
 
@@ -82,7 +82,7 @@ int32_t		iMbCount   [5][18];
 } SStatSliceInfo;
 
 /*
- *	For overall statistical pData
+ *  For overall statistical pData
  */
 typedef struct TagStatData {
 

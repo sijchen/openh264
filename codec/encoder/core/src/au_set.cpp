@@ -29,11 +29,11 @@
  *     POSSIBILITY OF SUCH DAMAGE.
  *
  *
- * \file	au_set.c
+ * \file    au_set.c
  *
- * \brief	Interfaces introduced in Access Unit level based writer
+ * \brief   Interfaces introduced in Access Unit level based writer
  *
- * \date	05/18/2009 Created
+ * \date    05/18/2009 Created
  *
  *************************************************************************************
  */
@@ -225,15 +225,15 @@ int32_t WelsWriteVUI (SWelsSPS* pSps, SBitStringAux* pBitStringAux) {
 
 /*!
  *************************************************************************************
- * \brief	to set Sequence Parameter Set (SPS)
+ * \brief   to set Sequence Parameter Set (SPS)
  *
- * \param 	pSps 	SWelsSPS to be wrote, update iSpsId dependency
- * \param	pBitStringAux		bitstream writer auxiliary
+ * \param   pSps            SWelsSPS to be wrote, update iSpsId dependency
+ * \param   pBitStringAux   bitstream writer auxiliary
  *
- * \return	0 - successed
- *	    	1 - failed
+ * \return  0 - successed
+ *          1 - failed
  *
- * \note	Call it in case EWelsNalUnitType is SPS.
+ * \note    Call it in case EWelsNalUnitType is SPS.
  *************************************************************************************
  */
 int32_t WelsWriteSpsSyntax (SWelsSPS* pSps, SBitStringAux* pBitStringAux, int32_t* pSpsIdDelta, bool bBaseLayer) {
@@ -300,15 +300,15 @@ int32_t WelsWriteSpsNal (SWelsSPS* pSps, SBitStringAux* pBitStringAux, int32_t* 
 
 /*!
  *************************************************************************************
- * \brief	to write SubSet Sequence Parameter Set
+ * \brief   to write SubSet Sequence Parameter Set
  *
- * \param 	sub_sps		subset pSps parsed
- * \param	pBitStringAux		bitstream writer auxiliary
+ * \param   sub_sps         subset pSps parsed
+ * \param   pBitStringAux   bitstream writer auxiliary
  *
- * \return	0 - successed
- *		    1 - failed
+ * \return  0 - successed
+ *          1 - failed
  *
- * \note	Call it in case EWelsNalUnitType is SubSet SPS.
+ * \note    Call it in case EWelsNalUnitType is SubSet SPS.
  *************************************************************************************
  */
 
@@ -349,15 +349,15 @@ int32_t WelsWriteSubsetSpsSyntax (SSubsetSps* pSubsetSps, SBitStringAux* pBitStr
 
 /*!
  *************************************************************************************
- * \brief	to write Picture Parameter Set (PPS)
+ * \brief   to write Picture Parameter Set (PPS)
  *
- * \param 	pPps     	pPps
- * \param	pBitStringAux		bitstream writer auxiliary
+ * \param   pPps            pPps
+ * \param   pBitStringAux   bitstream writer auxiliary
  *
- * \return	0 - successed
- *	    	1 - failed
+ * \return  0 - successed
+ *          1 - failed
  *
- * \note	Call it in case EWelsNalUnitType is PPS.
+ * \note    Call it in case EWelsNalUnitType is PPS.
  *************************************************************************************
  */
 int32_t WelsWritePpsSyntax (SWelsPPS* pPps, SBitStringAux* pBitStringAux, SParaSetOffset* pPSOVector) {

@@ -29,11 +29,11 @@
  *     POSSIBILITY OF SUCH DAMAGE.
  *
  *
- * \file	macros.h
+ * \file    macros.h
  *
- * \brief	MACRO based tool utilization
+ * \brief   MACRO based tool utilization
  *
- * \date	3/13/2009 Created
+ * \date    3/13/2009 Created
  *
  *************************************************************************************
  */
@@ -55,16 +55,16 @@
 * auxiliary var: _nm ## _tEmP
 */
 #define ENFORCE_STACK_ALIGN_1D(_tp, _nm, _sz, _al) \
-	_tp _nm ## _tEmP[(_sz)+(_al)-1]; \
-	_tp *_nm = _nm ## _tEmP + ((_al)-1) - (((uintptr_t)(_nm ## _tEmP + ((_al)-1)) & ((_al)-1))/sizeof(_tp));
+    _tp _nm ## _tEmP[(_sz)+(_al)-1]; \
+    _tp *_nm = _nm ## _tEmP + ((_al)-1) - (((uintptr_t)(_nm ## _tEmP + ((_al)-1)) & ((_al)-1))/sizeof(_tp));
 
 
 #define ENFORCE_STACK_ALIGN_2D(_tp, _nm, _cx, _cy, _al) \
-	assert( ((_al) && !((_al) & ((_al) - 1))) && ((_al) >= sizeof(_tp)) ); /*_al should be power-of-2 and >= sizeof(_tp)*/\
-	_tp _nm ## _tEmP[(_cx)*(_cy)+(_al)/sizeof(_tp)-1]; \
-	_tp *_nm ## _tEmP_al = _nm ## _tEmP + ((_al)/sizeof(_tp)-1); \
-	_nm ## _tEmP_al -= (((uintptr_t)_nm ## _tEmP_al & ((_al)-1))/sizeof(_tp)); \
-	_tp (*_nm)[(_cy)] = (_tp (*)[(_cy)])_nm ## _tEmP_al;
+    assert( ((_al) && !((_al) & ((_al) - 1))) && ((_al) >= sizeof(_tp)) ); /*_al should be power-of-2 and >= sizeof(_tp)*/\
+    _tp _nm ## _tEmP[(_cx)*(_cy)+(_al)/sizeof(_tp)-1]; \
+    _tp *_nm ## _tEmP_al = _nm ## _tEmP + ((_al)/sizeof(_tp)-1); \
+    _nm ## _tEmP_al -= (((uintptr_t)_nm ## _tEmP_al & ((_al)-1))/sizeof(_tp)); \
+    _tp (*_nm)[(_cy)] = (_tp (*)[(_cy)])_nm ## _tEmP_al;
 
 
 #if defined(_MSC_VER)
@@ -129,10 +129,10 @@
 #define WELS_DIV_ROUND64(x,y)	((int64_t)((y)==0?((x)/((y)+1)):(((y)/2+(x))/(y))))
 #endif//WELS_DIV_ROUND64
 
-#define WELS_NON_ZERO_COUNT_AVERAGE(nC,nA,nB) {		\
-    nC = nA + nB + 1;                      \
-	nC >>= (uint8_t)( nA != -1 && nB != -1);        \
-	nC += (uint8_t)(nA == -1 && nB == -1);           \
+#define WELS_NON_ZERO_COUNT_AVERAGE(nC,nA,nB) {         \
+  nC = nA + nB + 1;                                     \
+  nC >>= (uint8_t)( nA != -1 && nB != -1);              \
+  nC += (uint8_t)(nA == -1 && nB == -1);                \
 }
 
 static inline int32_t CeilLog2 (int32_t i) {
@@ -207,41 +207,41 @@ template<typename T> T WelsClip3(T iX, T iY, T iZ) {
 
 /*
  * Description: to check variable validation and return the specified result
- *	iResult:	value to be checked
- *	iExpected:	the expected value
+ *  iResult:    value to be checked
+ *  iExpected:  the expected value
  */
 #ifndef WELS_VERIFY_RETURN_IFNEQ
 #define WELS_VERIFY_RETURN_IFNEQ(iResult, iExpected) \
-	if ( iResult != iExpected ){ \
-		return iResult; \
-	}
+  if (iResult != iExpected) {                        \
+    return iResult;                                  \
+  }
 #endif//#if WELS_VERIFY_RETURN_IF
 
 /*
  * Description: to check variable validation and return the specified result
- *	iResult:	value to be return
- *	bCaseIf:	negative condition to be verified
+ *  iResult:    value to be return
+ *  bCaseIf:    negative condition to be verified
  */
 #ifndef WELS_VERIFY_RETURN_IF
 #define WELS_VERIFY_RETURN_IF(iResult, bCaseIf) \
-	if ( bCaseIf ){ \
-		return iResult; \
-	}
+  if (bCaseIf) {                                \
+    return iResult;                             \
+  }
 #endif//#if WELS_VERIFY_RETURN_IF
 
 /*
- *	Description: to check variable validation and return the specified result
- *		with correspoinding process advance.
- *	 result:	value to be return
- *	 case_if:	negative condition to be verified
- *	 proc:		process need perform
+ *  Description: to check variable validation and return the specified result
+ *      with correspoinding process advance.
+ *   result:    value to be return
+ *   case_if:   negative condition to be verified
+ *   proc:      process need perform
  */
 #ifndef WELS_VERIFY_RETURN_PROC_IF
 #define WELS_VERIFY_RETURN_PROC_IF(iResult, bCaseIf, fProc) \
-	if ( bCaseIf ){ \
-		fProc;	\
-		return iResult;	\
-	}
+  if (bCaseIf) {                                            \
+    fProc;                                                  \
+    return iResult;                                         \
+  }
 #endif//#if WELS_VERIFY_RETURN_PROC_IF
 
 static inline int32_t WELS_LOG2 (uint32_t v) {

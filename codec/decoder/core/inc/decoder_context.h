@@ -29,11 +29,11 @@
  *     POSSIBILITY OF SUCH DAMAGE.
  *
  *
- * \file	decoder_context.h
+ * \file    decoder_context.h
  *
- * \brief	mainly interface introduced in Wels decoder side
+ * \brief   mainly interface introduced in Wels decoder side
  *
- * \date	3/4/2009 Created
+ * \date    3/4/2009 Created
  *
  *************************************************************************************
  */
@@ -127,7 +127,7 @@ typedef struct TagPpsBsInfo {
 //#endif//__cplusplus
 
 /*
- *	Need move below structures to function pointer to seperate module/file later
+ *  Need move below structures to function pointer to seperate module/file later
  */
 
 //typedef int32_t (*rec_mb) (Mb *cur_mb, PWelsDecoderContext pCtx);
@@ -226,7 +226,7 @@ enum {
 };
 
 /*
- *	SWelsDecoderContext: to maintail all modules data over decoder@framework
+ *  SWelsDecoderContext: to maintail all modules data over decoder@framework
  */
 
 typedef struct TagWelsDecoderContext {

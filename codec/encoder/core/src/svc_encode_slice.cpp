@@ -29,11 +29,11 @@
  *     POSSIBILITY OF SUCH DAMAGE.
  *
  *
- * \file	svc_encode_slice.c
+ * \file    svc_encode_slice.c
  *
- * \brief	svc encoding slice
+ * \brief   svc encoding slice
  *
- * \date	2009.07.27 Created
+ * \date    2009.07.27 Created
  *
  *************************************************************************************
  */
@@ -175,7 +175,7 @@ void WelsCountMbType (int32_t (*iMbCount)[18], const EWelsSliceType keSt, const 
 #endif//MB_TYPES_CHECK
 
 /*!
-* \brief	write reference picture list on reordering syntax in Slice header
+* \brief    write reference picture list on reordering syntax in Slice header
 */
 void WriteReferenceReorder (SBitStringAux* pBs, SSliceHeader* sSliceHeader) {
   SRefPicListReorderSyntax* pRefOrdering	= &sSliceHeader->sRefReordering;
@@ -201,7 +201,7 @@ void WriteReferenceReorder (SBitStringAux* pBs, SSliceHeader* sSliceHeader) {
 }
 
 /*!
-* \brief	write reference picture marking syntax in pSlice header
+* \brief    write reference picture marking syntax in pSlice header
 */
 void WriteRefPicMarking (SBitStringAux* pBs, SSliceHeader* pSliceHeader, SNalUnitHeaderExt* pNalHdrExt) {
   SRefPicMarking* sRefMarking	= &pSliceHeader->sRefMarking;

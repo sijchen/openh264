@@ -29,11 +29,11 @@
  *     POSSIBILITY OF SUCH DAMAGE.
  *
  *
- * \file	pic_queue.c
+ * \file    pic_queue.c
  *
- * \brief	Recycled piture queue implementation
+ * \brief   Recycled piture queue implementation
  *
- * \date	03/13/2009 Created
+ * \date    03/13/2009 Created
  *
  *************************************************************************************
  */
@@ -48,12 +48,12 @@ void FreePicture (PPicture pPic);
 
 
 ///////////////////////////////////Recycled queue management for pictures///////////////////////////////////
-/*	 ______________________________________
+/*   ______________________________________
   -->| P0 | P1 | P2 | P3 | P4 | .. | Pn-1 |-->
-	 --------------------------------------
+     --------------------------------------
  *
- *	How does it work?
- *	node <- next; ++ next;
+ *  How does it work?
+ *  node <- next; ++ next;
  *
 */
 

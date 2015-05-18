@@ -694,7 +694,8 @@ void   RcVBufferCalculationSkip (sWelsEncCtx* pEncCtx) {
   pWelsSvcRc->iBufferMaxBRFullness[EVEN_TIME_WINDOW] += (pWelsSvcRc->iFrameDqBits - kiOutputMaxBits);
   pWelsSvcRc->iBufferMaxBRFullness[ODD_TIME_WINDOW] += (pWelsSvcRc->iFrameDqBits - kiOutputMaxBits);
 
-  WelsLog (& (pEncCtx->sLogCtx), WELS_LOG_DEBUG, "[Rc] bits in buffer = %"PRId64", bits in Max bitrate buffer = %"PRId64,
+  WelsLog (& (pEncCtx->sLogCtx), WELS_LOG_DEBUG,
+           "[Rc] bits in buffer = %" PRId64 ", bits in Max bitrate buffer = %" PRId64,
            pWelsSvcRc->iBufferFullnessSkip, pWelsSvcRc->iBufferMaxBRFullness[EVEN_TIME_WINDOW]);
 //condition 2: VGOP bits constraint
   int64_t iVGopBitsPred = 0;
@@ -764,7 +765,7 @@ void WelsRcFrameDelayJudge (sWelsEncCtx* pEncCtx, EVideoFrameType eFrameType, lo
     pWelsSvcRc->iBufferMaxBRFullness[EVEN_TIME_WINDOW] -= kiOutputMaxBits;
     pWelsSvcRc->iBufferMaxBRFullness[ODD_TIME_WINDOW] -= kiOutputMaxBits;
     WelsLog (& (pEncCtx->sLogCtx), WELS_LOG_DEBUG,
-             "[Rc] bits in buffer = %"PRId64", bits in Max bitrate buffer = %"PRId64", Predict skip frames = %d and %d",
+             "[Rc] bits in buffer = %" PRId64 ", bits in Max bitrate buffer = %" PRId64 ", Predict skip frames = %d and %d",
              pWelsSvcRc->iBufferFullnessSkip, pWelsSvcRc->iBufferMaxBRFullness[EVEN_TIME_WINDOW], iPredSkipFramesTarBr,
              iPredSkipFramesMaxBr);
     pWelsSvcRc->iBufferFullnessSkip = WELS_MAX (pWelsSvcRc->iBufferFullnessSkip, 0);
@@ -808,7 +809,8 @@ void UpdateBufferWhenFrameSkipped (sWelsEncCtx* pEncCtx, int32_t iSpatialNum) {
     pWelsSvcRc->iBufferFullnessSkip = pWelsSvcRc->iBufferFullnessSkip - kiOutputBits;
     pWelsSvcRc->iBufferMaxBRFullness[EVEN_TIME_WINDOW] -= kiOutputMaxBits;
     pWelsSvcRc->iBufferMaxBRFullness[ODD_TIME_WINDOW] -= kiOutputMaxBits;
-    WelsLog (& (pEncCtx->sLogCtx), WELS_LOG_DEBUG, "[Rc] bits in buffer = %"PRId64", bits in Max bitrate buffer = %"PRId64,
+    WelsLog (& (pEncCtx->sLogCtx), WELS_LOG_DEBUG,
+             "[Rc] bits in buffer = %" PRId64 ", bits in Max bitrate buffer = %" PRId64,
              pWelsSvcRc->iBufferFullnessSkip, pWelsSvcRc->iBufferMaxBRFullness[EVEN_TIME_WINDOW]);
 
     pWelsSvcRc->iBufferFullnessSkip = WELS_MAX (pWelsSvcRc->iBufferFullnessSkip, 0);
@@ -827,6 +829,15 @@ void UpdateMaxBrCheckWindowStatus (sWelsEncCtx* pEncCtx, int32_t iSpatialNum, co
   } else {
     pEncCtx->iCheckWindowCurrentTs = pEncCtx->iCheckWindowStartTs = uiTimeStamp;
     pEncCtx->bCheckWindowStatusRefreshFlag = true;
+    for (int32_t i = 0; i < iSpatialNum; i++) {
+      int32_t iCurDid	= (pSpatialIndexMap + i)->iDid;
+      pEncCtx->pWelsSvcRc[iCurDid].iBufferFullnessSkip = 0;
+      pEncCtx->pWelsSvcRc[iCurDid].iBufferMaxBRFullness[ODD_TIME_WINDOW] = 0;
+      pEncCtx->pWelsSvcRc[iCurDid].iBufferMaxBRFullness[EVEN_TIME_WINDOW] = 0;
+      pEncCtx->pWelsSvcRc[iCurDid].bNeedShiftWindowCheck[ODD_TIME_WINDOW] = false;
+      pEncCtx->pWelsSvcRc[iCurDid].bNeedShiftWindowCheck[EVEN_TIME_WINDOW] = false;
+    }
+
   }
   pEncCtx->iCheckWindowInterval = (int32_t) (pEncCtx->iCheckWindowCurrentTs - pEncCtx->iCheckWindowStartTs);
   if (pEncCtx->iCheckWindowInterval >= (TIME_CHECK_WINDOW >> 1) && !pEncCtx->bCheckWindowShiftResetFlag) {
@@ -889,8 +900,8 @@ void RcTraceFrameBits (sWelsEncCtx* pEncCtx, long long uiTimeStamp) {
     pWelsSvcRc->iPredFrameBit = pWelsSvcRc->iFrameDqBits;
 
   WelsLog (& (pEncCtx->sLogCtx), WELS_LOG_DEBUG,
-           "[Rc] Frame timestamp = %lld, Frame type =%d, encoding_qp = %d, average qp = %3d, max qp = %3d, min qp = %3d, index = %8d,\
-    iTid = %1d, used = %8d, bitsperframe = %8d, target = %8d, remaingbits = %8d, skipbuffersize = %8d",
+           "[Rc] Frame timestamp = %lld, Frame type =%d, encoding_qp = %d, average qp = %3d, max qp = %3d, min qp = %3d, index = %8d, "
+           "iTid = %1d, used = %8d, bitsperframe = %8d, target = %8d, remaingbits = %8d, skipbuffersize = %8d",
            uiTimeStamp, pEncCtx->eSliceType, pEncCtx->iGlobalQp, pWelsSvcRc->iAverageFrameQp, pWelsSvcRc->iMaxFrameQp,
            pWelsSvcRc->iMinFrameQp,
            pEncCtx->iFrameIndex, pEncCtx->uiTemporalId, pWelsSvcRc->iFrameDqBits, pWelsSvcRc->iBitsPerFrame,
@@ -936,7 +947,7 @@ void RcUpdateIntraComplexity (sWelsEncCtx* pEncCtx) {
   if (pWelsSvcRc->iIdrNum > 255)
     pWelsSvcRc->iIdrNum = 255;
   WelsLog (& (pEncCtx->sLogCtx), WELS_LOG_INFO,
-           "RcUpdateIntraComplexity iFrameDqBits = %d,iQStep= %d,iIntraCmplx = %"PRId64,
+           "RcUpdateIntraComplexity iFrameDqBits = %d,iQStep= %d,iIntraCmplx = %" PRId64,
            pWelsSvcRc->iFrameDqBits, pWelsSvcRc->iQStep, pWelsSvcRc->iIntraComplexity);
 }
 
@@ -963,7 +974,7 @@ void RcUpdateFrameComplexity (sWelsEncCtx* pEncCtx) {
   if (pTOverRc->iPFrameNum > 255)
     pTOverRc->iPFrameNum = 255;
   WelsLog (& (pEncCtx->sLogCtx), WELS_LOG_DEBUG,
-           "RcUpdateFrameComplexity iFrameDqBits = %d,iQStep= %d,pTOverRc->iLinearCmplx = %"PRId64, pWelsSvcRc->iFrameDqBits,
+           "RcUpdateFrameComplexity iFrameDqBits = %d,iQStep= %d,pTOverRc->iLinearCmplx = %" PRId64, pWelsSvcRc->iFrameDqBits,
            pWelsSvcRc->iQStep, pTOverRc->iLinearCmplx);
 }
 
@@ -1203,7 +1214,7 @@ void WelsRcDropFrameUpdate (sWelsEncCtx* pEncCtx, uint32_t iDropSize) {
 
   pWelsSvcRc->iBufferFullnessSkip -= (int32_t)iDropSize;
   pWelsSvcRc->iBufferFullnessSkip = WELS_MAX (0, pWelsSvcRc->iBufferFullnessSkip);
-  WelsLog (& (pEncCtx->sLogCtx), WELS_LOG_INFO, "[WelsRcDropFrameUpdate:\tdrop:%d\t%"PRId64"\n", iDropSize,
+  WelsLog (& (pEncCtx->sLogCtx), WELS_LOG_INFO, "[WelsRcDropFrameUpdate:\tdrop:%d\t%" PRId64 "\n", iDropSize,
            pWelsSvcRc->iBufferFullnessSkip);
 }
 
@@ -1273,7 +1284,8 @@ void WelsRcFrameDelayJudgeTimeStamp (sWelsEncCtx* pEncCtx, EVideoFrameType eFram
     }
   }
   WelsLog (& (pEncCtx->sLogCtx), WELS_LOG_DEBUG,
-           "WelsRcFrameDelayJudgeTimeStamp iSkipFrameNum = %d,buffer = %"PRId64",threadhold = %d,bitrate = %d,iSentBits = %d,lasttimestamp = %lld,timestamp=%lld\n",
+           "WelsRcFrameDelayJudgeTimeStamp iSkipFrameNum = %d,buffer = %" PRId64
+           ",threadhold = %d,bitrate = %d,iSentBits = %d,lasttimestamp = %lld,timestamp=%lld\n",
            pWelsSvcRc->iSkipFrameNum, pWelsSvcRc->iBufferFullnessSkip, pWelsSvcRc->iBufferSizeSkip, iBitRate, iSentBits,
            pWelsSvcRc->uiLastTimeStamp, uiTimeStamp);
 }
@@ -1298,7 +1310,7 @@ void  WelsRcPictureInitGomTimeStamp (sWelsEncCtx* pEncCtx, long long uiTimeStamp
                                 IDR_BITRATE_RATIO));
 
       WelsLog (& (pEncCtx->sLogCtx), WELS_LOG_DEBUG,
-               "[Rc] First IDR iSpatialBitrate = %d,iBufferFullnessSkip = %"PRId64",iTargetBits= %d,dBpp = %f,initQp = %d",
+               "[Rc] First IDR iSpatialBitrate = %d,iBufferFullnessSkip = %" PRId64 ",iTargetBits= %d,dBpp = %f,initQp = %d",
                pDLayerParam->iSpatialBitrate, pWelsSvcRc->iBufferFullnessSkip, pWelsSvcRc->iTargetBits, dBpp,
                pWelsSvcRc->iInitialQp);
 
@@ -1315,14 +1327,16 @@ void  WelsRcPictureInitGomTimeStamp (sWelsEncCtx* pEncCtx, long long uiTimeStamp
                                               pWelsSvcRc->iCost2BitsIntra), pWelsSvcRc->iTargetBits);
         iLumaQp = RcConvertQStep2Qp (pWelsSvcRc->iQStep);
 
-        iLumaQp = WELS_CLIP3 (iLumaQp, pWelsSvcRc->iLastCalculatedQScale - DELTA_QP_BGD_THD, pWelsSvcRc->iLastCalculatedQScale + DELTA_QP_BGD_THD);
+        iLumaQp = WELS_CLIP3 (iLumaQp, pWelsSvcRc->iLastCalculatedQScale - DELTA_QP_BGD_THD,
+                              pWelsSvcRc->iLastCalculatedQScale + DELTA_QP_BGD_THD);
 
       } else {
         iLumaQp = pWelsSvcRc->iLastCalculatedQScale + DELTA_QP_BGD_THD;
       }
       iLumaQp = WELS_CLIP3 (iLumaQp, MIN_IDR_QP, MAX_IDR_QP);
       WelsLog (& (pEncCtx->sLogCtx), WELS_LOG_DEBUG,
-               "[Rc]I iLumaQp = %d,iQStep = %d,iTargetBits = %d,iBufferFullnessSkip =%"PRId64",iMaxTh=%d,iMinTh = %d,iFrameComplexity= %"PRId64,
+               "[Rc]I iLumaQp = %d,iQStep = %d,iTargetBits = %d,iBufferFullnessSkip =%" PRId64
+               ",iMaxTh=%d,iMinTh = %d,iFrameComplexity= %" PRId64,
                iLumaQp, pWelsSvcRc->iQStep, pWelsSvcRc->iTargetBits, pWelsSvcRc->iBufferFullnessSkip, iMaxTh, iMinTh,
                pWelsSvcRc->iIntraComplexity);
 
@@ -1352,7 +1366,8 @@ void  WelsRcPictureInitGomTimeStamp (sWelsEncCtx* pEncCtx, long long uiTimeStamp
 
         pWelsSvcRc->iQStep = WELS_DIV_ROUND ((pTOverRc->iLinearCmplx * iCmplxRatio), (pWelsSvcRc->iTargetBits * INT_MULTIPLY));
         iLumaQp = RcConvertQStep2Qp (pWelsSvcRc->iQStep);
-        iLumaQp = WELS_CLIP3 (iLumaQp, pWelsSvcRc->iLastCalculatedQScale - DELTA_QP_BGD_THD, pWelsSvcRc->iLastCalculatedQScale + DELTA_QP_BGD_THD);
+        iLumaQp = WELS_CLIP3 (iLumaQp, pWelsSvcRc->iLastCalculatedQScale - DELTA_QP_BGD_THD,
+                              pWelsSvcRc->iLastCalculatedQScale + DELTA_QP_BGD_THD);
       }
     } else {
       iLumaQp = pWelsSvcRc->iLastCalculatedQScale + DELTA_QP_BGD_THD;
@@ -1361,7 +1376,8 @@ void  WelsRcPictureInitGomTimeStamp (sWelsEncCtx* pEncCtx, long long uiTimeStamp
     iLumaQp = WELS_CLIP3 (iLumaQp,  GOM_MIN_QP_MODE, GOM_MAX_QP_MODE);
 
     WelsLog (& (pEncCtx->sLogCtx), WELS_LOG_DEBUG,
-             "[Rc]P iTl = %d,iLumaQp = %d,iQStep = %d,iTargetBits = %d,iBufferFullnessSkip =%"PRId64",iMaxTh=%d,iMinTh = %d,iFrameComplexity= %lld,iCmplxRatio=%"PRId64,
+             "[Rc]P iTl = %d,iLumaQp = %d,iQStep = %d,iTargetBits = %d,iBufferFullnessSkip =%" PRId64
+             ",iMaxTh=%d,iMinTh = %d,iFrameComplexity= %lld,iCmplxRatio=%" PRId64,
              iTl, iLumaQp, pWelsSvcRc->iQStep, pWelsSvcRc->iTargetBits, pWelsSvcRc->iBufferFullnessSkip, iMaxTh, iMinTh,
              pEncCtx->pVaa->sComplexityAnalysisParam.iFrameComplexity, iCmplxRatio);
   }
@@ -1375,8 +1391,9 @@ void  WelsRcPictureInitGomTimeStamp (sWelsEncCtx* pEncCtx, long long uiTimeStamp
   float fInstantFps = (uiTimeStamp - pWelsSvcRc->uiLastTimeStamp) > 0 ? (1000.0f / (uiTimeStamp -
                       pWelsSvcRc->uiLastTimeStamp)) : 0;
   WelsLog (& (pEncCtx->sLogCtx), WELS_LOG_DEBUG,
-           "[Rc]Tid = %d,Did = %d,pEncCtx->iGlobalQp= %d,iLumaQp = %d,uiTimeStamp = %lld,uiLastTimeStamp = %lld,InstantFps = %f,settingFps = %f",pEncCtx->uiTemporalId,pEncCtx->uiDependencyId,
-           pEncCtx->iGlobalQp, iLumaQp,uiTimeStamp, pWelsSvcRc->uiLastTimeStamp,
+           "[Rc]Tid = %d,Did = %d,pEncCtx->iGlobalQp= %d,iLumaQp = %d,uiTimeStamp = %lld,uiLastTimeStamp = %lld,InstantFps = %f,settingFps = %f",
+           pEncCtx->uiTemporalId, pEncCtx->uiDependencyId,
+           pEncCtx->iGlobalQp, iLumaQp, uiTimeStamp, pWelsSvcRc->uiLastTimeStamp,
            fInstantFps, pDLayerParam->fFrameRate);
   pWelsSvcRc->uiLastTimeStamp = uiTimeStamp;
 

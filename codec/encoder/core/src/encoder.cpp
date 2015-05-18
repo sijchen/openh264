@@ -29,11 +29,11 @@
  *     POSSIBILITY OF SUCH DAMAGE.
  *
  *
- * \file	encoder.c
+ * \file    encoder.c
  *
- * \brief	core encoder
+ * \brief   core encoder
  *
- * \date	5/14/2009 Created
+ * \date    5/14/2009 Created
  *
  *************************************************************************************
  */
@@ -61,12 +61,12 @@ namespace WelsEnc {
 
 
 /*!
- * \brief	initialize source picture body
- * \param	pSrc		SSourcePicture*
- * \param	csp		internal csp format
- * \param	iWidth	widht of picture in pixels
- * \param	iHeight	iHeight of picture in pixels
- * \return	successful - 0; otherwise none 0 for failed
+ * \brief   initialize source picture body
+ * \param   pSrc        SSourcePicture*
+ * \param   csp         internal csp format
+ * \param   iWidth      widht of picture in pixels
+ * \param   iHeight     iHeight of picture in pixels
+ * \return  successful - 0; otherwise none 0 for failed
  */
 int32_t InitPic (const void* kpSrc, const int32_t kiColorspace, const int32_t kiWidth, const int32_t kiHeight) {
   SSourcePicture* pSrcPic = (SSourcePicture*)kpSrc;
@@ -149,9 +149,9 @@ void WelsInitBGDFunc (SWelsFuncPtrList* pFuncList, const bool kbEnableBackground
 }
 
 /*!
- * \brief	initialize function pointers that potentially used in Wels encoding
- * \param	pEncCtx		sWelsEncCtx*
- * \return	successful - 0; otherwise none 0 for failed
+ * \brief   initialize function pointers that potentially used in Wels encoding
+ * \param   pEncCtx     sWelsEncCtx*
+ * \return  successful - 0; otherwise none 0 for failed
  */
 int32_t InitFunctionPointers (sWelsEncCtx* pEncCtx, SWelsSvcCodingParam* pParam, uint32_t uiCpuFlag) {
   int32_t iReturn = ENC_RETURN_SUCCESS;
@@ -159,33 +159,33 @@ int32_t InitFunctionPointers (sWelsEncCtx* pEncCtx, SWelsSvcCodingParam* pParam,
   bool bScreenContent = (SCREEN_CONTENT_REAL_TIME == pParam->iUsageType);
 
   /* Functionality utilization of CPU instructions dependency */
-  pFuncList->pfSetMemZeroSize8	= WelsSetMemZero_c;		// confirmed_safe_unsafe_usage
-  pFuncList->pfSetMemZeroSize64Aligned16	= WelsSetMemZero_c;	// confirmed_safe_unsafe_usage
-  pFuncList->pfSetMemZeroSize64	= WelsSetMemZero_c;	// confirmed_safe_unsafe_usage
+  pFuncList->pfSetMemZeroSize8              = WelsSetMemZero_c;             // confirmed_safe_unsafe_usage
+  pFuncList->pfSetMemZeroSize64Aligned16    = WelsSetMemZero_c;     // confirmed_safe_unsafe_usage
+  pFuncList->pfSetMemZeroSize64             = WelsSetMemZero_c;     // confirmed_safe_unsafe_usage
 #if defined(X86_ASM)
   if (uiCpuFlag & WELS_CPU_MMXEXT) {
-    pFuncList->pfSetMemZeroSize8	= WelsSetMemZeroSize8_mmx;		// confirmed_safe_unsafe_usage
-    pFuncList->pfSetMemZeroSize64Aligned16	= WelsSetMemZeroSize64_mmx;	// confirmed_safe_unsafe_usage
-    pFuncList->pfSetMemZeroSize64	= WelsSetMemZeroSize64_mmx;	// confirmed_safe_unsafe_usage
+    pFuncList->pfSetMemZeroSize8            = WelsSetMemZeroSize8_mmx;              // confirmed_safe_unsafe_usage
+    pFuncList->pfSetMemZeroSize64Aligned16  = WelsSetMemZeroSize64_mmx;     // confirmed_safe_unsafe_usage
+    pFuncList->pfSetMemZeroSize64           = WelsSetMemZeroSize64_mmx;     // confirmed_safe_unsafe_usage
   }
   if (uiCpuFlag & WELS_CPU_SSE2) {
-    pFuncList->pfSetMemZeroSize64Aligned16	= WelsSetMemZeroAligned64_sse2;	// confirmed_safe_unsafe_usage
+    pFuncList->pfSetMemZeroSize64Aligned16  = WelsSetMemZeroAligned64_sse2; // confirmed_safe_unsafe_usage
   }
 #endif//X86_ASM
 
 #if defined(HAVE_NEON)
   if (uiCpuFlag & WELS_CPU_NEON) {
-    pFuncList->pfSetMemZeroSize8	= WelsSetMemZero_neon;
-    pFuncList->pfSetMemZeroSize64Aligned16	= WelsSetMemZero_neon;
-    pFuncList->pfSetMemZeroSize64	= WelsSetMemZero_neon;
+    pFuncList->pfSetMemZeroSize8            = WelsSetMemZero_neon;
+    pFuncList->pfSetMemZeroSize64Aligned16  = WelsSetMemZero_neon;
+    pFuncList->pfSetMemZeroSize64           = WelsSetMemZero_neon;
   }
 #endif
 
 #if defined(HAVE_NEON_AARCH64)
   if (uiCpuFlag & WELS_CPU_NEON) {
-    pFuncList->pfSetMemZeroSize8	= WelsSetMemZero_AArch64_neon;
-    pFuncList->pfSetMemZeroSize64Aligned16	= WelsSetMemZero_AArch64_neon;
-    pFuncList->pfSetMemZeroSize64	= WelsSetMemZero_AArch64_neon;
+    pFuncList->pfSetMemZeroSize8            = WelsSetMemZero_AArch64_neon;
+    pFuncList->pfSetMemZeroSize64Aligned16  = WelsSetMemZero_AArch64_neon;
+    pFuncList->pfSetMemZeroSize64           = WelsSetMemZero_AArch64_neon;
   }
 #endif
 
@@ -227,7 +227,7 @@ int32_t InitFunctionPointers (sWelsEncCtx* pEncCtx, SWelsSvcCodingParam* pParam,
 }
 
 /*!
- * \brief	initialize frame coding
+ * \brief   initialize frame coding
  */
 void InitFrameCoding (sWelsEncCtx* pEncCtx, const EVideoFrameType keFrameType) {
   // for bitstream writing
@@ -364,7 +364,7 @@ EVideoFrameType DecideFrameType (sWelsEncCtx* pEncCtx, const int8_t kiSpatialNum
 }
 
 /*!
- * \brief	Dump reconstruction for dependency layer
+ * \brief   Dump reconstruction for dependency layer
  */
 
 extern "C" void DumpDependencyRec (SPicture* pCurPicture, const char* kpFileName, const int8_t kiDid, bool bAppend,
@@ -432,7 +432,7 @@ extern "C" void DumpDependencyRec (SPicture* pCurPicture, const char* kpFileName
 }
 
 /*!
- * \brief	Dump the reconstruction pictures
+ * \brief   Dump the reconstruction pictures
  */
 
 void DumpRecFrame (SPicture* pCurPicture, const char* kpFileName, const int8_t kiDid, bool bAppend,

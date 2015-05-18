@@ -29,11 +29,11 @@
  *     POSSIBILITY OF SUCH DAMAGE.
  *
  *
- * \file	mt_defs.h
+ * \file    mt_defs.h
  *
- * \brief	Main macros for multiple threading implementation
+ * \brief   Main macros for multiple threading implementation
  *
- * \date	2/26/2010 Created
+ * \date    2/26/2010 Created
  *
  *************************************************************************************
  */
@@ -46,7 +46,7 @@
 #include "WelsThreadLib.h"
 
 /*
- *	MT_DEBUG: output trace MT related into log file
+ *  MT_DEBUG: output trace MT related into log file
  */
 //#define MT_DEBUG
 //#define ENABLE_TRACE_MT
@@ -54,9 +54,9 @@
 
 #define DYNAMIC_DETECT_CPU_CORES
 
-#define THRESHOLD_RMSE_CORE8	0.0320f	// v1.1: 0.0320f; v1.0: 0.02f
-#define THRESHOLD_RMSE_CORE4	0.0215f	// v1.1: 0.0215f; v1.0: 0.03f
-#define THRESHOLD_RMSE_CORE2	0.0200f	// v1.1: 0.0200f; v1.0: 0.04f
+#define THRESHOLD_RMSE_CORE8    0.0320f // v1.1: 0.0320f; v1.0: 0.02f
+#define THRESHOLD_RMSE_CORE4    0.0215f // v1.1: 0.0215f; v1.0: 0.03f
+#define THRESHOLD_RMSE_CORE2    0.0200f // v1.1: 0.0200f; v1.0: 0.04f
 
 typedef struct TagSliceThreadPrivateData {
 void*		pWelsPEncCtx;

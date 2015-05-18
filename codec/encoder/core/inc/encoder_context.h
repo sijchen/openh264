@@ -29,11 +29,11 @@
  *     POSSIBILITY OF SUCH DAMAGE.
  *
  *
- * \file	encoder_context.h
+ * \file    encoder_context.h
  *
- * \brief	Main pData to be operated over Wels encoder all modules
+ * \brief   Main pData to be operated over Wels encoder all modules
  *
- * \date	2/4/2009 Created
+ * \date    2/4/2009 Created
  *
  *************************************************************************************
  */
@@ -61,7 +61,7 @@
 namespace WelsEnc {
 
 /*
- *	reference list for each quality layer in SVC
+ *  reference list for each quality layer in SVC
  */
 typedef struct TagRefList {
   SPicture*					pShortRefList[1 + MAX_SHORT_REF_COUNT]; // reference list 0 - int16_t
