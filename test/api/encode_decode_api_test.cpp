@@ -3576,3 +3576,79 @@ TEST_P (EncodeTestAPI, SetEncOptionSize) {
   }
 }
 
+TEST_F (EncodeDecodeTestAPI, dsBitstreamError04) {
+  SEncParamBase init_params;
+  memset (&init_params, 0, sizeof (SEncParamBase));
+  init_params.iUsageType = CAMERA_VIDEO_REAL_TIME;
+  init_params.iPicWidth = 320;
+  init_params.iPicHeight = 180;
+  init_params.iTargetBitrate = 500;
+  init_params.iRCMode = RC_QUALITY_MODE;
+  init_params.fMaxFrameRate = 1;
+
+  int rv = encoder_->Initialize (&init_params);
+  ASSERT_TRUE (rv == cmResultSuccess) << "Init Failed init_params: rv = " << rv;;
+
+  unsigned char*  pBsBuf;
+  ISVCDecoder* decoder;
+  pBsBuf = static_cast<unsigned char*> (malloc (init_params.iPicWidth * init_params.iPicHeight * 3 * sizeof (
+                                          unsigned char) / 2));
+  EXPECT_TRUE (pBsBuf != NULL);
+
+  rv = WelsCreateDecoder (&decoder);
+  ASSERT_EQ (0, rv);
+  EXPECT_TRUE (decoder != NULL);
+
+  SDecodingParam decParam;
+  memset (&decParam, 0, sizeof (SDecodingParam));
+  decParam.eOutputColorFormat  = videoFormatI420;
+  decParam.uiTargetDqLayer = UCHAR_MAX;
+  decParam.eEcActiveIdc = ERROR_CON_DISABLE;
+  decParam.sVideoProperty.eVideoBsType = VIDEO_BITSTREAM_DEFAULT;
+
+  rv = decoder->Initialize (&decParam);
+  ASSERT_EQ (0, rv);
+
+  unsigned long TsArray[10] = {881751926, 881754896, 881757866, 881760836, 881763806,
+                               881766776, 881769746, 881772716, 881775686, 881778656
+                              };
+  for (int iFrame = 0; iFrame < 10; iFrame++) {
+    InitialEncDec (init_params.iPicWidth, init_params.iPicHeight);
+    EncPic.uiTimeStamp = TsArray[iFrame];
+    EncodeOneFrame (0);
+
+    int aLen = 0, iLayerLen = 0;
+    unsigned char* pData[3] = { NULL };
+    for (int iLayer = 0; iLayer < info.iLayerNum; ++iLayer) {
+      iLayerLen = 0;
+      const SLayerBSInfo& layerInfo = info.sLayerInfo[iLayer];
+      for (int iNal = 0; iNal < layerInfo.iNalCount; ++iNal) {
+        iLayerLen += layerInfo.pNalLengthInByte[iNal];
+      }
+
+      memcpy ((pBsBuf + aLen), layerInfo.pBsBuf, iLayerLen * sizeof (unsigned char));
+      aLen += iLayerLen;
+    }
+
+    //printf ("Frame%d, frame_len=%d\n", iFrame, aLen);
+    //if (aLen > 0) {
+    memset (&dstBufInfo_, 0, sizeof (SBufferInfo));
+
+    rv = decoder->DecodeFrame2 (pBsBuf, aLen, pData, &dstBufInfo_);
+    EXPECT_TRUE (rv == cmResultSuccess) << "rv=" << rv;
+
+    rv = decoder->DecodeFrame2 (NULL, 0, pData, &dstBufInfo_);
+    EXPECT_TRUE (rv == cmResultSuccess) << "rv=" << rv;
+    //EXPECT_EQ (dstBufInfo_.iBufferStatus, 1);
+    //}
+  }
+
+  //end test
+  free (pBsBuf);
+  if (decoder != NULL) {
+    decoder->Uninitialize();
+    WelsDestroyDecoder (decoder);
+  }
+  encoder_->Uninitialize();
+}
+
