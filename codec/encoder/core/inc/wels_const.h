@@ -34,7 +34,7 @@
 #ifndef WELS_CONST_H__
 #define WELS_CONST_H__
 
-#include "as264_common.h"	//  to communicate with specific macros there, 3/18/2010
+#include "as264_common.h" //  to communicate with specific macros there, 3/18/2010
 #include "codec_app_def.h"
 #include "wels_const_common.h"
 
@@ -142,9 +142,9 @@ BLOCK_16x8     = 1,
 BLOCK_8x16     = 2,
 BLOCK_8x8      = 3,
 BLOCK_4x4      = 4,
-// BLOCK_8x4      = 5,
-// BLOCK_4x8      = 6,
-BLOCK_SIZE_ALL = 5
+BLOCK_8x4      = 5,
+BLOCK_4x8      = 6,
+BLOCK_SIZE_ALL = 7
 };
 
 typedef enum {

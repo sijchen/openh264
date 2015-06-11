@@ -56,23 +56,23 @@ void DeblockLumaEq4_c (uint8_t* pPix, int32_t iStrideX, int32_t iStrideY, int32_
         bool bDetaQ2Q0 =  WELS_ABS (q2 - q0) < iBeta;
         if (bDetaP2P0) {
           const int32_t p3 = pPix[-4 * iStrideX];
-          pPix[-iStrideX] = (p2 + (p1 << 1) + (p0 << 1) + (q0 << 1) + q1 + 4) >> 3;	   //p0
-          pPix[-2 * iStrideX] = (p2 + p1 + p0 + q0 + 2) >> 2;	 //p1
-          pPix[-3 * iStrideX] = ((p3 << 1) + p2 + (p2 << 1) + p1 + p0 + q0 + 4) >> 3;//p2
+          pPix[-iStrideX] = (p2 + (p1 << 1) + (p0 << 1) + (q0 << 1) + q1 + 4) >> 3;   //p0
+          pPix[-2 * iStrideX] = (p2 + p1 + p0 + q0 + 2) >> 2;                         //p1
+          pPix[-3 * iStrideX] = ((p3 << 1) + p2 + (p2 << 1) + p1 + p0 + q0 + 4) >> 3; //p2
         } else {
-          pPix[-1 * iStrideX] = ((p1 << 1) + p0 + q1 + 2) >> 2;	//p0
+          pPix[-1 * iStrideX] = ((p1 << 1) + p0 + q1 + 2) >> 2;                       //p0
         }
         if (bDetaQ2Q0) {
           const int32_t q3 = pPix[3 * iStrideX];
-          pPix[0] = (p1 + (p0 << 1) + (q0 << 1) + (q1 << 1) + q2 + 4) >> 3;   //q0
-          pPix[iStrideX] = (p0 + q0 + q1 + q2 + 2) >> 2;   //q1
-          pPix[2 * iStrideX] = ((q3 << 1) + q2 + (q2 << 1) + q1 + q0 + p0 + 4) >> 3;//q2
+          pPix[0] = (p1 + (p0 << 1) + (q0 << 1) + (q1 << 1) + q2 + 4) >> 3;           //q0
+          pPix[iStrideX] = (p0 + q0 + q1 + q2 + 2) >> 2;                              //q1
+          pPix[2 * iStrideX] = ((q3 << 1) + q2 + (q2 << 1) + q1 + q0 + p0 + 4) >> 3;  //q2
         } else {
-          pPix[0] = ((q1 << 1) + q0 + p1 + 2) >> 2;   //q0
+          pPix[0] = ((q1 << 1) + q0 + p1 + 2) >> 2;                                   //q0
         }
       } else {
         pPix[-iStrideX] = ((p1 << 1) + p0 + q1 + 2) >> 2;   //p0
-        pPix[ 0] = ((q1 << 1) + q0 + p1 + 2) >> 2;   //q0
+        pPix[ 0] = ((q1 << 1) + q0 + p1 + 2) >> 2;          //q0
       }
     }
     pPix += iStrideY;
@@ -106,7 +106,7 @@ void DeblockChromaLt4_c (uint8_t* pPixCb, uint8_t* pPixCr, int32_t iStrideX, int
       bDetaP0Q0 =  WELS_ABS (p0 - q0) < iAlpha;
       bDetaP1P0 =  WELS_ABS (p1 - p0) < iBeta;
       bDetaQ1Q0 = WELS_ABS (q1 - q0) < iBeta;
-      if (bDetaP0Q0 && bDetaP1P0 &&	bDetaQ1Q0) {
+      if (bDetaP0Q0 && bDetaP1P0 && bDetaQ1Q0) {
         iDeta = WELS_CLIP3 ((((q0 - p0) << 2) + (p1 - q1) + 4) >> 3, -iTc0, iTc0);
         pPixCb[-iStrideX] = WelsClip1 (p0 + iDeta);     /* p0' */
         pPixCb[0]  = WelsClip1 (q0 - iDeta);     /* q0' */
@@ -122,7 +122,7 @@ void DeblockChromaLt4_c (uint8_t* pPixCb, uint8_t* pPixCr, int32_t iStrideX, int
       bDetaP1P0 =  WELS_ABS (p1 - p0) < iBeta;
       bDetaQ1Q0 = WELS_ABS (q1 - q0) < iBeta;
 
-      if (bDetaP0Q0 && bDetaP1P0 &&	bDetaQ1Q0) {
+      if (bDetaP0Q0 && bDetaP1P0 && bDetaQ1Q0) {
         iDeta = WELS_CLIP3 ((((q0 - p0) << 2) + (p1 - q1) + 4) >> 3, -iTc0, iTc0);
         pPixCr[-iStrideX] = WelsClip1 (p0 + iDeta);     /* p0' */
         pPixCr[0]  = WelsClip1 (q0 - iDeta);     /* q0' */
@@ -197,7 +197,7 @@ void DeblockChromaLt42_c (uint8_t* pPixCbCr, int32_t iStrideX, int32_t iStrideY,
       bDetaP0Q0 =  WELS_ABS (p0 - q0) < iAlpha;
       bDetaP1P0 =  WELS_ABS (p1 - p0) < iBeta;
       bDetaQ1Q0 = WELS_ABS (q1 - q0) < iBeta;
-      if (bDetaP0Q0 && bDetaP1P0 &&	bDetaQ1Q0) {
+      if (bDetaP0Q0 && bDetaP1P0 && bDetaQ1Q0) {
         iDeta = WELS_CLIP3 ((((q0 - p0) << 2) + (p1 - q1) + 4) >> 3, -iTc0, iTc0);
         pPixCbCr[-iStrideX] = WelsClip1 (p0 + iDeta);     /* p0' */
         pPixCbCr[0]  = WelsClip1 (q0 - iDeta);     /* q0' */

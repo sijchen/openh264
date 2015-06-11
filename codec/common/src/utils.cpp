@@ -38,7 +38,7 @@
  *************************************************************************************
  */
 #include "utils.h"
-#include "crt_util_safe_x.h"	// Safe CRT routines like utils for cross platforms
+#include "crt_util_safe_x.h" // Safe CRT routines like utils for cross platforms
 #include "codec_app_def.h"
 float WelsCalcPsnr (const void* kpTarPic,
                     const int32_t kiTarStride,
@@ -104,7 +104,7 @@ float WelsCalcPsnr (const void* kpTarPic,
                     const int32_t kiRefStride,
                     const int32_t kiWidth,
                     const int32_t kiHeight) {
-  int64_t	iSqe = 0;
+  int64_t iSqe = 0;
   int32_t x, y;
   uint8_t* pTar = (uint8_t*)kpTarPic;
   uint8_t* pRef = (uint8_t*)kpRefPic;
@@ -112,10 +112,10 @@ float WelsCalcPsnr (const void* kpTarPic,
   if (NULL == pTar || NULL == pRef)
     return (-1.0f);
 
-  for (y = 0; y < kiHeight; ++ y) {	// OPTable !!
+  for (y = 0; y < kiHeight; ++ y) { // OPTable !!
     for (x = 0; x < kiWidth; ++ x) {
       const int32_t kiT = pTar[y * kiTarStride + x] - pRef[y * kiRefStride + x];
-      iSqe	+= kiT * kiT;
+      iSqe += kiT * kiT;
     }
   }
   if (0 == iSqe) {
