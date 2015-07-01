@@ -112,6 +112,7 @@ typedef enum {
   ENCODER_OPTION_MAX_BITRATE,
   ENCODER_OPTION_INTER_SPATIAL_PRED,
   ENCODER_OPTION_RC_MODE,
+  ENCODER_OPTION_RC_FRAME_SKIP,
   ENCODER_PADDING_PADDING,                   ///< 0:disable padding;1:padding
 
   ENCODER_OPTION_PROFILE,                    ///< assgin the profile for each layer
@@ -284,7 +285,8 @@ typedef enum {
   RC_BITRATE_MODE = 1,     ///< bitrate mode
   RC_BUFFERBASED_MODE = 2, ///< no bitrate control,only using buffer status,adjust the video quality
   RC_TIMESTAMP_MODE = 3, //rate control based timestamp
-  RC_OFF_MODE = -1         ///< rate control off mode
+  RC_BITRATE_MODE_POST_SKIP = 4, ///< this is in-building RC MODE, WILL BE DELETED after algorithm tuning!
+  RC_OFF_MODE = -1,         ///< rate control off mode
 } RC_MODES;
 
 /**

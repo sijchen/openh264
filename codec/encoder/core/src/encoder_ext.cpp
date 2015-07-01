@@ -271,18 +271,21 @@ int32_t ParamValidation (SLogContext* pLogCtx, SWelsSvcCodingParam* pCfg) {
         WelsLog (pLogCtx, WELS_LOG_WARNING,
                  "bEnableFrameSkip = %d,bitrate can't be controlled for RC_QUALITY_MODE,RC_BITRATE_MODE and RC_TIMESTAMP_MODE without enabling skip frame.",
                  pCfg->bEnableFrameSkip);
+
     if (pCfg->iRCMode == RC_QUALITY_MODE) {
-      pCfg->iMinQp = WELS_CLIP3 (pCfg->iMinQp , GOM_MIN_QP_MODE, GOM_MAX_QP_MODE);
-      pCfg->iMaxQp = WELS_CLIP3 (pCfg->iMaxQp , GOM_MIN_QP_MODE, GOM_MAX_QP_MODE);
-      if (pCfg->iMaxQp < pCfg->iMinQp)
-        pCfg->iMaxQp = GOM_MAX_QP_MODE;
+      pCfg->iMinQp = GOM_MIN_QP_MODE;
+      pCfg->iMaxQp = GOM_MAX_QP_MODE;
+    } else if (pCfg->iUsageType == SCREEN_CONTENT_REAL_TIME) {
+      pCfg->iMinQp = MIN_SCREEN_QP;
+      pCfg->iMaxQp = MAX_SCREEN_QP;
     } else {
-      pCfg->iMinQp = WELS_CLIP3 (pCfg->iMinQp , 0, 51);
+      pCfg->iMinQp = WELS_CLIP3 (pCfg->iMinQp , GOM_MIN_QP_MODE, 51);
       pCfg->iMaxQp = WELS_CLIP3 (pCfg->iMaxQp , 0, 51);
-      if (pCfg->iMaxQp < pCfg->iMinQp)
+      if (pCfg->iMaxQp <= pCfg->iMinQp)
         pCfg->iMaxQp = 51;
 
     }
+
   }
   // ref-frames validation
   if (((pCfg->iUsageType == CAMERA_VIDEO_REAL_TIME) || (pCfg->iUsageType == SCREEN_CONTENT_REAL_TIME))
@@ -1064,6 +1067,25 @@ int32_t FindExistingPps (SWelsSPS* pSps, SSubsetSps* pSubsetSps, const bool kbUs
   return INVALID_ID;
 }
 
+static inline int32_t InitpSliceInLayer (sWelsEncCtx** ppCtx, SDqLayer* pDqLayer, CMemoryAlign* pMa,
+    const int32_t iMaxSliceNum, bool bMultithread) {
+  int32_t iSliceIdx = 0;
+  while (iSliceIdx < iMaxSliceNum) {
+    SSlice* pSlice = &pDqLayer->sLayerInfo.pSliceInLayer[iSliceIdx];
+    pSlice->uiSliceIdx = iSliceIdx;
+    if (bMultithread)
+      pSlice->pSliceBsa = & (*ppCtx)->pSliceBs[iSliceIdx].sBsWrite;
+    else
+      pSlice->pSliceBsa = & (*ppCtx)->pOut->sBsWrite;
+    if (AllocMbCacheAligned (&pSlice->sMbCacheInfo, pMa)) {
+      FreeMemorySvc (ppCtx);
+      return ENC_RETURN_MEMALLOCERR;
+    }
+    ++ iSliceIdx;
+  }
+  return ENC_RETURN_SUCCESS;
+}
+
 /*!
  * \brief   initialize ppDqLayerList and slicepEncCtx_list due to count number of layers available
  * \pParam  pCtx            sWelsEncCtx*
@@ -1158,35 +1180,11 @@ static inline int32_t InitDqLayers (sWelsEncCtx** ppCtx, SExistingParasetList* p
     pDqLayer->iMbWidth  = kiMbW;
     pDqLayer->iMbHeight = kiMbH;
     {
-      int32_t iSliceIdx = 0;
       pDqLayer->sLayerInfo.pSliceInLayer = (SSlice*)pMa->WelsMallocz (sizeof (SSlice) * iMaxSliceNum, "pSliceInLayer");
-
       WELS_VERIFY_RETURN_PROC_IF (1, (NULL == pDqLayer->sLayerInfo.pSliceInLayer), FreeMemorySvc (ppCtx))
-      if (iMaxSliceNum > 1) {
-        while (iSliceIdx < iMaxSliceNum) {
-          SSlice* pSlice = &pDqLayer->sLayerInfo.pSliceInLayer[iSliceIdx];
-          pSlice->uiSliceIdx = iSliceIdx;
-          if (pParam->iMultipleThreadIdc > 1)
-            pSlice->pSliceBsa = & (*ppCtx)->pSliceBs[iSliceIdx].sBsWrite;
-          else
-            pSlice->pSliceBsa = & (*ppCtx)->pOut->sBsWrite;
-          if (AllocMbCacheAligned (&pSlice->sMbCacheInfo, pMa)) {
-            FreeMemorySvc (ppCtx);
-            return 1;
-          }
-          ++ iSliceIdx;
-        }
-      }
-      // fix issue in case single pSlice coding might be inclusive exist in variant spatial layer setting, also introducing multi-pSlice modes
-      else { // only one pSlice
-        SSlice* pSlice = &pDqLayer->sLayerInfo.pSliceInLayer[0];
-        pSlice->uiSliceIdx = 0;
-        pSlice->pSliceBsa  = & (*ppCtx)->pOut->sBsWrite;
-        if (AllocMbCacheAligned (&pSlice->sMbCacheInfo, pMa)) {
-          FreeMemorySvc (ppCtx);
-          return 1;
-        }
-      }
+
+      int32_t iReturn = InitpSliceInLayer (ppCtx, pDqLayer, pMa, iMaxSliceNum, pParam->iMultipleThreadIdc > 1);
+      WELS_VERIFY_RETURN_PROC_IF (1, (ENC_RETURN_SUCCESS != iReturn), FreeMemorySvc (ppCtx))
     }
 
     //deblocking parameters initialization
@@ -2395,22 +2393,15 @@ int32_t GetMultipleThreadIdc (SLogContext* pLogCtx, SWelsSvcCodingParam* pCoding
   iCacheLineSize = 16; // 16 bytes aligned in default
 #endif//X86_ASM
 
-#if defined(DYNAMIC_DETECT_CPU_CORES)
   if (pCodingParam->iMultipleThreadIdc > 0)
     uiCpuCores = pCodingParam->iMultipleThreadIdc;
   else {
     if (uiCpuCores ==
-        0) // cpuid not supported or doesn't expose the number of cores, use high level system API as followed to detect number of pysical/logic processor
+        0) { // cpuid not supported or doesn't expose the number of cores, use high level system API as followed to detect number of pysical/logic processor
       uiCpuCores = DynamicDetectCpuCores();
-    // So far so many cpu cores up to MAX_THREADS_NUM mean for server platforms,
+    }// So far so many cpu cores up to MAX_THREADS_NUM mean for server platforms,
     // for client application here it is constrained by maximal to MAX_THREADS_NUM
-    if (uiCpuCores > MAX_THREADS_NUM) // MAX_THREADS_NUM
-      uiCpuCores = MAX_THREADS_NUM; // MAX_THREADS_NUM
-    else if (uiCpuCores < 1) // just for safe
-      uiCpuCores = 1;
   }
-#endif//DYNAMIC_DETECT_CPU_CORES
-
   uiCpuCores = WELS_CLIP3 (uiCpuCores, 1, MAX_THREADS_NUM);
 
   if (InitSliceSettings (pLogCtx, pCodingParam, uiCpuCores, &iSliceNum)) {
@@ -3662,6 +3653,57 @@ int32_t WriteSavcParaset_Listing (sWelsEncCtx* pCtx, const int32_t kiSpatialNum,
   return iReturn;
 }
 
+void StackBackEncoderStatus (sWelsEncCtx* pEncCtx,
+                             EVideoFrameType keFrameType) {
+  // for bitstream writing
+  pEncCtx->iPosBsBuffer	 = 0;	// reset bs pBuffer position
+  pEncCtx->pOut->iNalIndex	 = 0;	// reset NAL index
+
+  InitBits (&pEncCtx->pOut->sBsWrite, pEncCtx->pOut->pBsBuffer, pEncCtx->pOut->uiSize);
+  if ((keFrameType == videoFrameTypeP) || (keFrameType == videoFrameTypeI)) {
+    pEncCtx->iFrameIndex --;
+    if (pEncCtx->iPOC != 0) {
+      pEncCtx->iPOC	 -= 2;
+    } else {
+      pEncCtx->iPOC	= (1 << pEncCtx->pSps->iLog2MaxPocLsb) - 2;
+    }
+
+    if (pEncCtx->eLastNalPriority != 0) {
+      if (pEncCtx->iFrameNum != 0) {
+        pEncCtx->iFrameNum --;
+      } else {
+        pEncCtx->iFrameNum = (1 << pEncCtx->pSps->uiLog2MaxFrameNum) - 1;
+      }
+    }
+
+    pEncCtx->eNalType	 = NAL_UNIT_CODED_SLICE;
+    pEncCtx->eSliceType	= P_SLICE;
+    pEncCtx->eNalPriority	= pEncCtx->eLastNalPriority;
+  } else if (keFrameType == videoFrameTypeIDR) {
+    pEncCtx->uiIdrPicId --;
+
+    //set the next frame to be IDR
+    ForceCodingIDR (pEncCtx);
+  } else {	// B pictures are not supported now, any else?
+    assert (0);
+  }
+
+  // no need to stack back RC info since the info is still useful for later RQ model calculation
+  // no need to stack back MB slicing info for dynamic balancing, since the info is still refer-able
+}
+
+void ClearFrameBsInfo (sWelsEncCtx* pCtx, SFrameBSInfo* pFbi) {
+  pFbi->sLayerInfo[0].pBsBuf	= pCtx->pFrameBs;
+  pFbi->sLayerInfo[0].pNalLengthInByte = pCtx->pOut->pNalLen;
+
+  for (int i = 0; i < pFbi->iLayerNum; i++) {
+    pFbi->sLayerInfo[i].iNalCount = 0;
+  }
+  pFbi->iLayerNum = 0;
+  pFbi->iFrameSizeInBytes = 0;
+  pFbi->eFrameType = videoFrameTypeSkip;
+}
+
 /*!
  * \brief   core svc encoding process
  *
@@ -3857,15 +3899,12 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo* pFbi, const SSour
 
     pCtx->pFuncList->pMarkPic (pCtx);
     if (!pCtx->pFuncList->pBuildRefList (pCtx, pCtx->iPOC, 0)) {
-      pCtx->pVpp->UpdateSpatialPictures (pCtx, pSvcParam, iCurTid, iDidIdx);
-      // Force coding IDR as followed
-      ForceCodingIDR (pCtx);
       WelsLog (pLogCtx, WELS_LOG_WARNING,
                "WelsEncoderEncodeExt(), WelsBuildRefList failed for P frames, pCtx->iNumRef0= %d. ForceCodingIDR!",
                pCtx->iNumRef0);
-      pFbi->eFrameType = videoFrameTypeIDR;
+      eFrameType = videoFrameTypeIDR;
       pCtx->iEncoderError = ENC_RETURN_CORRECTED;
-      return ENC_RETURN_CORRECTED;
+      break;
     }
     if (pCtx->eSliceType != I_SLICE) {
       pCtx->pFuncList->pAfterBuildRefList (pCtx);
@@ -4110,6 +4149,28 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo* pFbi, const SSour
       }
     }
 
+    if (NULL != pCtx->pFuncList->pfRc.pfWelsRcPostFrameSkipping
+        && pCtx->pFuncList->pfRc.pfWelsRcPostFrameSkipping (pCtx, iCurDid, pSrcPic->uiTimeStamp)) {
+
+      StackBackEncoderStatus (pCtx, eFrameType);
+      ClearFrameBsInfo (pCtx, pFbi);
+
+      iFrameSize = 0;
+      iLayerSize = 0;
+      iLayerNum = 0;
+
+      if (pCtx->pFuncList->pfRc.pfWelsUpdateBufferWhenSkip) {
+        pCtx->pFuncList->pfRc.pfWelsUpdateBufferWhenSkip (pCtx, iSpatialNum);
+      }
+
+      WelsRcPostFrameSkippedUpdate(pCtx, iCurDid);
+      WelsLog (& (pCtx->sLogCtx), WELS_LOG_INFO,
+               "[Rc] Frame timestamp = %lld, skip one frame due to post skip, continual skipped %d frames",
+               pSrcPic->uiTimeStamp, pCtx->iContinualSkipFrames);
+      pCtx->iEncoderError = ENC_RETURN_SUCCESS;
+      return ENC_RETURN_SUCCESS;
+    }
+
     // deblocking filter
     if (
       (!pCtx->pCurDqLayer->bDeblockingParallelFlag) &&
@@ -4132,13 +4193,10 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo* pFbi, const SSour
     // reference picture list update
     if (eNalRefIdc != NRI_PRI_LOWEST) {
       if (!pCtx->pFuncList->pUpdateRefList (pCtx)) {
-        pCtx->pVpp->UpdateSpatialPictures (pCtx, pSvcParam, iCurTid, iDidIdx);
-        // Force coding IDR as followed
-        ForceCodingIDR (pCtx);
         WelsLog (pLogCtx, WELS_LOG_WARNING, "WelsEncoderEncodeExt(), WelsUpdateRefList failed. ForceCodingIDR!");
         //the above is to set the next frame to be IDR
-        pFbi->eFrameType = eFrameType;
-        return ENC_RETURN_CORRECTED;
+        pCtx->iEncoderError = ENC_RETURN_CORRECTED;
+        break;
       }
     }
 
@@ -4291,7 +4349,8 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo* pFbi, const SSour
 
     if (pCtx->pVpp->UpdateSpatialPictures (pCtx, pSvcParam, iCurTid, iDidIdx) != 0) {
       ForceCodingIDR (pCtx);
-      WelsLog (pLogCtx, WELS_LOG_WARNING, "WelsEncoderEncodeExt(), Logic Error Found in temporal level. ForceCodingIDR!");
+      WelsLog (pLogCtx, WELS_LOG_WARNING,
+               "WelsEncoderEncodeExt(), Logic Error Found in Preprocess updating. ForceCodingIDR!");
       //the above is to set the next frame IDR
       pFbi->eFrameType = eFrameType;
       return ENC_RETURN_CORRECTED;
@@ -4301,6 +4360,15 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo* pFbi, const SSour
         && (pCtx->pLtr[pCtx->uiDependencyId].iLTRMarkMode == LTR_DIRECT_MARK)) || eFrameType == videoFrameTypeIDR)) {
       pCtx->bRefOfCurTidIsLtr[iDidIdx][iCurTid] = true;
     }
+  }
+
+  if (ENC_RETURN_CORRECTED == pCtx->iEncoderError) {
+    pCtx->pVpp->UpdateSpatialPictures (pCtx, pSvcParam, iCurTid, (pSpatialIndexMap + iSpatialIdx)->iDid);
+    ForceCodingIDR (pCtx);
+    WelsLog (pLogCtx, WELS_LOG_WARNING, "WelsEncoderEncodeExt(), Logic Error Found in temporal level. ForceCodingIDR!");
+    //the above is to set the next frame IDR
+    pFbi->eFrameType = eFrameType;
+    return ENC_RETURN_CORRECTED;
   }
 
 #if defined(MT_DEBUG)
