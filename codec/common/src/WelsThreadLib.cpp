@@ -321,8 +321,16 @@ WELS_THREAD_ERROR_CODE   WelsEventSignal (WELS_EVENT* event) {
   return err;
 }
 
-WELS_THREAD_ERROR_CODE   WelsEventWait (WELS_EVENT* event) {
+WELS_THREAD_ERROR_CODE WelsEventWait (WELS_EVENT* event) {
   return sem_wait (*event); // blocking until signaled
+}
+
+void WelsSleep (uint32_t dwMilliSecond) {
+#ifdef  WIN32
+  ::Sleep (dwMilliSecond);
+#else
+  usleep (dwMilliSecond * 1000);
+#endif
 }
 
 WELS_THREAD_ERROR_CODE    WelsEventWaitWithTimeOut (WELS_EVENT* event, uint32_t dwMilliseconds) {

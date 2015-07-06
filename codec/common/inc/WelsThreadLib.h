@@ -125,6 +125,7 @@ WELS_THREAD_HANDLE        WelsThreadSelf();
 
 WELS_THREAD_ERROR_CODE    WelsQueryLogicalProcessInfo (WelsLogicalProcessInfo* pInfo);
 
+void WelsSleep (uint32_t dwMilliSecond);
 
 #ifdef  __cplusplus
 }
