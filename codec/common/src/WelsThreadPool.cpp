@@ -267,8 +267,7 @@ int32_t  CWelsThreadPool::GetIdleThreadNum() {
 }
 
 int32_t  CWelsThreadPool::GetWaitedTaskNum() {
-  return static_cast<int32_t> (m_cWaitedTasks.size())
-         ;
+  return static_cast<int32_t> (m_cWaitedTasks.size());
 }
 
 IWelsTask* CWelsThreadPool::GetWaitedTask() {
