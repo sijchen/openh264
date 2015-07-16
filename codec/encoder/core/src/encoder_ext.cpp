@@ -3071,6 +3071,20 @@ void PreprocessSliceCoding (sWelsEncCtx* pCtx) {
   // update some layer dependent variable to save judgements in mb-level
   pCurLayer->bSatdInMdFlag = ((pFuncList->sSampleDealingFuncs.pfMeCost == pFuncList->sSampleDealingFuncs.pfSampleSatd)
                               && (pFuncList->sSampleDealingFuncs.pfMdCost == pFuncList->sSampleDealingFuncs.pfSampleSatd));
+
+  const int32_t kiCurDid            = pCtx->uiDependencyId;
+  const int32_t kiCurTid            = pCtx->uiTemporalId;
+  if (pCurLayer->bDeblockingParallelFlag && (pCurLayer->iLoopFilterDisableIdc != 1)
+#if !defined(ENABLE_FRAME_DUMP)
+      && ( NRI_PRI_LOWEST != pCtx->eNalPriority )
+      && (pCtx->pSvcParam->sDependencyLayers[kiCurDid].iHighestTemporalId == 0
+          || kiCurTid < pCtx->pSvcParam->sDependencyLayers[kiCurDid].iHighestTemporalId)
+#endif// !ENABLE_FRAME_DUMP
+     ) {
+    pFuncList->pfDeblocking.pfDeblockingFilterSlice = DeblockingFilterSliceAvcbase;
+  } else {
+    pFuncList->pfDeblocking.pfDeblockingFilterSlice = DeblockingFilterSliceAvcbaseNull;
+  }
 }
 
 /*!
@@ -3656,16 +3670,16 @@ int32_t WriteSavcParaset_Listing (sWelsEncCtx* pCtx, const int32_t kiSpatialNum,
 void StackBackEncoderStatus (sWelsEncCtx* pEncCtx,
                              EVideoFrameType keFrameType) {
   // for bitstream writing
-  pEncCtx->iPosBsBuffer	 = 0;	// reset bs pBuffer position
-  pEncCtx->pOut->iNalIndex	 = 0;	// reset NAL index
+  pEncCtx->iPosBsBuffer      = 0;   // reset bs pBuffer position
+  pEncCtx->pOut->iNalIndex   = 0;   // reset NAL index
 
   InitBits (&pEncCtx->pOut->sBsWrite, pEncCtx->pOut->pBsBuffer, pEncCtx->pOut->uiSize);
   if ((keFrameType == videoFrameTypeP) || (keFrameType == videoFrameTypeI)) {
     pEncCtx->iFrameIndex --;
     if (pEncCtx->iPOC != 0) {
-      pEncCtx->iPOC	 -= 2;
+      pEncCtx->iPOC -= 2;
     } else {
-      pEncCtx->iPOC	= (1 << pEncCtx->pSps->iLog2MaxPocLsb) - 2;
+      pEncCtx->iPOC = (1 << pEncCtx->pSps->iLog2MaxPocLsb) - 2;
     }
 
     if (pEncCtx->eLastNalPriority != 0) {
@@ -3676,15 +3690,15 @@ void StackBackEncoderStatus (sWelsEncCtx* pEncCtx,
       }
     }
 
-    pEncCtx->eNalType	 = NAL_UNIT_CODED_SLICE;
-    pEncCtx->eSliceType	= P_SLICE;
-    pEncCtx->eNalPriority	= pEncCtx->eLastNalPriority;
+    pEncCtx->eNalType     = NAL_UNIT_CODED_SLICE;
+    pEncCtx->eSliceType   = P_SLICE;
+    pEncCtx->eNalPriority = pEncCtx->eLastNalPriority;
   } else if (keFrameType == videoFrameTypeIDR) {
     pEncCtx->uiIdrPicId --;
 
     //set the next frame to be IDR
     ForceCodingIDR (pEncCtx);
-  } else {	// B pictures are not supported now, any else?
+  } else { // B pictures are not supported now, any else?
     assert (0);
   }
 
@@ -3693,7 +3707,7 @@ void StackBackEncoderStatus (sWelsEncCtx* pEncCtx,
 }
 
 void ClearFrameBsInfo (sWelsEncCtx* pCtx, SFrameBSInfo* pFbi) {
-  pFbi->sLayerInfo[0].pBsBuf	= pCtx->pFrameBs;
+  pFbi->sLayerInfo[0].pBsBuf           = pCtx->pFrameBs;
   pFbi->sLayerInfo[0].pNalLengthInByte = pCtx->pOut->pNalLen;
 
   for (int i = 0; i < pFbi->iLayerNum; i++) {
