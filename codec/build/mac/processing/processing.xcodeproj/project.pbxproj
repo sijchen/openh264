@@ -406,6 +406,7 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CONFIGURATION_BUILD_DIR = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -424,8 +425,10 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = YES;
+				OBJROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION) /objs";
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				SYMROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 			};
 			name = Debug;
 		};
@@ -446,6 +449,7 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CONFIGURATION_BUILD_DIR = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -459,13 +463,16 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OBJROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)/objs";
 				SDKROOT = macosx;
+				SYMROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 			};
 			name = Release;
 		};
 		CEC2900A1A4AB4AA00777576 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CONFIGURATION_BUILD_DIR = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					X86_ASM,
@@ -481,12 +488,14 @@
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/openh264-efkppfuvruoybbbuqjjyavavkfgo/Build/Products/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SYMROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 			};
 			name = Debug;
 		};
 		CEC2900B1A4AB4AA00777576 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CONFIGURATION_BUILD_DIR = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 				EXECUTABLE_PREFIX = lib;
 				GCC_PREPROCESSOR_DEFINITIONS = X86_ASM;
 				HEADER_SEARCH_PATHS = (
@@ -499,6 +508,7 @@
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/openh264-efkppfuvruoybbbuqjjyavavkfgo/Build/Products/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SYMROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 			};
 			name = Release;
 		};
@@ -512,7 +522,7 @@
 				CEC290081A4AB4AA00777576 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		CEC290091A4AB4AA00777576 /* Build configuration list for PBXNativeTarget "processing" */ = {
 			isa = XCConfigurationList;
@@ -521,7 +531,7 @@
 				CEC2900B1A4AB4AA00777576 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};

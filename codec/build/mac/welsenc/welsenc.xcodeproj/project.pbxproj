@@ -66,9 +66,7 @@
 		CEC291181A4ABF4A00777576 /* encoder_ext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC290FA1A4ABF4A00777576 /* encoder_ext.cpp */; };
 		CEC291191A4ABF4A00777576 /* encoder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC290FB1A4ABF4A00777576 /* encoder.cpp */; };
 		CEC2911A1A4ABF4A00777576 /* get_intra_predictor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC290FC1A4ABF4A00777576 /* get_intra_predictor.cpp */; };
-		CEC2911B1A4ABF4A00777576 /* mc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC290FD1A4ABF4A00777576 /* mc.cpp */; };
 		CEC2911C1A4ABF4A00777576 /* md.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC290FE1A4ABF4A00777576 /* md.cpp */; };
-		CEC2911D1A4ABF4A00777576 /* memory_align.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC290FF1A4ABF4A00777576 /* memory_align.cpp */; };
 		CEC2911E1A4ABF4A00777576 /* mv_pred.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC291001A4ABF4A00777576 /* mv_pred.cpp */; };
 		CEC2911F1A4ABF4A00777576 /* nal_encap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC291011A4ABF4A00777576 /* nal_encap.cpp */; };
 		CEC291201A4ABF4A00777576 /* picture_handle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC291021A4ABF4A00777576 /* picture_handle.cpp */; };
@@ -96,6 +94,8 @@
 		CEF1D5921A52A30700AAAA15 /* quant.asm in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D58A1A52A30700AAAA15 /* quant.asm */; };
 		CEF1D5931A52A30700AAAA15 /* sample_sc.asm in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D58B1A52A30700AAAA15 /* sample_sc.asm */; };
 		CEF1D5941A52A30700AAAA15 /* score.asm in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D58C1A52A30700AAAA15 /* score.asm */; };
+		ECA2B9E01B5CEAD00095A33B /* mc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECA2B9DF1B5CEAD00095A33B /* mc.cpp */; };
+		ECA2B9E21B5CEB4F0095A33B /* memory_align.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECA2B9E11B5CEB4F0095A33B /* memory_align.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -182,9 +182,7 @@
 		CEC290FA1A4ABF4A00777576 /* encoder_ext.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = encoder_ext.cpp; path = ../../../encoder/core/src/encoder_ext.cpp; sourceTree = "<group>"; };
 		CEC290FB1A4ABF4A00777576 /* encoder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = encoder.cpp; path = ../../../encoder/core/src/encoder.cpp; sourceTree = "<group>"; };
 		CEC290FC1A4ABF4A00777576 /* get_intra_predictor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = get_intra_predictor.cpp; path = ../../../encoder/core/src/get_intra_predictor.cpp; sourceTree = "<group>"; };
-		CEC290FD1A4ABF4A00777576 /* mc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = mc.cpp; path = ../../../encoder/core/src/mc.cpp; sourceTree = "<group>"; };
 		CEC290FE1A4ABF4A00777576 /* md.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = md.cpp; path = ../../../encoder/core/src/md.cpp; sourceTree = "<group>"; };
-		CEC290FF1A4ABF4A00777576 /* memory_align.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = memory_align.cpp; path = ../../../encoder/core/src/memory_align.cpp; sourceTree = "<group>"; };
 		CEC291001A4ABF4A00777576 /* mv_pred.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = mv_pred.cpp; path = ../../../encoder/core/src/mv_pred.cpp; sourceTree = "<group>"; };
 		CEC291011A4ABF4A00777576 /* nal_encap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = nal_encap.cpp; path = ../../../encoder/core/src/nal_encap.cpp; sourceTree = "<group>"; };
 		CEC291021A4ABF4A00777576 /* picture_handle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = picture_handle.cpp; path = ../../../encoder/core/src/picture_handle.cpp; sourceTree = "<group>"; };
@@ -212,6 +210,8 @@
 		CEF1D58A1A52A30700AAAA15 /* quant.asm */ = {isa = PBXFileReference; explicitFileType = sourcecode.nasm; name = quant.asm; path = ../../../encoder/core/x86/quant.asm; sourceTree = "<group>"; };
 		CEF1D58B1A52A30700AAAA15 /* sample_sc.asm */ = {isa = PBXFileReference; explicitFileType = sourcecode.nasm; name = sample_sc.asm; path = ../../../encoder/core/x86/sample_sc.asm; sourceTree = "<group>"; };
 		CEF1D58C1A52A30700AAAA15 /* score.asm */ = {isa = PBXFileReference; explicitFileType = sourcecode.nasm; name = score.asm; path = ../../../encoder/core/x86/score.asm; sourceTree = "<group>"; };
+		ECA2B9DF1B5CEAD00095A33B /* mc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mc.cpp; sourceTree = "<group>"; };
+		ECA2B9E11B5CEB4F0095A33B /* memory_align.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = memory_align.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -228,6 +228,7 @@
 		CEC290751A4ABD3900777576 = {
 			isa = PBXGroup;
 			children = (
+				ECA2B9E11B5CEB4F0095A33B /* memory_align.cpp */,
 				CEC290851A4ABD4F00777576 /* encoder */,
 				CEC2907F1A4ABD3900777576 /* Products */,
 			);
@@ -289,6 +290,7 @@
 		CEC290911A4ABE3900777576 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				ECA2B9DF1B5CEAD00095A33B /* mc.cpp */,
 				CEC290F51A4ABF4A00777576 /* au_set.cpp */,
 				CEC290F61A4ABF4A00777576 /* deblocking.cpp */,
 				CEC290F71A4ABF4A00777576 /* decode_mb_aux.cpp */,
@@ -297,9 +299,7 @@
 				CEC290FA1A4ABF4A00777576 /* encoder_ext.cpp */,
 				CEC290FB1A4ABF4A00777576 /* encoder.cpp */,
 				CEC290FC1A4ABF4A00777576 /* get_intra_predictor.cpp */,
-				CEC290FD1A4ABF4A00777576 /* mc.cpp */,
 				CEC290FE1A4ABF4A00777576 /* md.cpp */,
-				CEC290FF1A4ABF4A00777576 /* memory_align.cpp */,
 				CEC291001A4ABF4A00777576 /* mv_pred.cpp */,
 				CEC291011A4ABF4A00777576 /* nal_encap.cpp */,
 				CEC291021A4ABF4A00777576 /* picture_handle.cpp */,
@@ -519,12 +519,11 @@
 				CEC291301A4ABF4A00777576 /* wels_preprocess.cpp in Sources */,
 				CEF1D5901A52A30700AAAA15 /* matrix_transpose.asm in Sources */,
 				CEC291141A4ABF4A00777576 /* deblocking.cpp in Sources */,
-				CEC2911B1A4ABF4A00777576 /* mc.cpp in Sources */,
+				ECA2B9E01B5CEAD00095A33B /* mc.cpp in Sources */,
 				CEC291211A4ABF4A00777576 /* property.cpp in Sources */,
 				CEC2912F1A4ABF4A00777576 /* svc_set_mb_syn_cavlc.cpp in Sources */,
 				CEF1D58E1A52A30700AAAA15 /* dct.asm in Sources */,
 				CEC291221A4ABF4A00777576 /* ratectl.cpp in Sources */,
-				CEC2911D1A4ABF4A00777576 /* memory_align.cpp in Sources */,
 				CEC291261A4ABF4A00777576 /* set_mb_syn_cavlc.cpp in Sources */,
 				CEF1D58F1A52A30700AAAA15 /* intra_pred.asm in Sources */,
 				CEF1D5931A52A30700AAAA15 /* sample_sc.asm in Sources */,
@@ -543,6 +542,7 @@
 				CEC291201A4ABF4A00777576 /* picture_handle.cpp in Sources */,
 				CEC2911A1A4ABF4A00777576 /* get_intra_predictor.cpp in Sources */,
 				CEC291251A4ABF4A00777576 /* set_mb_syn_cabac.cpp in Sources */,
+				ECA2B9E21B5CEB4F0095A33B /* memory_align.cpp in Sources */,
 				CEC2911F1A4ABF4A00777576 /* nal_encap.cpp in Sources */,
 				CEF1D5911A52A30700AAAA15 /* memzero.asm in Sources */,
 				CEC2912C1A4ABF4A00777576 /* svc_mode_decision.cpp in Sources */,
@@ -574,6 +574,7 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CONFIGURATION_BUILD_DIR = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -592,8 +593,10 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = YES;
+				OBJROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)/objs";
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				SYMROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 			};
 			name = Debug;
 		};
@@ -614,6 +617,7 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CONFIGURATION_BUILD_DIR = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -627,7 +631,9 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OBJROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)/objs";
 				SDKROOT = macosx;
+				SYMROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 			};
 			name = Release;
 		};

@@ -7,11 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		CE242BA31A592BC2001A9E92 /* libprocessing.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE242BA21A592BC2001A9E92 /* libprocessing.a */; };
-		CE242BA51A592BC7001A9E92 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE242BA41A592BC7001A9E92 /* libcommon.a */; };
-		CE242BA71A592C02001A9E92 /* libwelsenc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE242BA61A592C02001A9E92 /* libwelsenc.a */; };
 		CEC2779E1A4C0D5E00A5B33B /* welsenc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC2779D1A4C0D5E00A5B33B /* welsenc.cpp */; };
 		CEC277A01A4C0D7700A5B33B /* read_config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC2779F1A4C0D7700A5B33B /* read_config.cpp */; };
+		ECA2B9ED1B5E10C30095A33B /* libprocessing.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ECA2B9EC1B5E10C30095A33B /* libprocessing.a */; };
+		ECA2BAD21B5E363D0095A33B /* libwelsenc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ECA2B9F01B5E10D10095A33B /* libwelsenc.a */; };
+		ECA2BAD31B5E366E0095A33B /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ECA2B9EE1B5E10C90095A33B /* libcommon.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -27,13 +27,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		CE242BA21A592BC2001A9E92 /* libprocessing.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libprocessing.a; path = ../processing/build/Debug/libprocessing.a; sourceTree = "<group>"; };
-		CE242BA41A592BC7001A9E92 /* libcommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcommon.a; path = ../common/build/Debug/libcommon.a; sourceTree = "<group>"; };
-		CE242BA61A592C02001A9E92 /* libwelsenc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwelsenc.a; path = "../../../../../../../../Library/Developer/Xcode/DerivedData/openh264-dazbogfrigymgpejrufawdhvrwna/Build/Products/Debug/libwelsenc.a"; sourceTree = "<group>"; };
 		CEC277791A4BB42400A5B33B /* encConsole */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = encConsole; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEC2779D1A4C0D5E00A5B33B /* welsenc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = welsenc.cpp; path = ../../../console/enc/src/welsenc.cpp; sourceTree = "<group>"; };
 		CEC2779F1A4C0D7700A5B33B /* read_config.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = read_config.cpp; path = ../../../console/common/src/read_config.cpp; sourceTree = "<group>"; };
 		CEC277A11A4C0D8200A5B33B /* read_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = read_config.h; path = ../../../console/common/inc/read_config.h; sourceTree = "<group>"; };
+		ECA2B9EC1B5E10C30095A33B /* libprocessing.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libprocessing.a; path = ../../../../bin/mac/Debug/libprocessing.a; sourceTree = "<group>"; };
+		ECA2B9EE1B5E10C90095A33B /* libcommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcommon.a; path = ../../../../bin/mac/Debug/libcommon.a; sourceTree = "<group>"; };
+		ECA2B9F01B5E10D10095A33B /* libwelsenc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwelsenc.a; path = ../../../../bin/mac/Debug/libwelsenc.a; sourceTree = "<group>"; };
+		ECA2BACE1B5E34350095A33B /* libopenh264Common.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libopenh264Common.a; path = ../../../../bin/mac/Debug/libopenh264Common.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,9 +42,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE242BA71A592C02001A9E92 /* libwelsenc.a in Frameworks */,
-				CE242BA51A592BC7001A9E92 /* libcommon.a in Frameworks */,
-				CE242BA31A592BC2001A9E92 /* libprocessing.a in Frameworks */,
+				ECA2BAD31B5E366E0095A33B /* libcommon.a in Frameworks */,
+				ECA2BAD21B5E363D0095A33B /* libwelsenc.a in Frameworks */,
+				ECA2B9ED1B5E10C30095A33B /* libprocessing.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,9 +54,10 @@
 		CEC277701A4BB42400A5B33B = {
 			isa = PBXGroup;
 			children = (
-				CE242BA61A592C02001A9E92 /* libwelsenc.a */,
-				CE242BA41A592BC7001A9E92 /* libcommon.a */,
-				CE242BA21A592BC2001A9E92 /* libprocessing.a */,
+				ECA2BACE1B5E34350095A33B /* libopenh264Common.a */,
+				ECA2B9F01B5E10D10095A33B /* libwelsenc.a */,
+				ECA2B9EE1B5E10C90095A33B /* libcommon.a */,
+				ECA2B9EC1B5E10C30095A33B /* libprocessing.a */,
 				CEC2779C1A4C0D4900A5B33B /* encconsole */,
 				CEC2777A1A4BB42400A5B33B /* Products */,
 			);
@@ -160,6 +162,7 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CONFIGURATION_BUILD_DIR = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -178,8 +181,10 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = YES;
+				OBJROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)/objs";
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				SYMROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 			};
 			name = Debug;
 		};
@@ -200,6 +205,7 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CONFIGURATION_BUILD_DIR = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -213,7 +219,9 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OBJROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)/objs";
 				SDKROOT = macosx;
+				SYMROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 			};
 			name = Release;
 		};
@@ -235,6 +243,7 @@
 					/Users/lyao2/Downloads/github/openh264_lyao2_150104/openh264/codec/build/mac/processing/build/Debug,
 					/Users/lyao2/Downloads/github/openh264_lyao2_150104/openh264/codec/build/mac/common/build/Debug,
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/openh264-dazbogfrigymgpejrufawdhvrwna/Build/Products/Debug",
+					/Users/huashi/project/Openh264/Huade/bin/mac/Debug,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -258,6 +267,7 @@
 					/Users/lyao2/Downloads/github/openh264_lyao2_150104/openh264/codec/build/mac/processing/build/Debug,
 					/Users/lyao2/Downloads/github/openh264_lyao2_150104/openh264/codec/build/mac/common/build/Debug,
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/openh264-dazbogfrigymgpejrufawdhvrwna/Build/Products/Debug",
+					/Users/huashi/project/Openh264/Huade/bin/mac/Debug,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

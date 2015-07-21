@@ -20,8 +20,6 @@
 		CEC291651A4AC27A00777576 /* fmo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC291501A4AC27A00777576 /* fmo.cpp */; };
 		CEC291661A4AC27A00777576 /* get_intra_predictor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC291511A4AC27A00777576 /* get_intra_predictor.cpp */; };
 		CEC291671A4AC27A00777576 /* manage_dec_ref.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC291521A4AC27A00777576 /* manage_dec_ref.cpp */; };
-		CEC291681A4AC27A00777576 /* mc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC291531A4AC27A00777576 /* mc.cpp */; };
-		CEC291691A4AC27A00777576 /* mem_align.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC291541A4AC27A00777576 /* mem_align.cpp */; };
 		CEC2916A1A4AC27A00777576 /* memmgr_nal_unit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC291551A4AC27A00777576 /* memmgr_nal_unit.cpp */; };
 		CEC2916B1A4AC27A00777576 /* mv_pred.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC291561A4AC27A00777576 /* mv_pred.cpp */; };
 		CEC2916C1A4AC27A00777576 /* parse_mb_syn_cabac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC291571A4AC27A00777576 /* parse_mb_syn_cabac.cpp */; };
@@ -66,6 +64,8 @@
 		CEC291BA1A4AC2FF00777576 /* welsDecoderExt.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC291B91A4AC2FF00777576 /* welsDecoderExt.h */; };
 		CEF1D5981A52A44100AAAA15 /* dct.asm in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D5961A52A44100AAAA15 /* dct.asm */; };
 		CEF1D5991A52A44100AAAA15 /* intra_pred.asm in Sources */ = {isa = PBXBuildFile; fileRef = CEF1D5971A52A44100AAAA15 /* intra_pred.asm */; };
+		ECA2B9E51B5CEC880095A33B /* mc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECA2B9E31B5CEC880095A33B /* mc.cpp */; };
+		ECA2B9E61B5CEC880095A33B /* memory_align.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECA2B9E41B5CEC880095A33B /* memory_align.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -96,8 +96,6 @@
 		CEC291501A4AC27A00777576 /* fmo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = fmo.cpp; path = ../../../decoder/core/src/fmo.cpp; sourceTree = "<group>"; };
 		CEC291511A4AC27A00777576 /* get_intra_predictor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = get_intra_predictor.cpp; path = ../../../decoder/core/src/get_intra_predictor.cpp; sourceTree = "<group>"; };
 		CEC291521A4AC27A00777576 /* manage_dec_ref.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = manage_dec_ref.cpp; path = ../../../decoder/core/src/manage_dec_ref.cpp; sourceTree = "<group>"; };
-		CEC291531A4AC27A00777576 /* mc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = mc.cpp; path = ../../../decoder/core/src/mc.cpp; sourceTree = "<group>"; };
-		CEC291541A4AC27A00777576 /* mem_align.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = mem_align.cpp; path = ../../../decoder/core/src/mem_align.cpp; sourceTree = "<group>"; };
 		CEC291551A4AC27A00777576 /* memmgr_nal_unit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = memmgr_nal_unit.cpp; path = ../../../decoder/core/src/memmgr_nal_unit.cpp; sourceTree = "<group>"; };
 		CEC291561A4AC27A00777576 /* mv_pred.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = mv_pred.cpp; path = ../../../decoder/core/src/mv_pred.cpp; sourceTree = "<group>"; };
 		CEC291571A4AC27A00777576 /* parse_mb_syn_cabac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = parse_mb_syn_cabac.cpp; path = ../../../decoder/core/src/parse_mb_syn_cabac.cpp; sourceTree = "<group>"; };
@@ -143,6 +141,8 @@
 		CEC291B91A4AC2FF00777576 /* welsDecoderExt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = welsDecoderExt.h; path = ../../../decoder/plus/inc/welsDecoderExt.h; sourceTree = "<group>"; };
 		CEF1D5961A52A44100AAAA15 /* dct.asm */ = {isa = PBXFileReference; explicitFileType = sourcecode.nasm; name = dct.asm; path = ../../../decoder/core/x86/dct.asm; sourceTree = "<group>"; };
 		CEF1D5971A52A44100AAAA15 /* intra_pred.asm */ = {isa = PBXFileReference; explicitFileType = sourcecode.nasm; name = intra_pred.asm; path = ../../../decoder/core/x86/intra_pred.asm; sourceTree = "<group>"; };
+		ECA2B9E31B5CEC880095A33B /* mc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mc.cpp; sourceTree = "<group>"; };
+		ECA2B9E41B5CEC880095A33B /* memory_align.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = memory_align.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -203,6 +203,8 @@
 		CEC291441A4AC26600777576 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				ECA2B9E31B5CEC880095A33B /* mc.cpp */,
+				ECA2B9E41B5CEC880095A33B /* memory_align.cpp */,
 				CEC291461A4AC27A00777576 /* au_parser.cpp */,
 				CEC291471A4AC27A00777576 /* bit_stream.cpp */,
 				CEC291481A4AC27A00777576 /* cabac_decoder.cpp */,
@@ -216,8 +218,6 @@
 				CEC291501A4AC27A00777576 /* fmo.cpp */,
 				CEC291511A4AC27A00777576 /* get_intra_predictor.cpp */,
 				CEC291521A4AC27A00777576 /* manage_dec_ref.cpp */,
-				CEC291531A4AC27A00777576 /* mc.cpp */,
-				CEC291541A4AC27A00777576 /* mem_align.cpp */,
 				CEC291551A4AC27A00777576 /* memmgr_nal_unit.cpp */,
 				CEC291561A4AC27A00777576 /* mv_pred.cpp */,
 				CEC291571A4AC27A00777576 /* parse_mb_syn_cabac.cpp */,
@@ -403,18 +403,18 @@
 				CEC291621A4AC27A00777576 /* decoder_data_tables.cpp in Sources */,
 				CEC2916A1A4AC27A00777576 /* memmgr_nal_unit.cpp in Sources */,
 				CEC291641A4AC27A00777576 /* error_concealment.cpp in Sources */,
-				CEC291691A4AC27A00777576 /* mem_align.cpp in Sources */,
+				ECA2B9E51B5CEC880095A33B /* mc.cpp in Sources */,
 				CEC2915B1A4AC27A00777576 /* au_parser.cpp in Sources */,
 				CEC2915E1A4AC27A00777576 /* deblocking.cpp in Sources */,
 				CEC2915F1A4AC27A00777576 /* decode_mb_aux.cpp in Sources */,
 				CEC291631A4AC27A00777576 /* decoder.cpp in Sources */,
 				CEF1D5981A52A44100AAAA15 /* dct.asm in Sources */,
+				ECA2B9E61B5CEC880095A33B /* memory_align.cpp in Sources */,
 				CEC291671A4AC27A00777576 /* manage_dec_ref.cpp in Sources */,
 				CEC2915C1A4AC27A00777576 /* bit_stream.cpp in Sources */,
 				CEC291B81A4AC2EC00777576 /* welsDecoderExt.cpp in Sources */,
 				CEC2916F1A4AC27A00777576 /* rec_mb.cpp in Sources */,
 				CEC2916C1A4AC27A00777576 /* parse_mb_syn_cabac.cpp in Sources */,
-				CEC291681A4AC27A00777576 /* mc.cpp in Sources */,
 				CEC291661A4AC27A00777576 /* get_intra_predictor.cpp in Sources */,
 				CEC291651A4AC27A00777576 /* fmo.cpp in Sources */,
 				CEC291601A4AC27A00777576 /* decode_slice.cpp in Sources */,
@@ -444,6 +444,7 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CONFIGURATION_BUILD_DIR = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -462,8 +463,10 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = YES;
+				OBJROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)/objs";
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				SYMROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 			};
 			name = Debug;
 		};
@@ -484,6 +487,7 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CONFIGURATION_BUILD_DIR = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -497,7 +501,9 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OBJROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 				SDKROOT = macosx;
+				SYMROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 			};
 			name = Release;
 		};

@@ -6,6 +6,13 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		ECA2B9FE1B5E19E30095A33B /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEC2773E1A4B9DBA00A5B33B /* libcommon.a */; };
+		ECA2B9FF1B5E19E30095A33B /* libprocessing.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEC277381A4B9DB200A5B33B /* libprocessing.a */; };
+		ECA2BA001B5E19E30095A33B /* libwelsdec.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE6092391A5143200078A7E0 /* libwelsdec.a */; };
+		ECA2BA011B5E19E30095A33B /* libwelsenc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEC291D11A4AC59800777576 /* libwelsenc.a */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		CE60922F1A51430E0078A7E0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -49,6 +56,13 @@
 			remoteGlobalIDString = CEC2907E1A4ABD3900777576;
 			remoteInfo = welsenc;
 		};
+		ECA2BA231B5E2C980095A33B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = ECA2BA1F1B5E2C980095A33B /* openh264Common.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = ECA2BA181B5E2C520095A33B;
+			remoteInfo = openh264Common;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -59,6 +73,7 @@
 		CEC2775D1A4B9FC300A5B33B /* encConsole.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = encConsole.xcodeproj; path = ../encConsole/encConsole.xcodeproj; sourceTree = "<group>"; };
 		CEC291C41A4AC4ED00777576 /* libopenh264.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libopenh264.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEC291CC1A4AC59800777576 /* welsenc.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = welsenc.xcodeproj; path = ../welsenc/welsenc.xcodeproj; sourceTree = "<group>"; };
+		ECA2BA1F1B5E2C980095A33B /* openh264Common.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = openh264Common.xcodeproj; path = ../Test/openh264Common/openh264Common.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,6 +81,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ECA2B9FE1B5E19E30095A33B /* libcommon.a in Frameworks */,
+				ECA2B9FF1B5E19E30095A33B /* libprocessing.a in Frameworks */,
+				ECA2BA001B5E19E30095A33B /* libwelsdec.a in Frameworks */,
+				ECA2BA011B5E19E30095A33B /* libwelsenc.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -115,6 +134,7 @@
 		CEC291BB1A4AC4ED00777576 = {
 			isa = PBXGroup;
 			children = (
+				ECA2BA081B5E29160095A33B /* JustTest */,
 				CEC291CB1A4AC50600777576 /* openh264 */,
 				CEC291C51A4AC4ED00777576 /* Products */,
 			);
@@ -145,6 +165,22 @@
 			isa = PBXGroup;
 			children = (
 				CEC291D11A4AC59800777576 /* libwelsenc.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		ECA2BA081B5E29160095A33B /* JustTest */ = {
+			isa = PBXGroup;
+			children = (
+				ECA2BA1F1B5E2C980095A33B /* openh264Common.xcodeproj */,
+			);
+			name = JustTest;
+			sourceTree = "<group>";
+		};
+		ECA2BA201B5E2C980095A33B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				ECA2BA241B5E2C980095A33B /* libopenh264Common.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -217,6 +253,10 @@
 					ProjectRef = CEC2775D1A4B9FC300A5B33B /* encConsole.xcodeproj */;
 				},
 				{
+					ProductGroup = ECA2BA201B5E2C980095A33B /* Products */;
+					ProjectRef = ECA2BA1F1B5E2C980095A33B /* openh264Common.xcodeproj */;
+				},
+				{
 					ProductGroup = CEC277341A4B9DB200A5B33B /* Products */;
 					ProjectRef = CEC277331A4B9DB200A5B33B /* processing.xcodeproj */;
 				},
@@ -279,6 +319,13 @@
 			remoteRef = CEC291D01A4AC59800777576 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+		ECA2BA241B5E2C980095A33B /* libopenh264Common.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libopenh264Common.a;
+			remoteRef = ECA2BA231B5E2C980095A33B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 /* End PBXReferenceProxy section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -309,6 +356,7 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CONFIGURATION_BUILD_DIR = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -327,8 +375,10 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = YES;
+				OBJROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)/objs";
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				SYMROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 			};
 			name = Debug;
 		};
@@ -349,6 +399,7 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CONFIGURATION_BUILD_DIR = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -362,7 +413,9 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OBJROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)/objs";
 				SDKROOT = macosx;
+				SYMROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 			};
 			name = Release;
 		};

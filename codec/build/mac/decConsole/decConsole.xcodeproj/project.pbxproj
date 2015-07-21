@@ -7,12 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		CE242BB01A593411001A9E92 /* libwelsdec.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE242BAF1A593411001A9E92 /* libwelsdec.a */; };
-		CE242BB21A593414001A9E92 /* libprocessing.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE242BB11A593414001A9E92 /* libprocessing.a */; };
-		CE242BB41A593417001A9E92 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE242BB31A593417001A9E92 /* libcommon.a */; };
 		CE6092241A513FCD0078A7E0 /* d3d9_utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE6092221A513FCD0078A7E0 /* d3d9_utils.cpp */; };
 		CE6092251A513FCD0078A7E0 /* h264dec.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE6092231A513FCD0078A7E0 /* h264dec.cpp */; };
 		CE6092281A5141D60078A7E0 /* read_config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE6092271A5141D60078A7E0 /* read_config.cpp */; };
+		ECA2B9F31B5E15C70095A33B /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ECA2B9F21B5E15C70095A33B /* libcommon.a */; };
+		ECA2B9F51B5E15CC0095A33B /* libprocessing.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ECA2B9F41B5E15CC0095A33B /* libprocessing.a */; };
+		ECA2B9F71B5E15D30095A33B /* libwelsdec.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ECA2B9F61B5E15D30095A33B /* libwelsdec.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,15 +28,15 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		CE242BAF1A593411001A9E92 /* libwelsdec.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwelsdec.a; path = "../../../../../../../../Library/Developer/Xcode/DerivedData/openh264-dazbogfrigymgpejrufawdhvrwna/Build/Products/Debug/libwelsdec.a"; sourceTree = "<group>"; };
-		CE242BB11A593414001A9E92 /* libprocessing.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libprocessing.a; path = "../../../../../../../../Library/Developer/Xcode/DerivedData/openh264-dazbogfrigymgpejrufawdhvrwna/Build/Products/Debug/libprocessing.a"; sourceTree = "<group>"; };
-		CE242BB31A593417001A9E92 /* libcommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcommon.a; path = "../../../../../../../../Library/Developer/Xcode/DerivedData/openh264-dazbogfrigymgpejrufawdhvrwna/Build/Products/Debug/libcommon.a"; sourceTree = "<group>"; };
 		CE6092171A513FAC0078A7E0 /* decConsole */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = decConsole; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE6092221A513FCD0078A7E0 /* d3d9_utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = d3d9_utils.cpp; path = ../../../console/dec/src/d3d9_utils.cpp; sourceTree = "<group>"; };
 		CE6092231A513FCD0078A7E0 /* h264dec.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = h264dec.cpp; path = ../../../console/dec/src/h264dec.cpp; sourceTree = "<group>"; };
 		CE6092261A513FDE0078A7E0 /* d3d9_utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = d3d9_utils.h; path = ../../../console/dec/inc/d3d9_utils.h; sourceTree = "<group>"; };
 		CE6092271A5141D60078A7E0 /* read_config.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = read_config.cpp; path = ../../../console/common/src/read_config.cpp; sourceTree = "<group>"; };
 		CE6092291A5141E40078A7E0 /* read_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = read_config.h; path = ../../../console/common/inc/read_config.h; sourceTree = "<group>"; };
+		ECA2B9F21B5E15C70095A33B /* libcommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcommon.a; path = ../../../../bin/mac/Debug/libcommon.a; sourceTree = "<group>"; };
+		ECA2B9F41B5E15CC0095A33B /* libprocessing.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libprocessing.a; path = ../../../../bin/mac/Debug/libprocessing.a; sourceTree = "<group>"; };
+		ECA2B9F61B5E15D30095A33B /* libwelsdec.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwelsdec.a; path = ../../../../bin/mac/Debug/libwelsdec.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,9 +44,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE242BB41A593417001A9E92 /* libcommon.a in Frameworks */,
-				CE242BB21A593414001A9E92 /* libprocessing.a in Frameworks */,
-				CE242BB01A593411001A9E92 /* libwelsdec.a in Frameworks */,
+				ECA2B9F71B5E15D30095A33B /* libwelsdec.a in Frameworks */,
+				ECA2B9F51B5E15CC0095A33B /* libprocessing.a in Frameworks */,
+				ECA2B9F31B5E15C70095A33B /* libcommon.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -56,9 +56,9 @@
 		CE60920E1A513FAC0078A7E0 = {
 			isa = PBXGroup;
 			children = (
-				CE242BB31A593417001A9E92 /* libcommon.a */,
-				CE242BB11A593414001A9E92 /* libprocessing.a */,
-				CE242BAF1A593411001A9E92 /* libwelsdec.a */,
+				ECA2B9F61B5E15D30095A33B /* libwelsdec.a */,
+				ECA2B9F41B5E15CC0095A33B /* libprocessing.a */,
+				ECA2B9F21B5E15C70095A33B /* libcommon.a */,
 				CE6092211A513FB50078A7E0 /* decConsole */,
 				CE6092181A513FAC0078A7E0 /* Products */,
 			);
@@ -166,6 +166,7 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CONFIGURATION_BUILD_DIR = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -184,8 +185,10 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = YES;
+				OBJROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION) /objs";
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				SYMROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 			};
 			name = Debug;
 		};
@@ -206,6 +209,7 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CONFIGURATION_BUILD_DIR = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -219,7 +223,9 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OBJROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)/objs";
 				SDKROOT = macosx;
+				SYMROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 			};
 			name = Release;
 		};
@@ -236,6 +242,7 @@
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/openh264-bbjsythqeyxrtjctfccmdaybxzal/Build/Products/Debug",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/openh264-dazbogfrigymgpejrufawdhvrwna/Build/Products/Debug",
+					/Users/huashi/project/Openh264/Huade/bin/mac/Debug,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -254,6 +261,7 @@
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/openh264-bbjsythqeyxrtjctfccmdaybxzal/Build/Products/Debug",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/openh264-dazbogfrigymgpejrufawdhvrwna/Build/Products/Debug",
+					/Users/huashi/project/Openh264/Huade/bin/mac/Debug,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

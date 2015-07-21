@@ -27,7 +27,6 @@
 		CEC28FF01A4AB36700777576 /* intra_pred_common.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC28FDD1A4AB36700777576 /* intra_pred_common.h */; };
 		CEC28FF11A4AB36700777576 /* ls_defines.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC28FDE1A4AB36700777576 /* ls_defines.h */; };
 		CEC28FF21A4AB36700777576 /* macros.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC28FDF1A4AB36700777576 /* macros.h */; };
-		CEC28FF31A4AB36700777576 /* mc_common.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC28FE01A4AB36700777576 /* mc_common.h */; };
 		CEC28FF41A4AB36700777576 /* measure_time.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC28FE11A4AB36700777576 /* measure_time.h */; };
 		CEC28FF51A4AB36700777576 /* sad_common.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC28FE21A4AB36700777576 /* sad_common.h */; };
 		CEC28FF61A4AB36700777576 /* typedefs.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC28FE31A4AB36700777576 /* typedefs.h */; };
@@ -83,13 +82,11 @@
 		CEC28FDD1A4AB36700777576 /* intra_pred_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = intra_pred_common.h; path = ../../../common/inc/intra_pred_common.h; sourceTree = "<group>"; };
 		CEC28FDE1A4AB36700777576 /* ls_defines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ls_defines.h; path = ../../../common/inc/ls_defines.h; sourceTree = "<group>"; };
 		CEC28FDF1A4AB36700777576 /* macros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = macros.h; path = ../../../common/inc/macros.h; sourceTree = "<group>"; };
-		CEC28FE01A4AB36700777576 /* mc_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mc_common.h; path = ../../../common/inc/mc_common.h; sourceTree = "<group>"; };
 		CEC28FE11A4AB36700777576 /* measure_time.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = measure_time.h; path = ../../../common/inc/measure_time.h; sourceTree = "<group>"; };
 		CEC28FE21A4AB36700777576 /* sad_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sad_common.h; path = ../../../common/inc/sad_common.h; sourceTree = "<group>"; };
 		CEC28FE31A4AB36700777576 /* typedefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = typedefs.h; path = ../../../common/inc/typedefs.h; sourceTree = "<group>"; };
 		CEC28FE41A4AB36700777576 /* utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = utils.h; path = ../../../common/inc/utils.h; sourceTree = "<group>"; };
 		CEC28FE51A4AB36700777576 /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = version.h; path = ../../../common/inc/version.h; sourceTree = "<group>"; };
-		CEC28FE61A4AB36700777576 /* version.h.template */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = version.h.template; path = ../../../common/inc/version.h.template; sourceTree = "<group>"; };
 		CEC28FE71A4AB36700777576 /* wels_common_defs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = wels_common_defs.h; path = ../../../common/inc/wels_common_defs.h; sourceTree = "<group>"; };
 		CEC28FE81A4AB36700777576 /* welsCodecTrace.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = welsCodecTrace.h; path = ../../../common/inc/welsCodecTrace.h; sourceTree = "<group>"; };
 		CEC28FE91A4AB36700777576 /* WelsThreadLib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WelsThreadLib.h; path = ../../../common/inc/WelsThreadLib.h; sourceTree = "<group>"; };
@@ -172,13 +169,11 @@
 				CEC28FDD1A4AB36700777576 /* intra_pred_common.h */,
 				CEC28FDE1A4AB36700777576 /* ls_defines.h */,
 				CEC28FDF1A4AB36700777576 /* macros.h */,
-				CEC28FE01A4AB36700777576 /* mc_common.h */,
 				CEC28FE11A4AB36700777576 /* measure_time.h */,
 				CEC28FE21A4AB36700777576 /* sad_common.h */,
 				CEC28FE31A4AB36700777576 /* typedefs.h */,
 				CEC28FE41A4AB36700777576 /* utils.h */,
 				CEC28FE51A4AB36700777576 /* version.h */,
-				CEC28FE61A4AB36700777576 /* version.h.template */,
 				CEC28FE71A4AB36700777576 /* wels_common_defs.h */,
 				CEC28FE81A4AB36700777576 /* welsCodecTrace.h */,
 				CEC28FE91A4AB36700777576 /* WelsThreadLib.h */,
@@ -222,7 +217,6 @@
 				CEC28FFA1A4AB36700777576 /* welsCodecTrace.h in Headers */,
 				CEC28FEA1A4AB36700777576 /* copy_mb.h in Headers */,
 				CEC28FF81A4AB36700777576 /* version.h in Headers */,
-				CEC28FF31A4AB36700777576 /* mc_common.h in Headers */,
 				CEC28FF91A4AB36700777576 /* wels_common_defs.h in Headers */,
 				CEC28FF11A4AB36700777576 /* ls_defines.h in Headers */,
 				CEC28FF51A4AB36700777576 /* sad_common.h in Headers */,
@@ -332,6 +326,7 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CONFIGURATION_BUILD_DIR = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -350,8 +345,10 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = YES;
+				OBJROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)/objs";
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				SYMROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 			};
 			name = Debug;
 		};
@@ -372,6 +369,7 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CONFIGURATION_BUILD_DIR = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -385,7 +383,9 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OBJROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)/objs";
 				SDKROOT = macosx;
+				SYMROOT = "$(SRCROOT)/../../../../bin/mac/$(CONFIGURATION)";
 			};
 			name = Release;
 		};
