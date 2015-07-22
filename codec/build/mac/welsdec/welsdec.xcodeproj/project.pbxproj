@@ -26,7 +26,6 @@
 		CEC2916D1A4AC27A00777576 /* parse_mb_syn_cavlc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC291581A4AC27A00777576 /* parse_mb_syn_cavlc.cpp */; };
 		CEC2916E1A4AC27A00777576 /* pic_queue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC291591A4AC27A00777576 /* pic_queue.cpp */; };
 		CEC2916F1A4AC27A00777576 /* rec_mb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC2915A1A4AC27A00777576 /* rec_mb.cpp */; };
-		CEC291921A4AC28D00777576 /* as264_common.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC291701A4AC28D00777576 /* as264_common.h */; };
 		CEC291931A4AC28D00777576 /* au_parser.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC291711A4AC28D00777576 /* au_parser.h */; };
 		CEC291941A4AC28D00777576 /* bit_stream.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC291721A4AC28D00777576 /* bit_stream.h */; };
 		CEC291951A4AC28D00777576 /* cabac_decoder.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC291731A4AC28D00777576 /* cabac_decoder.h */; };
@@ -44,8 +43,6 @@
 		CEC291A11A4AC28D00777576 /* get_intra_predictor.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC2917F1A4AC28D00777576 /* get_intra_predictor.h */; };
 		CEC291A21A4AC28D00777576 /* manage_dec_ref.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC291801A4AC28D00777576 /* manage_dec_ref.h */; };
 		CEC291A31A4AC28D00777576 /* mb_cache.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC291811A4AC28D00777576 /* mb_cache.h */; };
-		CEC291A41A4AC28D00777576 /* mc.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC291821A4AC28D00777576 /* mc.h */; };
-		CEC291A51A4AC28D00777576 /* mem_align.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC291831A4AC28D00777576 /* mem_align.h */; };
 		CEC291A61A4AC28D00777576 /* memmgr_nal_unit.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC291841A4AC28D00777576 /* memmgr_nal_unit.h */; };
 		CEC291A71A4AC28D00777576 /* mv_pred.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC291851A4AC28D00777576 /* mv_pred.h */; };
 		CEC291A81A4AC28D00777576 /* nal_prefix.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC291861A4AC28D00777576 /* nal_prefix.h */; };
@@ -102,7 +99,6 @@
 		CEC291581A4AC27A00777576 /* parse_mb_syn_cavlc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = parse_mb_syn_cavlc.cpp; path = ../../../decoder/core/src/parse_mb_syn_cavlc.cpp; sourceTree = "<group>"; };
 		CEC291591A4AC27A00777576 /* pic_queue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pic_queue.cpp; path = ../../../decoder/core/src/pic_queue.cpp; sourceTree = "<group>"; };
 		CEC2915A1A4AC27A00777576 /* rec_mb.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = rec_mb.cpp; path = ../../../decoder/core/src/rec_mb.cpp; sourceTree = "<group>"; };
-		CEC291701A4AC28D00777576 /* as264_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = as264_common.h; path = ../../../decoder/core/inc/as264_common.h; sourceTree = "<group>"; };
 		CEC291711A4AC28D00777576 /* au_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = au_parser.h; path = ../../../decoder/core/inc/au_parser.h; sourceTree = "<group>"; };
 		CEC291721A4AC28D00777576 /* bit_stream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bit_stream.h; path = ../../../decoder/core/inc/bit_stream.h; sourceTree = "<group>"; };
 		CEC291731A4AC28D00777576 /* cabac_decoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cabac_decoder.h; path = ../../../decoder/core/inc/cabac_decoder.h; sourceTree = "<group>"; };
@@ -120,8 +116,6 @@
 		CEC2917F1A4AC28D00777576 /* get_intra_predictor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = get_intra_predictor.h; path = ../../../decoder/core/inc/get_intra_predictor.h; sourceTree = "<group>"; };
 		CEC291801A4AC28D00777576 /* manage_dec_ref.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = manage_dec_ref.h; path = ../../../decoder/core/inc/manage_dec_ref.h; sourceTree = "<group>"; };
 		CEC291811A4AC28D00777576 /* mb_cache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mb_cache.h; path = ../../../decoder/core/inc/mb_cache.h; sourceTree = "<group>"; };
-		CEC291821A4AC28D00777576 /* mc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mc.h; path = ../../../decoder/core/inc/mc.h; sourceTree = "<group>"; };
-		CEC291831A4AC28D00777576 /* mem_align.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mem_align.h; path = ../../../decoder/core/inc/mem_align.h; sourceTree = "<group>"; };
 		CEC291841A4AC28D00777576 /* memmgr_nal_unit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = memmgr_nal_unit.h; path = ../../../decoder/core/inc/memmgr_nal_unit.h; sourceTree = "<group>"; };
 		CEC291851A4AC28D00777576 /* mv_pred.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mv_pred.h; path = ../../../decoder/core/inc/mv_pred.h; sourceTree = "<group>"; };
 		CEC291861A4AC28D00777576 /* nal_prefix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = nal_prefix.h; path = ../../../decoder/core/inc/nal_prefix.h; sourceTree = "<group>"; };
@@ -231,7 +225,6 @@
 		CEC291451A4AC26B00777576 /* inc */ = {
 			isa = PBXGroup;
 			children = (
-				CEC291701A4AC28D00777576 /* as264_common.h */,
 				CEC291711A4AC28D00777576 /* au_parser.h */,
 				CEC291721A4AC28D00777576 /* bit_stream.h */,
 				CEC291731A4AC28D00777576 /* cabac_decoder.h */,
@@ -249,8 +242,6 @@
 				CEC2917F1A4AC28D00777576 /* get_intra_predictor.h */,
 				CEC291801A4AC28D00777576 /* manage_dec_ref.h */,
 				CEC291811A4AC28D00777576 /* mb_cache.h */,
-				CEC291821A4AC28D00777576 /* mc.h */,
-				CEC291831A4AC28D00777576 /* mem_align.h */,
 				CEC291841A4AC28D00777576 /* memmgr_nal_unit.h */,
 				CEC291851A4AC28D00777576 /* mv_pred.h */,
 				CEC291861A4AC28D00777576 /* nal_prefix.h */,
@@ -313,7 +304,6 @@
 				CEC291971A4AC28D00777576 /* dec_frame.h in Headers */,
 				CEC291B31A4AC28D00777576 /* wels_const.h in Headers */,
 				CEC291AF1A4AC28D00777576 /* rec_mb.h in Headers */,
-				CEC291921A4AC28D00777576 /* as264_common.h in Headers */,
 				CEC291BA1A4AC2FF00777576 /* welsDecoderExt.h in Headers */,
 				CEC291A71A4AC28D00777576 /* mv_pred.h in Headers */,
 				CEC291981A4AC28D00777576 /* dec_golomb.h in Headers */,
@@ -328,9 +318,7 @@
 				CEC291931A4AC28D00777576 /* au_parser.h in Headers */,
 				CEC2919A1A4AC28D00777576 /* decode_slice.h in Headers */,
 				CEC291A01A4AC28D00777576 /* fmo.h in Headers */,
-				CEC291A41A4AC28D00777576 /* mc.h in Headers */,
 				CEC291961A4AC28D00777576 /* deblocking.h in Headers */,
-				CEC291A51A4AC28D00777576 /* mem_align.h in Headers */,
 				CEC291AC1A4AC28D00777576 /* parse_mb_syn_cavlc.h in Headers */,
 				CEC291A61A4AC28D00777576 /* memmgr_nal_unit.h in Headers */,
 				CEC291AD1A4AC28D00777576 /* pic_queue.h in Headers */,

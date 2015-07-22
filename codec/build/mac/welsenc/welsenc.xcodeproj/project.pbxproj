@@ -11,7 +11,6 @@
 		CEC290901A4ABE2A00777576 /* welsEncoderExt.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC2908F1A4ABE2A00777576 /* welsEncoderExt.h */; };
 		CEC290C41A4ABF3E00777576 /* as264_common.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC290931A4ABF3E00777576 /* as264_common.h */; };
 		CEC290C51A4ABF3E00777576 /* au_set.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC290941A4ABF3E00777576 /* au_set.h */; };
-		CEC290C61A4ABF3E00777576 /* bit_stream.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC290951A4ABF3E00777576 /* bit_stream.h */; };
 		CEC290C71A4ABF3E00777576 /* deblocking.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC290961A4ABF3E00777576 /* deblocking.h */; };
 		CEC290C81A4ABF3E00777576 /* decode_mb_aux.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC290971A4ABF3E00777576 /* decode_mb_aux.h */; };
 		CEC290C91A4ABF3E00777576 /* dq_map.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC290981A4ABF3E00777576 /* dq_map.h */; };
@@ -21,13 +20,10 @@
 		CEC290CD1A4ABF3E00777576 /* extern.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC2909C1A4ABF3E00777576 /* extern.h */; };
 		CEC290CE1A4ABF3E00777576 /* get_intra_predictor.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC2909D1A4ABF3E00777576 /* get_intra_predictor.h */; };
 		CEC290CF1A4ABF3E00777576 /* mb_cache.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC2909E1A4ABF3E00777576 /* mb_cache.h */; };
-		CEC290D01A4ABF3E00777576 /* mc.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC2909F1A4ABF3E00777576 /* mc.h */; };
 		CEC290D11A4ABF3E00777576 /* md.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC290A01A4ABF3E00777576 /* md.h */; };
-		CEC290D21A4ABF3E00777576 /* memory_align.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC290A11A4ABF3E00777576 /* memory_align.h */; };
 		CEC290D31A4ABF3E00777576 /* mt_defs.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC290A21A4ABF3E00777576 /* mt_defs.h */; };
 		CEC290D41A4ABF3E00777576 /* mv_pred.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC290A31A4ABF3E00777576 /* mv_pred.h */; };
 		CEC290D51A4ABF3E00777576 /* nal_encap.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC290A41A4ABF3E00777576 /* nal_encap.h */; };
-		CEC290D61A4ABF3E00777576 /* nal_prefix.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC290A51A4ABF3E00777576 /* nal_prefix.h */; };
 		CEC290D71A4ABF3E00777576 /* param_svc.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC290A61A4ABF3E00777576 /* param_svc.h */; };
 		CEC290D81A4ABF3E00777576 /* parameter_sets.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC290A71A4ABF3E00777576 /* parameter_sets.h */; };
 		CEC290D91A4ABF3E00777576 /* picture_handle.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC290A81A4ABF3E00777576 /* picture_handle.h */; };
@@ -127,7 +123,6 @@
 		CEC2908F1A4ABE2A00777576 /* welsEncoderExt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = welsEncoderExt.h; path = ../../../encoder/plus/inc/welsEncoderExt.h; sourceTree = "<group>"; };
 		CEC290931A4ABF3E00777576 /* as264_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = as264_common.h; path = ../../../encoder/core/inc/as264_common.h; sourceTree = "<group>"; };
 		CEC290941A4ABF3E00777576 /* au_set.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = au_set.h; path = ../../../encoder/core/inc/au_set.h; sourceTree = "<group>"; };
-		CEC290951A4ABF3E00777576 /* bit_stream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bit_stream.h; path = ../../../encoder/core/inc/bit_stream.h; sourceTree = "<group>"; };
 		CEC290961A4ABF3E00777576 /* deblocking.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = deblocking.h; path = ../../../encoder/core/inc/deblocking.h; sourceTree = "<group>"; };
 		CEC290971A4ABF3E00777576 /* decode_mb_aux.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = decode_mb_aux.h; path = ../../../encoder/core/inc/decode_mb_aux.h; sourceTree = "<group>"; };
 		CEC290981A4ABF3E00777576 /* dq_map.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = dq_map.h; path = ../../../encoder/core/inc/dq_map.h; sourceTree = "<group>"; };
@@ -137,13 +132,10 @@
 		CEC2909C1A4ABF3E00777576 /* extern.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = extern.h; path = ../../../encoder/core/inc/extern.h; sourceTree = "<group>"; };
 		CEC2909D1A4ABF3E00777576 /* get_intra_predictor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = get_intra_predictor.h; path = ../../../encoder/core/inc/get_intra_predictor.h; sourceTree = "<group>"; };
 		CEC2909E1A4ABF3E00777576 /* mb_cache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mb_cache.h; path = ../../../encoder/core/inc/mb_cache.h; sourceTree = "<group>"; };
-		CEC2909F1A4ABF3E00777576 /* mc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mc.h; path = ../../../encoder/core/inc/mc.h; sourceTree = "<group>"; };
 		CEC290A01A4ABF3E00777576 /* md.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = md.h; path = ../../../encoder/core/inc/md.h; sourceTree = "<group>"; };
-		CEC290A11A4ABF3E00777576 /* memory_align.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = memory_align.h; path = ../../../encoder/core/inc/memory_align.h; sourceTree = "<group>"; };
 		CEC290A21A4ABF3E00777576 /* mt_defs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mt_defs.h; path = ../../../encoder/core/inc/mt_defs.h; sourceTree = "<group>"; };
 		CEC290A31A4ABF3E00777576 /* mv_pred.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mv_pred.h; path = ../../../encoder/core/inc/mv_pred.h; sourceTree = "<group>"; };
 		CEC290A41A4ABF3E00777576 /* nal_encap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = nal_encap.h; path = ../../../encoder/core/inc/nal_encap.h; sourceTree = "<group>"; };
-		CEC290A51A4ABF3E00777576 /* nal_prefix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = nal_prefix.h; path = ../../../encoder/core/inc/nal_prefix.h; sourceTree = "<group>"; };
 		CEC290A61A4ABF3E00777576 /* param_svc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = param_svc.h; path = ../../../encoder/core/inc/param_svc.h; sourceTree = "<group>"; };
 		CEC290A71A4ABF3E00777576 /* parameter_sets.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = parameter_sets.h; path = ../../../encoder/core/inc/parameter_sets.h; sourceTree = "<group>"; };
 		CEC290A81A4ABF3E00777576 /* picture_handle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = picture_handle.h; path = ../../../encoder/core/inc/picture_handle.h; sourceTree = "<group>"; };
@@ -328,7 +320,6 @@
 			children = (
 				CEC290931A4ABF3E00777576 /* as264_common.h */,
 				CEC290941A4ABF3E00777576 /* au_set.h */,
-				CEC290951A4ABF3E00777576 /* bit_stream.h */,
 				CEC290961A4ABF3E00777576 /* deblocking.h */,
 				CEC290971A4ABF3E00777576 /* decode_mb_aux.h */,
 				CEC290981A4ABF3E00777576 /* dq_map.h */,
@@ -338,13 +329,10 @@
 				CEC2909C1A4ABF3E00777576 /* extern.h */,
 				CEC2909D1A4ABF3E00777576 /* get_intra_predictor.h */,
 				CEC2909E1A4ABF3E00777576 /* mb_cache.h */,
-				CEC2909F1A4ABF3E00777576 /* mc.h */,
 				CEC290A01A4ABF3E00777576 /* md.h */,
-				CEC290A11A4ABF3E00777576 /* memory_align.h */,
 				CEC290A21A4ABF3E00777576 /* mt_defs.h */,
 				CEC290A31A4ABF3E00777576 /* mv_pred.h */,
 				CEC290A41A4ABF3E00777576 /* nal_encap.h */,
-				CEC290A51A4ABF3E00777576 /* nal_prefix.h */,
 				CEC290A61A4ABF3E00777576 /* param_svc.h */,
 				CEC290A71A4ABF3E00777576 /* parameter_sets.h */,
 				CEC290A81A4ABF3E00777576 /* picture_handle.h */,
@@ -404,9 +392,7 @@
 				CEC290EA1A4ABF3E00777576 /* svc_encode_slice.h in Headers */,
 				CEC290C81A4ABF3E00777576 /* decode_mb_aux.h in Headers */,
 				CEC290D51A4ABF3E00777576 /* nal_encap.h in Headers */,
-				CEC290D61A4ABF3E00777576 /* nal_prefix.h in Headers */,
 				CEC290DC1A4ABF3E00777576 /* rc.h in Headers */,
-				CEC290C61A4ABF3E00777576 /* bit_stream.h in Headers */,
 				CEC290D41A4ABF3E00777576 /* mv_pred.h in Headers */,
 				CEC290C51A4ABF3E00777576 /* au_set.h in Headers */,
 				CEC290EF1A4ABF3E00777576 /* vlc_encoder.h in Headers */,
@@ -431,7 +417,6 @@
 				CEC290DD1A4ABF3E00777576 /* ref_list_mgr_svc.h in Headers */,
 				CEC290C41A4ABF3E00777576 /* as264_common.h in Headers */,
 				CEC290EC1A4ABF3E00777576 /* svc_motion_estimate.h in Headers */,
-				CEC290D21A4ABF3E00777576 /* memory_align.h in Headers */,
 				CEC290F11A4ABF3E00777576 /* wels_const.h in Headers */,
 				CEC290DF1A4ABF3E00777576 /* set_mb_syn_cabac.h in Headers */,
 				CEC290E61A4ABF3E00777576 /* svc_enc_golomb.h in Headers */,
@@ -447,7 +432,6 @@
 				CEC290901A4ABE2A00777576 /* welsEncoderExt.h in Headers */,
 				CEC290E41A4ABF3E00777576 /* svc_base_layer_md.h in Headers */,
 				CEC290F31A4ABF3E00777576 /* wels_preprocess.h in Headers */,
-				CEC290D01A4ABF3E00777576 /* mc.h in Headers */,
 				CEC290CE1A4ABF3E00777576 /* get_intra_predictor.h in Headers */,
 				CEC290D31A4ABF3E00777576 /* mt_defs.h in Headers */,
 				CEC290D81A4ABF3E00777576 /* parameter_sets.h in Headers */,
