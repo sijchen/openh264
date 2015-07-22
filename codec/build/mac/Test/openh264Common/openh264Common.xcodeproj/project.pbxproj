@@ -26,7 +26,6 @@
 		ECA2BAB41B5E2DB10095A33B /* intra_pred_common.h in Headers */ = {isa = PBXBuildFile; fileRef = ECA2BA631B5E2DB10095A33B /* intra_pred_common.h */; };
 		ECA2BAB51B5E2DB10095A33B /* ls_defines.h in Headers */ = {isa = PBXBuildFile; fileRef = ECA2BA641B5E2DB10095A33B /* ls_defines.h */; };
 		ECA2BAB61B5E2DB10095A33B /* macros.h in Headers */ = {isa = PBXBuildFile; fileRef = ECA2BA651B5E2DB10095A33B /* macros.h */; };
-		ECA2BAB71B5E2DB10095A33B /* mc_common.h in Headers */ = {isa = PBXBuildFile; fileRef = ECA2BA661B5E2DB10095A33B /* mc_common.h */; };
 		ECA2BAB81B5E2DB10095A33B /* measure_time.h in Headers */ = {isa = PBXBuildFile; fileRef = ECA2BA671B5E2DB10095A33B /* measure_time.h */; };
 		ECA2BAB91B5E2DB10095A33B /* sad_common.h in Headers */ = {isa = PBXBuildFile; fileRef = ECA2BA681B5E2DB10095A33B /* sad_common.h */; };
 		ECA2BABA1B5E2DB10095A33B /* typedefs.h in Headers */ = {isa = PBXBuildFile; fileRef = ECA2BA691B5E2DB10095A33B /* typedefs.h */; };
@@ -55,8 +54,9 @@
 			fileType = sourcecode.nasm;
 			isEditable = 1;
 			outputFiles = (
+				"$(OBJECT_FILE_DIR)/$(arch)/$(INPUT_FILE_BASE).o",
 			);
-			script = "echo \"test nasm99999iiii\"\nnasm=\"\"\nnasm_list=(nasm /usr/bin/nasm /opt/local/bin/nasm)\nfor cmd in ${nasm_list[@]}; do\nver=`$cmd -v 2>/dev/null | awk '{print $3}'`\n[[ $ver =~ ^2\\.1[0-9] ]] && nasm=$cmd && break\ndone\n[ \"$nasm\" = \"\" ] && echo \"[Error] pls install nasm (2.10+)\" 1>&2 && exit 1\n\n[ \"$arch\" = \"x86_64\" ] && asflags=\"-f macho64 -DUNIX64 -DPREFIX\" || asflags=\"-f macho32 -DX86_32 -DPREFIX\"\n$nasm -I ../../../../../../common/x86/ $asflags $INPUT_FILE_PATH -o $OBJECT_FILE_DIR/$arch/$INPUT_FILE_BASE.o\n";
+			script = "nasm=\"\"\nnasm_list=(nasm /usr/bin/nasm /opt/local/bin/nasm)\nfor cmd in ${nasm_list[@]}; do\nver=`$cmd -v 2>/dev/null | awk '{print $3}'`\n[[ $ver =~ ^2\\.1[0-9] ]] && nasm=$cmd && break\ndone\n[ \"$nasm\" = \"\" ] && echo \"[Error] pls install nasm (2.10+)\" 1>&2 && exit 1\n\n[ \"$arch\" = \"x86_64\" ] && asflags=\"-f macho64 -DUNIX64 -DPREFIX\" || asflags=\"-f macho32 -DX86_32 -DPREFIX\"\n$nasm -I ../../../../common/x86/ $asflags $INPUT_FILE_PATH -o $OBJECT_FILE_DIR/$arch/$INPUT_FILE_BASE.o\n";
 		};
 /* End PBXBuildRule section */
 
@@ -81,13 +81,11 @@
 		ECA2BA631B5E2DB10095A33B /* intra_pred_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = intra_pred_common.h; path = ../../../common/inc/intra_pred_common.h; sourceTree = "<group>"; };
 		ECA2BA641B5E2DB10095A33B /* ls_defines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ls_defines.h; path = ../../../common/inc/ls_defines.h; sourceTree = "<group>"; };
 		ECA2BA651B5E2DB10095A33B /* macros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = macros.h; path = ../../../common/inc/macros.h; sourceTree = "<group>"; };
-		ECA2BA661B5E2DB10095A33B /* mc_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mc_common.h; path = ../../../common/inc/mc_common.h; sourceTree = "<group>"; };
 		ECA2BA671B5E2DB10095A33B /* measure_time.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = measure_time.h; path = ../../../common/inc/measure_time.h; sourceTree = "<group>"; };
 		ECA2BA681B5E2DB10095A33B /* sad_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sad_common.h; path = ../../../common/inc/sad_common.h; sourceTree = "<group>"; };
 		ECA2BA691B5E2DB10095A33B /* typedefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = typedefs.h; path = ../../../common/inc/typedefs.h; sourceTree = "<group>"; };
 		ECA2BA6A1B5E2DB10095A33B /* utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = utils.h; path = ../../../common/inc/utils.h; sourceTree = "<group>"; };
 		ECA2BA6B1B5E2DB10095A33B /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = version.h; path = ../../../common/inc/version.h; sourceTree = "<group>"; };
-		ECA2BA6C1B5E2DB10095A33B /* version.h.template */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file; name = version.h.template; path = ../../../common/inc/version.h.template; sourceTree = "<group>"; };
 		ECA2BA6D1B5E2DB10095A33B /* wels_common_defs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = wels_common_defs.h; path = ../../../common/inc/wels_common_defs.h; sourceTree = "<group>"; };
 		ECA2BA6E1B5E2DB10095A33B /* welsCodecTrace.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = welsCodecTrace.h; path = ../../../common/inc/welsCodecTrace.h; sourceTree = "<group>"; };
 		ECA2BA6F1B5E2DB10095A33B /* WelsThreadLib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WelsThreadLib.h; path = ../../../common/inc/WelsThreadLib.h; sourceTree = "<group>"; };
@@ -171,13 +169,11 @@
 				ECA2BA631B5E2DB10095A33B /* intra_pred_common.h */,
 				ECA2BA641B5E2DB10095A33B /* ls_defines.h */,
 				ECA2BA651B5E2DB10095A33B /* macros.h */,
-				ECA2BA661B5E2DB10095A33B /* mc_common.h */,
 				ECA2BA671B5E2DB10095A33B /* measure_time.h */,
 				ECA2BA681B5E2DB10095A33B /* sad_common.h */,
 				ECA2BA691B5E2DB10095A33B /* typedefs.h */,
 				ECA2BA6A1B5E2DB10095A33B /* utils.h */,
 				ECA2BA6B1B5E2DB10095A33B /* version.h */,
-				ECA2BA6C1B5E2DB10095A33B /* version.h.template */,
 				ECA2BA6D1B5E2DB10095A33B /* wels_common_defs.h */,
 				ECA2BA6E1B5E2DB10095A33B /* welsCodecTrace.h */,
 				ECA2BA6F1B5E2DB10095A33B /* WelsThreadLib.h */,
@@ -217,7 +213,6 @@
 				ECA2BABB1B5E2DB10095A33B /* utils.h in Headers */,
 				ECA2BAAE1B5E2DB10095A33B /* copy_mb.h in Headers */,
 				ECA2BAB11B5E2DB10095A33B /* crt_util_safe_x.h in Headers */,
-				ECA2BAB71B5E2DB10095A33B /* mc_common.h in Headers */,
 				ECA2BAB01B5E2DB10095A33B /* cpu.h in Headers */,
 				ECA2BAB51B5E2DB10095A33B /* ls_defines.h in Headers */,
 				ECA2BABE1B5E2DB10095A33B /* welsCodecTrace.h in Headers */,
@@ -359,6 +354,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = YES;
+				New_Setting = "";
 				OBJROOT = "$(SRCROOT)/../../../../../bin/mac/$(CONFIGURATION)/objs";
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -398,6 +394,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				New_Setting = "";
 				OBJROOT = "$(SRCROOT)/../../../../../bin/mac/$(CONFIGURATION)/objs";
 				SDKROOT = macosx;
 				SYMROOT = "$(SRCROOT)/../../../../../bin/mac/$(CONFIGURATION)";
@@ -407,10 +404,12 @@
 		ECA2BA1D1B5E2C520095A33B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				EXECUTABLE_PREFIX = lib;
+				GCC_NO_COMMON_BLOCKS = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
 					X86_ASM,
+					"DEBUG=1",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -420,6 +419,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
+				GCC_NO_COMMON_BLOCKS = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = X86_ASM;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

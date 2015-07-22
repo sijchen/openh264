@@ -11,7 +11,7 @@
 		CEC277A01A4C0D7700A5B33B /* read_config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CEC2779F1A4C0D7700A5B33B /* read_config.cpp */; };
 		ECA2B9ED1B5E10C30095A33B /* libprocessing.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ECA2B9EC1B5E10C30095A33B /* libprocessing.a */; };
 		ECA2BAD21B5E363D0095A33B /* libwelsenc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ECA2B9F01B5E10D10095A33B /* libwelsenc.a */; };
-		ECA2BAD31B5E366E0095A33B /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ECA2B9EE1B5E10C90095A33B /* libcommon.a */; };
+		ECDF75541B5F7C69000171F9 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ECA2B9EE1B5E10C90095A33B /* libcommon.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -42,7 +42,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ECA2BAD31B5E366E0095A33B /* libcommon.a in Frameworks */,
+				ECDF75541B5F7C69000171F9 /* libcommon.a in Frameworks */,
 				ECA2BAD21B5E363D0095A33B /* libwelsenc.a in Frameworks */,
 				ECA2B9ED1B5E10C30095A33B /* libprocessing.a in Frameworks */,
 			);
