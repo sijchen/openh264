@@ -3462,13 +3462,12 @@ static const EncodeOptionParam kOptionParamArray[] = {
   {true, false, true, 30, 110, 296, 50, SM_DYN_SLICE, 500, 7.5, 1, ""},
   {true, false, true, 30, 104, 416, 44, SM_DYN_SLICE, 500, 7.5, 1, ""},
   {true, false, true, 30, 16, 16, 2, SM_DYN_SLICE, 500, 7.5, 1, ""},
-  // enable the following when all random input is supported
-  //{true, true, true, 30, 600, 460, 1, SM_DYN_SLICE, 450, 15.0, 1, ""},
-  //{true, true, true, 30, 340, 96, 24, SM_DYN_SLICE, 1000, 30.0, 1, ""},
-  //{true, true, true, 30, 140, 196, 51, SM_DYN_SLICE, 500, 7.5, 1, ""},
-  //{true, true, true, 30, 110, 296, 50, SM_DYN_SLICE, 500, 7.5, 1, ""},
-  //{true, true, true, 30, 104, 416, 44, SM_DYN_SLICE, 500, 7.5, 1, ""},
-  //{true, true, true, 30, 16, 16, 2, SM_DYN_SLICE, 500, 7.5, 1, ""},
+  {true, true, true, 30, 600, 460, 1, SM_DYN_SLICE, 450, 15.0, 1, ""},
+  {true, true, true, 30, 340, 96, 24, SM_DYN_SLICE, 1000, 30.0, 1, ""},
+  {true, true, true, 30, 140, 196, 51, SM_DYN_SLICE, 500, 7.5, 1, ""},
+  {true, true, true, 30, 110, 296, 50, SM_DYN_SLICE, 500, 7.5, 1, ""},
+  {true, true, true, 30, 104, 416, 44, SM_DYN_SLICE, 500, 7.5, 1, ""},
+  {true, true, true, 30, 16, 16, 2, SM_DYN_SLICE, 500, 7.5, 1, ""},
   {false, false, true, 3, 4096, 2304, 2, SM_SINGLE_SLICE, 0, 7.5, 1, ""}, // large picture size
   {false, true, false, 30, 32, 16, 2, SM_DYN_SLICE, 500, 7.5, 1, ""},
   {false, true, false, 30, 600, 460, 1, SM_DYN_SLICE, 450, 15.0, 4, ""},
@@ -3477,8 +3476,9 @@ static const EncodeOptionParam kOptionParamArray[] = {
   {false, true, false, 30, 110, 296, 50, SM_DYN_SLICE, 500, 7.5, 2, ""},
   {false, true, false, 30, 104, 416, 44, SM_DYN_SLICE, 500, 7.5, 2, ""},
   {false, true, false, 30, 16, 16, 2, SM_DYN_SLICE, 500, 7.5, 3, ""},
-  //{false, true, false, 30, 32, 16, 2, SM_DYN_SLICE, 500, 7.5, 3, ""},
-  //disable the above for now, enable when multi-thread error is correctly handled
+  {false, true, false, 30, 32, 16, 2, SM_DYN_SLICE, 500, 7.5, 3, ""},
+  {false, false, true, 30, 600, 460, 1, SM_FIXEDSLCNUM_SLICE, 0, 15.0, 4, ""},
+  {false, false, true, 30, 600, 460, 1, SM_AUTO_SLICE, 0, 15.0, 4, ""},
 };
 
 class EncodeTestAPI : public ::testing::TestWithParam<EncodeOptionParam>, public ::EncodeDecodeTestAPIBase {
@@ -3499,9 +3499,9 @@ class EncodeTestAPI : public ::testing::TestWithParam<EncodeOptionParam>, public
     }
     int rv = encoder_->EncodeFrame (&EncPic, &info);
     if (0 == iCheckTypeIndex)
-      ASSERT_TRUE (rv == cmResultSuccess);
+      ASSERT_TRUE (rv == cmResultSuccess) << "rv=" << rv;
     else if (1 == iCheckTypeIndex)
-      ASSERT_TRUE (rv == cmResultSuccess || rv == cmUnkonwReason);
+      ASSERT_TRUE (rv == cmResultSuccess || rv == cmUnkonwReason) << "rv=" << rv;
   }
 };
 
@@ -3530,6 +3530,9 @@ TEST_P (EncodeTestAPI, SetEncOptionSize) {
   param_.sSpatialLayers[0].iVideoHeight = p.iHeight;
   param_.sSpatialLayers[0].fFrameRate = p.fFramerate;
   param_.sSpatialLayers[0].sSliceCfg.uiSliceMode = p.eSliceMode;
+  if (SM_AUTO_SLICE == p.eSliceMode || SM_FIXEDSLCNUM_SLICE == p.eSliceMode ) {
+    param_.sSpatialLayers[0].sSliceCfg.sSliceArgument.uiSliceNum = 8;
+  }
 
   encoder_->Uninitialize();
   int rv = encoder_->InitializeExt (&param_);
@@ -3546,6 +3549,12 @@ TEST_P (EncodeTestAPI, SetEncOptionSize) {
   int iIdx = 0;
   int iLen;
   unsigned char* pData[3] = { NULL };
+
+  //FIXME: remove this after the multi-thread case is correctly handled in encoder
+  if (p.iThreads>1 && SM_DYN_SLICE == p.eSliceMode) {
+    p.bAllRandom = false;
+  }
+
   while (iIdx <= p.iNumframes) {
     EncodeOneFrameRandom (0, p.bAllRandom);
     encToDecData (info, iLen);

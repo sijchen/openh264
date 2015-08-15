@@ -65,13 +65,11 @@ void DynamicAdjustSlicing (sWelsEncCtx* pCtx,
                            int32_t iCurDid);
 
 int32_t RequestMtResource (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pParam, const int32_t kiCountBsLen,
-                           const int32_t kiTargetSpatialBsSize);
+                           const int32_t kiTargetSpatialBsSize, bool bDynamicSlice);
 
 void ReleaseMtResource (sWelsEncCtx** ppCtx);
 
 int32_t AppendSliceToFrameBs (sWelsEncCtx* pCtx, SLayerBSInfo* pLbi, const int32_t kiSliceCount);
-int32_t WriteSliceToFrameBs (sWelsEncCtx* pCtx, SLayerBSInfo* pLbi, uint8_t* pFrameBsBuffer, const int32_t iSliceIdx,
-                             int32_t& iSliceSize);
 
 #if !defined(_WIN32)
 WELS_THREAD_ROUTINE_TYPE UpdateMbListThreadProc (void* arg);
