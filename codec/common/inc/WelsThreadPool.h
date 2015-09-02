@@ -43,7 +43,7 @@
 #define _WELS_THREAD_POOL_H_
 
 #include <map>
-
+#include <stdio.h>
 #include "WelsTask.h"
 #include "WelsTaskThread.h"
 
@@ -55,6 +55,82 @@ class IWelsThreadPoolSink {
   virtual WELS_THREAD_ERROR_CODE OnTaskCancelled (IWelsTask* pTask) = 0;
 };
 
+
+class CWelsTaskList {
+ public:
+  CWelsTaskList() {
+    m_iMaxTaskCount = 50;
+    m_pCurrentTaskQueue = static_cast<IWelsTask**> (malloc (m_iMaxTaskCount * sizeof (IWelsTask*)));
+    m_iCurrentTaskStart = m_iCurrentTaskEnd = 0;
+  };
+  ~CWelsTaskList() {
+    free (m_pCurrentTaskQueue);
+  };
+
+  int32_t size() {
+    return ((m_iCurrentTaskEnd >= m_iCurrentTaskStart)
+            ? (m_iCurrentTaskEnd - m_iCurrentTaskStart)
+            : (m_iMaxTaskCount - m_iCurrentTaskStart + m_iCurrentTaskEnd));
+  }
+
+  int32_t push_back (IWelsTask* pTask) {
+    m_pCurrentTaskQueue[m_iCurrentTaskEnd] = pTask;
+    m_iCurrentTaskEnd ++;
+
+    if (m_iCurrentTaskEnd == m_iMaxTaskCount) {
+      m_iCurrentTaskEnd = 0;
+    }
+    if (m_iCurrentTaskEnd == m_iCurrentTaskStart) {
+      int32_t ret = ExpandList();
+      if (ret) {
+        return 1;
+      }
+    }
+    return 0;
+  }
+
+  void pop_front() {
+    if (size() > 0) {
+      m_pCurrentTaskQueue[m_iCurrentTaskStart] = NULL;
+      m_iCurrentTaskStart = ((m_iCurrentTaskStart < (m_iMaxTaskCount - 1))
+                             ? (m_iCurrentTaskStart + 1)
+                             : 0);
+    }
+  }
+
+  IWelsTask* begin() {
+    return m_pCurrentTaskQueue[m_iCurrentTaskStart];
+  }
+ private:
+  int32_t ExpandList() {
+    IWelsTask** tmpCurrentTaskQueue = static_cast<IWelsTask**> (malloc (m_iMaxTaskCount * 2 * sizeof (IWelsTask*)));
+    if (tmpCurrentTaskQueue == NULL) {
+      return 1;
+    }
+
+    memcpy (tmpCurrentTaskQueue,
+            (m_pCurrentTaskQueue + m_iCurrentTaskStart),
+            (m_iMaxTaskCount - m_iCurrentTaskStart)*sizeof (IWelsTask*));
+    if (m_iCurrentTaskEnd > 0) {
+      memcpy (tmpCurrentTaskQueue + m_iMaxTaskCount - m_iCurrentTaskStart,
+              m_pCurrentTaskQueue,
+              m_iCurrentTaskEnd * sizeof (IWelsTask*));
+    }
+
+    free (m_pCurrentTaskQueue);
+
+    m_pCurrentTaskQueue = tmpCurrentTaskQueue;
+    m_iCurrentTaskEnd = m_iMaxTaskCount;
+    m_iCurrentTaskStart = 0;
+    m_iMaxTaskCount = m_iMaxTaskCount * 2;
+
+    return 0;
+  }
+  int32_t m_iCurrentTaskStart;
+  int32_t m_iCurrentTaskEnd;
+  int32_t m_iMaxTaskCount;
+  IWelsTask** m_pCurrentTaskQueue;
+};
 
 class  CWelsThreadPool : public CWelsThread, public IWelsTaskThreadSink {
  public:
@@ -96,7 +172,8 @@ class  CWelsThreadPool : public CWelsThread, public IWelsTaskThreadSink {
 
  private:
   int32_t   m_iMaxThreadNum;
-  std::list<IWelsTask*>    m_cWaitedTasks;
+  //std::list<IWelsTask*>    m_cWaitedTasks;
+  CWelsTaskList* m_cWaitedTasks;
   std::map<uintptr_t, CWelsTaskThread*>  m_cIdleThreads;
   std::map<uintptr_t, CWelsTaskThread*>  m_cBusyThreads;
   IWelsThreadPoolSink*   m_pSink;
