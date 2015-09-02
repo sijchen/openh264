@@ -89,8 +89,10 @@ static inline int32_t DecodeFrameConstruction (PWelsDecoderContext pCtx, uint8_t
       uint8_t* pNalBs = NULL;
       pParser->uiOutBsTimeStamp = (pCurAu->pNalUnitsList [iIdx]) ? pCurAu->pNalUnitsList [iIdx]->uiTimeStamp : 0;
       //pParser->iNalNum = 0;
-      pParser->iSpsWidthInPixel = (pCtx->pSps->iMbWidth << 4);
-      pParser->iSpsHeightInPixel = (pCtx->pSps->iMbHeight << 4);
+      pParser->iSpsWidthInPixel = (pCtx->pSps->iMbWidth << 4) - ((pCtx->pSps->sFrameCrop.iLeftOffset +
+                                  pCtx->pSps->sFrameCrop.iRightOffset) << 1);
+      pParser->iSpsHeightInPixel = (pCtx->pSps->iMbHeight << 4) - ((pCtx->pSps->sFrameCrop.iTopOffset +
+                                   pCtx->pSps->sFrameCrop.iBottomOffset) << 1);
 
       if (pCurAu->pNalUnitsList [iIdx]->sNalHeaderExt.bIdrFlag) { //IDR
         if (pCtx->bFrameFinish) { //add required sps/pps
@@ -2150,6 +2152,7 @@ int32_t DecodeCurrentAccessUnit (PWelsDecoderContext pCtx, uint8_t** ppDst, SBuf
         WelsLog (& (pCtx->sLogCtx), WELS_LOG_ERROR,
                  "DecodeCurrentAccessUnit()::::::PrefetchPic ERROR, pSps->iNumRefFrames:%d.",
                  pCtx->pSps->iNumRefFrames);
+        // The error code here need to be separated from the dsOutOfMemory
         pCtx->iErrorCode |= dsOutOfMemory;
         return ERR_INFO_REF_COUNT_OVERFLOW;
       }
@@ -2443,10 +2446,9 @@ bool CheckAndFinishLastPic (PWelsDecoderContext pCtx, uint8_t** ppDst, SBufferIn
 bool CheckRefPicturesComplete (PWelsDecoderContext pCtx) {
   // Multi Reference, RefIdx may differ
   bool bAllRefComplete = true;
-  int32_t iRealMbIdx;
+  int32_t iRealMbIdx = pCtx->pCurDqLayer->sLayerInfo.sSliceInLayer.sSliceHeaderExt.sSliceHeader.iFirstMbInSlice;
   for (int32_t iMbIdx = 0; bAllRefComplete
        && iMbIdx < pCtx->pCurDqLayer->sLayerInfo.sSliceInLayer.iTotalMbInCurSlice; iMbIdx++) {
-    iRealMbIdx = pCtx->pCurDqLayer->sLayerInfo.sSliceInLayer.sSliceHeaderExt.sSliceHeader.iFirstMbInSlice + iMbIdx;
     switch (pCtx->pCurDqLayer->pMbType[iRealMbIdx]) {
     case MB_TYPE_SKIP:
     case MB_TYPE_16x16:
@@ -2474,6 +2476,8 @@ bool CheckRefPicturesComplete (PWelsDecoderContext pCtx) {
     default:
       break;
     }
+    iRealMbIdx = (pCtx->pPps->uiNumSliceGroups > 1) ? FmoNextMb (pCtx->pFmo, iRealMbIdx) :
+                 (pCtx->pCurDqLayer->sLayerInfo.sSliceInLayer.sSliceHeaderExt.sSliceHeader.iFirstMbInSlice + iMbIdx);
   }
   return bAllRefComplete;
 }
