@@ -132,6 +132,94 @@ class CWelsTaskList {
   IWelsTask** m_pCurrentTaskQueue;
 };
 
+class CWelsTaskThreadMap {
+ public:
+  CWelsTaskThreadMap (int32_t iMaxThreadNum) {
+    m_iMaxTaskThreadCount = iMaxThreadNum;
+    m_pCurrentTaskThreadIdQueue = static_cast<uintptr_t*> (malloc (iMaxThreadNum * sizeof (uintptr_t)));
+    m_pCurrentTaskThreadQueue = static_cast<CWelsTaskThread**> (malloc (iMaxThreadNum * sizeof (CWelsTaskThread*)));
+    for (int32_t i = 0; i < m_iMaxTaskThreadCount; i++) {
+      m_pCurrentTaskThreadIdQueue[i] = 0;
+      m_pCurrentTaskThreadQueue[i] = NULL;
+    }
+  };
+  ~CWelsTaskThreadMap() {
+    free (m_pCurrentTaskThreadIdQueue);
+    free (m_pCurrentTaskThreadQueue);
+  };
+
+  int32_t size() {
+    int32_t iCount = 0;
+    for (int32_t idx = 0; idx < m_iMaxTaskThreadCount; idx++) {
+      if (NULL != m_pCurrentTaskThreadQueue[idx]) {
+        iCount ++;
+      }
+    }
+    return iCount;
+  }
+
+  void erase (uintptr_t uiCurId) {
+    for (int32_t idx = 0; idx < m_iMaxTaskThreadCount; idx++) {
+      if ((uiCurId == m_pCurrentTaskThreadIdQueue[idx]) && (NULL != m_pCurrentTaskThreadQueue[idx])) {
+        m_pCurrentTaskThreadIdQueue[idx] = 0;
+        m_pCurrentTaskThreadQueue[idx] = NULL;
+        return;
+      }
+    }
+  }
+
+  CWelsTaskThread* begin() {
+    for (int32_t idx = 0; idx < m_iMaxTaskThreadCount; idx++) {
+      if (NULL != m_pCurrentTaskThreadQueue[idx]) {
+        return m_pCurrentTaskThreadQueue[idx];
+      }
+    }
+    return NULL;
+  }
+
+  void pop_front() {
+    for (int32_t idx = 0; idx < m_iMaxTaskThreadCount; idx++) {
+      if (NULL != m_pCurrentTaskThreadQueue[idx]) {
+        m_pCurrentTaskThreadIdQueue[idx] = 0;
+        m_pCurrentTaskThreadQueue[idx] = NULL;
+        return;
+      }
+    }
+  }
+
+  CWelsTaskThread* find (uintptr_t uiCurId) {
+    for (int32_t idx = 0; idx < m_iMaxTaskThreadCount; idx++) {
+      if ((uiCurId == m_pCurrentTaskThreadIdQueue[idx]) && (NULL != m_pCurrentTaskThreadQueue[idx])) {
+        return m_pCurrentTaskThreadQueue[idx];
+      }
+    }
+    return NULL;
+  }
+
+  bool push_back (uintptr_t uiCurId, CWelsTaskThread* pThread) {
+    CWelsTaskThread* pointer = find (uiCurId);
+    if (NULL != pointer) {
+      return false;
+    }
+
+    for (int32_t i = 0; i < m_iMaxTaskThreadCount; i++) {
+      if (NULL == m_pCurrentTaskThreadQueue[i]) {
+        m_pCurrentTaskThreadIdQueue[i] = uiCurId;
+        m_pCurrentTaskThreadQueue[i] = pThread;
+        return true;
+      }
+    }
+    return false;
+  }
+
+ private:
+  int32_t m_iMaxTaskThreadCount;
+
+  uintptr_t* m_pCurrentTaskThreadIdQueue;
+  CWelsTaskThread** m_pCurrentTaskThreadQueue;
+};
+
+
 class  CWelsThreadPool : public CWelsThread, public IWelsTaskThreadSink {
  public:
   enum {
