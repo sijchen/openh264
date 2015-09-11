@@ -55,32 +55,33 @@ class IWelsThreadPoolSink {
   virtual WELS_THREAD_ERROR_CODE OnTaskCancelled (IWelsTask* pTask) = 0;
 };
 
-
-class CWelsTaskList {
+template<typename TNodeType>
+class CWelsList {
  public:
-  CWelsTaskList() {
-    m_iMaxTaskCount = 50;
-    m_pCurrentTaskQueue = static_cast<IWelsTask**> (malloc (m_iMaxTaskCount * sizeof (IWelsTask*)));
-    m_iCurrentTaskStart = m_iCurrentTaskEnd = 0;
+  CWelsList() {
+    m_iMaxNodeCount = 50;
+    m_pCurrentQueue = static_cast<TNodeType**> (malloc (m_iMaxNodeCount * sizeof (TNodeType*)));
+    //here using array to simulate list is to avoid the frequent malloc/free of Nodes which may cause fragmented memory
+    m_iCurrentListStart = m_iCurrentListEnd = 0;
   };
-  ~CWelsTaskList() {
-    free (m_pCurrentTaskQueue);
+  ~CWelsList() {
+    free (m_pCurrentQueue);
   };
 
   int32_t size() {
-    return ((m_iCurrentTaskEnd >= m_iCurrentTaskStart)
-            ? (m_iCurrentTaskEnd - m_iCurrentTaskStart)
-            : (m_iMaxTaskCount - m_iCurrentTaskStart + m_iCurrentTaskEnd));
+    return ((m_iCurrentListEnd >= m_iCurrentListStart)
+            ? (m_iCurrentListEnd - m_iCurrentListStart)
+            : (m_iMaxNodeCount - m_iCurrentListStart + m_iCurrentListEnd));
   }
 
-  int32_t push_back (IWelsTask* pTask) {
-    m_pCurrentTaskQueue[m_iCurrentTaskEnd] = pTask;
-    m_iCurrentTaskEnd ++;
+  int32_t push_back (TNodeType* pNode) {
+    m_pCurrentQueue[m_iCurrentListEnd] = pNode;
+    m_iCurrentListEnd ++;
 
-    if (m_iCurrentTaskEnd == m_iMaxTaskCount) {
-      m_iCurrentTaskEnd = 0;
+    if (m_iCurrentListEnd == m_iMaxNodeCount) {
+      m_iCurrentListEnd = 0;
     }
-    if (m_iCurrentTaskEnd == m_iCurrentTaskStart) {
+    if (m_iCurrentListEnd == m_iCurrentListStart) {
       int32_t ret = ExpandList();
       if (ret) {
         return 1;
@@ -91,45 +92,45 @@ class CWelsTaskList {
 
   void pop_front() {
     if (size() > 0) {
-      m_pCurrentTaskQueue[m_iCurrentTaskStart] = NULL;
-      m_iCurrentTaskStart = ((m_iCurrentTaskStart < (m_iMaxTaskCount - 1))
-                             ? (m_iCurrentTaskStart + 1)
+      m_pCurrentQueue[m_iCurrentListStart] = NULL;
+      m_iCurrentListStart = ((m_iCurrentListStart < (m_iMaxNodeCount - 1))
+                             ? (m_iCurrentListStart + 1)
                              : 0);
     }
   }
 
-  IWelsTask* begin() {
-    return m_pCurrentTaskQueue[m_iCurrentTaskStart];
+  TNodeType* begin() {
+    return m_pCurrentQueue[m_iCurrentListStart];
   }
  private:
   int32_t ExpandList() {
-    IWelsTask** tmpCurrentTaskQueue = static_cast<IWelsTask**> (malloc (m_iMaxTaskCount * 2 * sizeof (IWelsTask*)));
+    TNodeType** tmpCurrentTaskQueue = static_cast<TNodeType**> (malloc (m_iMaxNodeCount * 2 * sizeof (TNodeType*)));
     if (tmpCurrentTaskQueue == NULL) {
       return 1;
     }
 
     memcpy (tmpCurrentTaskQueue,
-            (m_pCurrentTaskQueue + m_iCurrentTaskStart),
-            (m_iMaxTaskCount - m_iCurrentTaskStart)*sizeof (IWelsTask*));
-    if (m_iCurrentTaskEnd > 0) {
-      memcpy (tmpCurrentTaskQueue + m_iMaxTaskCount - m_iCurrentTaskStart,
-              m_pCurrentTaskQueue,
-              m_iCurrentTaskEnd * sizeof (IWelsTask*));
+            (m_pCurrentQueue + m_iCurrentListStart),
+            (m_iMaxNodeCount - m_iCurrentListStart)*sizeof (TNodeType*));
+    if (m_iCurrentListEnd > 0) {
+      memcpy (tmpCurrentTaskQueue + m_iMaxNodeCount - m_iCurrentListStart,
+              m_pCurrentQueue,
+              m_iCurrentListEnd * sizeof (TNodeType*));
     }
 
-    free (m_pCurrentTaskQueue);
+    free (m_pCurrentQueue);
 
-    m_pCurrentTaskQueue = tmpCurrentTaskQueue;
-    m_iCurrentTaskEnd = m_iMaxTaskCount;
-    m_iCurrentTaskStart = 0;
-    m_iMaxTaskCount = m_iMaxTaskCount * 2;
+    m_pCurrentQueue = tmpCurrentTaskQueue;
+    m_iCurrentListEnd = m_iMaxNodeCount;
+    m_iCurrentListStart = 0;
+    m_iMaxNodeCount = m_iMaxNodeCount * 2;
 
     return 0;
   }
-  int32_t m_iCurrentTaskStart;
-  int32_t m_iCurrentTaskEnd;
-  int32_t m_iMaxTaskCount;
-  IWelsTask** m_pCurrentTaskQueue;
+  int32_t m_iCurrentListStart;
+  int32_t m_iCurrentListEnd;
+  int32_t m_iMaxNodeCount;
+  TNodeType** m_pCurrentQueue;
 };
 
 class  CWelsThreadPool : public CWelsThread, public IWelsTaskThreadSink {
@@ -173,7 +174,7 @@ class  CWelsThreadPool : public CWelsThread, public IWelsTaskThreadSink {
  private:
   int32_t   m_iMaxThreadNum;
   //std::list<IWelsTask*>    m_cWaitedTasks;
-  CWelsTaskList* m_cWaitedTasks;
+  CWelsList<IWelsTask>* m_cWaitedTasks;
   std::map<uintptr_t, CWelsTaskThread*>  m_cIdleThreads;
   std::map<uintptr_t, CWelsTaskThread*>  m_cBusyThreads;
   IWelsThreadPoolSink*   m_pSink;
