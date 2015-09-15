@@ -151,6 +151,14 @@ WELS_THREAD_ERROR_CODE    WelsEventWait (WELS_EVENT* event) {
   return WaitForSingleObject (*event, INFINITE);
 }
 
+void WelsSleep (uint32_t dwMilliSecond) {
+#ifndef  WINAPI_FAMILY
+  ::Sleep (dwMilliSecond);
+#else
+  ::TASK.DELAY(dwMilliSecond);
+#endif
+}
+
 WELS_THREAD_ERROR_CODE    WelsEventWaitWithTimeOut (WELS_EVENT* event, uint32_t dwMilliseconds) {
   return WaitForSingleObject (*event, dwMilliseconds);
 }
@@ -226,7 +234,7 @@ WELS_THREAD_ERROR_CODE    WelsQueryLogicalProcessInfo (WelsLogicalProcessInfo* p
   return WELS_THREAD_ERROR_OK;
 }
 
-#else
+#else //platform: #ifdef _WIN32
 
 WELS_THREAD_ERROR_CODE    WelsThreadCreate (WELS_THREAD_HANDLE* thread,  LPWELS_THREAD_ROUTINE  routine,
     void* arg, WELS_THREAD_ATTR attr) {
@@ -326,11 +334,7 @@ WELS_THREAD_ERROR_CODE WelsEventWait (WELS_EVENT* event) {
 }
 
 void WelsSleep (uint32_t dwMilliSecond) {
-#ifdef  WIN32
-  ::Sleep (dwMilliSecond);
-#else
   usleep (dwMilliSecond * 1000);
-#endif
 }
 
 WELS_THREAD_ERROR_CODE    WelsEventWaitWithTimeOut (WELS_EVENT* event, uint32_t dwMilliseconds) {
