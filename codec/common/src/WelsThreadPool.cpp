@@ -123,7 +123,7 @@ WELS_THREAD_ERROR_CODE CWelsThreadPool::Uninit() {
   }
 
   m_cLockIdleTasks.Lock();
-  while (m_cIdleThreads->size()>0) {
+  while (m_cIdleThreads->size() > 0) {
     DestroyThread (m_cIdleThreads->begin());
     m_cIdleThreads->pop_front();
   }
@@ -194,7 +194,7 @@ void  CWelsThreadPool::DestroyThread (CWelsTaskThread* pThread) {
 
 WELS_THREAD_ERROR_CODE CWelsThreadPool::AddThreadToIdleMap (CWelsTaskThread* pThread) {
   CWelsAutoLock cLock (m_cLockIdleTasks);
-  m_cIdleThreads->push_back(pThread);
+  m_cIdleThreads->push_back (pThread);
   return WELS_THREAD_ERROR_OK;
 }
 
