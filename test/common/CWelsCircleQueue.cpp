@@ -3,8 +3,8 @@
 
 using namespace WelsCommon;
 
-TEST (CWelsList, CWelsListOne) {
-  CWelsList<IWelsTask> cTaskList;
+TEST (CWelsCircleQueue, CWelsCircleQueueOne) {
+  CWelsCircleQueue<IWelsTask> cTaskList;
   IWelsTask* pTask = NULL;
 
   for (int i = 0; i < 60; i++) {
@@ -16,8 +16,8 @@ TEST (CWelsList, CWelsListOne) {
   }
 }
 
-TEST (CWelsList, CWelsListTen) {
-  CWelsList<IWelsTask> cTaskList;
+TEST (CWelsCircleQueue, CWelsCircleQueueTen) {
+  CWelsCircleQueue<IWelsTask> cTaskList;
   IWelsTask* pTask = NULL;
 
   for (int j = 0; j < 10; j++) {
@@ -36,8 +36,8 @@ TEST (CWelsList, CWelsListTen) {
   }
 }
 
-TEST (CWelsList, CWelsListExpand) {
-  CWelsList<IWelsTask> cTaskList;
+TEST (CWelsCircleQueue, CWelsCircleQueueExpand) {
+  CWelsCircleQueue<IWelsTask> cTaskList;
   IWelsTask* pTask = NULL;
 
   const int kiIncreaseNum = (rand() % 65535) + 1;
@@ -58,8 +58,8 @@ TEST (CWelsList, CWelsListExpand) {
   }
 }
 
-TEST (CWelsList, CWelsListOverPop) {
-  CWelsList<IWelsTask> cTaskList;
+TEST (CWelsCircleQueue, CWelsCircleQueueOverPop) {
+  CWelsCircleQueue<IWelsTask> cTaskList;
   IWelsTask* pTask = NULL;
 
   const int kiDecreaseNum = (rand() % 65535) + 1;
