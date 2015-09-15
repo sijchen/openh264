@@ -117,7 +117,10 @@ class CWelsCircleQueue {
   }
 
   TNodeType* begin() {
-    return m_pCurrentQueue[m_iCurrentListStart];
+    if (size() > 0) {
+      return m_pCurrentQueue[m_iCurrentListStart];
+    }
+    return NULL;
   }
  private:
   int32_t InternalPushBack (TNodeType* pNode) {
