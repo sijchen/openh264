@@ -56,15 +56,15 @@ class IWelsThreadPoolSink {
 };
 
 template<typename TNodeType>
-class CWelsList {
+class CWelsCircleQueue {
  public:
-  CWelsList() {
+  CWelsCircleQueue() {
     m_iMaxNodeCount = 50;
     m_pCurrentQueue = static_cast<TNodeType**> (malloc (m_iMaxNodeCount * sizeof (TNodeType*)));
     //here using array to simulate list is to avoid the frequent malloc/free of Nodes which may cause fragmented memory
     m_iCurrentListStart = m_iCurrentListEnd = 0;
   };
-  ~CWelsList() {
+  ~CWelsCircleQueue() {
     free (m_pCurrentQueue);
   };
 
@@ -174,7 +174,7 @@ class  CWelsThreadPool : public CWelsThread, public IWelsTaskThreadSink {
  private:
   int32_t   m_iMaxThreadNum;
   //std::list<IWelsTask*>    m_cWaitedTasks;
-  CWelsList<IWelsTask>* m_cWaitedTasks;
+  CWelsCircleQueue<IWelsTask>* m_cWaitedTasks;
   std::map<uintptr_t, CWelsTaskThread*>  m_cIdleThreads;
   std::map<uintptr_t, CWelsTaskThread*>  m_cBusyThreads;
   IWelsThreadPoolSink*   m_pSink;

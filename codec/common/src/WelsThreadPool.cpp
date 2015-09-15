@@ -50,7 +50,7 @@ namespace WelsCommon {
 
 CWelsThreadPool::CWelsThreadPool (IWelsThreadPoolSink* pSink, int32_t iMaxThreadNum) :
   m_pSink (pSink) {
-  m_cWaitedTasks = new CWelsList<IWelsTask>();
+  m_cWaitedTasks = new CWelsCircleQueue<IWelsTask>();
   m_iMaxThreadNum = 0;
 
   Init (iMaxThreadNum);
