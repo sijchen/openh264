@@ -92,7 +92,7 @@ WELS_THREAD_ERROR_CODE CWelsThread::Start() {
   }
 
   while (!GetRunning()) {
-    WelsSleep (m_hEvent, 1); //QUESTION: is this usage correct?
+    WelsSleep (1);
   }
 
   return WELS_THREAD_ERROR_OK;

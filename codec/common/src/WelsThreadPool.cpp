@@ -116,17 +116,7 @@ WELS_THREAD_ERROR_CODE CWelsThreadPool::Uninit() {
 
   while (GetBusyThreadNum() > 0) {
     //WELS_INFO_TRACE ("CWelsThreadPool::Uninit - Waiting all thread to exit");
-#ifndef WP8 //temp
-    WelsSleep (NULL, 10);
-#else
-    int32_t iBusyThreads = GetBusyThreadNum();
-    GET:handle of each busy thread (can we?) into an array
-    WelsSleep (BUSYTHREADARRAY, iBusyThreads);
-    //QUESTIONS:
-    //1, how can we put BusyThreads to the handlearray needed
-    //2, if we want to unify this interface, we can only create a function like
-    //   WelsSleep (WELS_EVENT, MILLISECONDES, BUSYTHREADARRAY, iBusyThreads); ??
-#endif
+    WelsSleep (10);
   }
 
 

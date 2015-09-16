@@ -71,6 +71,7 @@
 
 #ifdef WINAPI_FAMILY
 #if !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+#define WP80
 using namespace Platform;
 using namespace Windows::Foundation;
 using namespace Windows::System::Threading;
@@ -150,21 +151,26 @@ WELS_THREAD_ERROR_CODE    WelsEventSignal (WELS_EVENT* event) {
 WELS_THREAD_ERROR_CODE    WelsEventWait (WELS_EVENT* event) {
   return WaitForSingleObject (*event, INFINITE);
 }
-#ifndef  WINAPI_FAMILY
-void WelsSleep (WELS_EVENT hEvent, uint32_t dwMilliSecond) {
+#ifndef WP80
+void WelsSleep (uint32_t dwMilliSecond) {
   ::Sleep (dwMilliSecond);
 }
 #else
-void WelsSleep (WELS_EVENT hEvent, uint32_t dwMilliSecond) {
-  WaitForSingleObjectEx(hEvent, INFINITE, false);
+void WelsSleep (uint32_t dwMilliSecond) {
+  static WELS_EVENT hSleepEvent = NULL;
+  if (!hSleepEvent) {
+    WELS_EVENT hLocalSleepEvent = NULL;
+    WELS_THREAD_ERROR_CODE rc = WelsEventOpen (&hLocalSleepEvent, "WelsSleepEvent");
+    if (WELS_THREAD_ERROR_OK != rc) {
+      return NULL;
+    }
+    WELS_EVENT hPreviousEvent = InterlockedCompareExchangePointerRelease (&hSleepEvent, hLocalSleepEvent, NULL);
+    if (hPreviousEvent) {
+      WelsEventClose (hLocalSleepEvent);
+    }
+  }
 
-}
-void WelsSleep (WELS_EVENT hArray, int32_t iLengthOfArray) {
-  WaitForMultipleObjectsEx(iLengthOfArray,
-                           hArray
-                           true,
-                           INFINITE,
-                           FALSE);
+  WaitForSingleObject (hSleepEvent, dwMilliSecond);
 }
 #endif
 
@@ -342,7 +348,7 @@ WELS_THREAD_ERROR_CODE WelsEventWait (WELS_EVENT* event) {
   return sem_wait (*event); // blocking until signaled
 }
 
-void WelsSleep (WELS_EVENT m_hEvent, uint32_t dwMilliSecond) {
+void WelsSleep (uint32_t dwMilliSecond) {
   usleep (dwMilliSecond * 1000);
 }
 
