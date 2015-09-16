@@ -274,8 +274,14 @@ WELS_THREAD_HANDLE        WelsThreadSelf() {
 
 WELS_THREAD_ERROR_CODE    WelsEventOpen (WELS_EVENT* p_event, const char* event_name) {
 #ifdef __APPLE__
-  if (p_event == NULL || event_name == NULL)
+  if (p_event == NULL) {
     return WELS_THREAD_ERROR_GENERAL;
+  }
+  char    strSuffix[16] = { 0 };
+  if (NULL == event_name) {
+    sprintf (strSuffix, "WelsSem%ld_p%ld", (intptr_t)p_event, (long) (getpid()));
+    event_name = &strSuffix[0];
+  }
   *p_event = sem_open (event_name, O_CREAT, (S_IRUSR | S_IWUSR)/*0600*/, 0);
   if (*p_event == (sem_t*)SEM_FAILED) {
     sem_unlink (event_name);

@@ -46,7 +46,7 @@ CWelsThread::CWelsThread() :
   m_hThread (0),
   m_bRunning (false),
   m_bEndFlag (false) {
-  WELS_THREAD_ERROR_CODE rc = WelsEventOpen (&m_hEvent, "WelsSem");
+  WELS_THREAD_ERROR_CODE rc = WelsEventOpen (&m_hEvent);
 
   if (WELS_THREAD_ERROR_OK != rc) {
     m_hEvent = NULL;
@@ -55,7 +55,7 @@ CWelsThread::CWelsThread() :
 
 CWelsThread::~CWelsThread() {
   Kill();
-  WelsEventClose (&m_hEvent, "WelsSem");
+  WelsEventClose (&m_hEvent);
   m_hEvent = NULL;
 }
 
