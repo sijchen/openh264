@@ -51,6 +51,7 @@ namespace WelsCommon {
 CWelsThreadPool::CWelsThreadPool (IWelsThreadPoolSink* pSink, int32_t iMaxThreadNum) :
   m_pSink (pSink) {
   m_cWaitedTasks = new CWelsCircleQueue<IWelsTask>();
+  m_cIdleThreads = new CWelsCircleQueue<CWelsTaskThread>();
   m_iMaxThreadNum = 0;
 
   Init (iMaxThreadNum);
@@ -61,6 +62,7 @@ CWelsThreadPool::~CWelsThreadPool() {
   Uninit();
 
   delete m_cWaitedTasks;
+  delete m_cIdleThreads;
 }
 
 WELS_THREAD_ERROR_CODE CWelsThreadPool::OnTaskStart (CWelsTaskThread* pThread, IWelsTask* pTask) {
@@ -121,10 +123,9 @@ WELS_THREAD_ERROR_CODE CWelsThreadPool::Uninit() {
   }
 
   m_cLockIdleTasks.Lock();
-  std::map<uintptr_t, CWelsTaskThread*>::iterator iter = m_cIdleThreads.begin();
-  while (iter != m_cIdleThreads.end()) {
-    DestroyThread (iter->second);
-    ++ iter;
+  while (m_cIdleThreads->size() > 0) {
+    DestroyThread (m_cIdleThreads->begin());
+    m_cIdleThreads->pop_front();
   }
   m_cLockIdleTasks.Unlock();
 
@@ -193,17 +194,7 @@ void  CWelsThreadPool::DestroyThread (CWelsTaskThread* pThread) {
 
 WELS_THREAD_ERROR_CODE CWelsThreadPool::AddThreadToIdleMap (CWelsTaskThread* pThread) {
   CWelsAutoLock cLock (m_cLockIdleTasks);
-
-  uintptr_t id = pThread->GetID();
-
-  std::map<uintptr_t, CWelsTaskThread*>::iterator  iter = m_cIdleThreads.find (id);
-
-  if (iter != m_cIdleThreads.end()) {
-    return WELS_THREAD_ERROR_GENERAL;
-  }
-
-  m_cIdleThreads[id] = pThread;
-
+  m_cIdleThreads->push_back (pThread);
   return WELS_THREAD_ERROR_OK;
 }
 
@@ -249,15 +240,12 @@ void  CWelsThreadPool::AddTaskToWaitedList (IWelsTask* pTask) {
 CWelsTaskThread*   CWelsThreadPool::GetIdleThread() {
   CWelsAutoLock cLock (m_cLockIdleTasks);
 
-  if (m_cIdleThreads.size() == 0) {
+  if (m_cIdleThreads->size() == 0) {
     return NULL;
   }
 
-  std::map<uintptr_t, CWelsTaskThread*>::iterator it = m_cIdleThreads.begin();
-  CWelsTaskThread* pThread = it->second;
-
-  m_cIdleThreads.erase (it);
-
+  CWelsTaskThread* pThread = m_cIdleThreads->begin();
+  m_cIdleThreads->pop_front();
   return pThread;
 }
 
@@ -266,7 +254,7 @@ int32_t  CWelsThreadPool::GetBusyThreadNum() {
 }
 
 int32_t  CWelsThreadPool::GetIdleThreadNum() {
-  return static_cast<int32_t> (m_cIdleThreads.size());
+  return static_cast<int32_t> (m_cIdleThreads->size());
 }
 
 int32_t  CWelsThreadPool::GetWaitedTaskNum() {
