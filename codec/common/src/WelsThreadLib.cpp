@@ -151,12 +151,12 @@ WELS_THREAD_ERROR_CODE    WelsEventWait (WELS_EVENT* event) {
   return WaitForSingleObject (*event, INFINITE);
 }
 
-void WelsSleep (uint32_t dwMilliSecond) {
+void WelsSleep (WELS_EVENT hEvent, uint32_t dwMilliSecond) {
 #ifndef  WINAPI_FAMILY
   ::Sleep (dwMilliSecond);
 #else
-  ::TASK.DELAY(dwMilliSecond);
-#endif
+  WaitForSingleObjectEx(hEvent, dwMilliSecond, false);
+  #endif
 }
 
 WELS_THREAD_ERROR_CODE    WelsEventWaitWithTimeOut (WELS_EVENT* event, uint32_t dwMilliseconds) {
@@ -333,7 +333,7 @@ WELS_THREAD_ERROR_CODE WelsEventWait (WELS_EVENT* event) {
   return sem_wait (*event); // blocking until signaled
 }
 
-void WelsSleep (uint32_t dwMilliSecond) {
+void WelsSleep (WELS_EVENT m_hEvent, uint32_t dwMilliSecond) {
   usleep (dwMilliSecond * 1000);
 }
 

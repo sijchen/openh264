@@ -113,10 +113,27 @@ WELS_THREAD_ERROR_CODE CWelsThreadPool::Uninit() {
 
   ClearWaitedTasks();
 
+#ifndef WP8 //temp
   while (GetBusyThreadNum() > 0) {
     //WELS_INFO_TRACE ("CWelsThreadPool::Uninit - Waiting all thread to exit");
-    WelsSleep (10);
+    WelsSleep (NULL, 10);
   }
+#else
+CHOICE 1:
+  SETUP A DEDICATED WAITING EVENT
+  WelsSleep (WAITING_EVENT, 10);
+  
+CHOICE 2:
+  int32_t iBusyThreads = GetBusyThreadNum();
+  
+  GET:handle of each busy thread (can we?) into an array
+  
+  WaitForMultipleObjectsEx(iBusyThreads,
+                           BUSYTHREADARRAY
+                           true,
+                           INFINITE,
+                           FALSE);
+#endif
 
   if (GetIdleThreadNum() != m_iMaxThreadNum) {
     iReturn = WELS_THREAD_ERROR_GENERAL;
