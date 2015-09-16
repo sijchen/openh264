@@ -78,8 +78,7 @@ class CWelsCircleQueue {
     if ((NULL != pNode) && (find (pNode))) {      //not checking NULL for easier testing
       return 1;
     }
-    int32_t ret = InternalPushBack (pNode);
-    return ret;
+    return InternalPushBack (pNode);
   }
 
   bool find (TNodeType* pNode) {

@@ -46,16 +46,16 @@ CWelsThread::CWelsThread() :
   m_hThread (0),
   m_bRunning (false),
   m_bEndFlag (false) {
-  WELS_THREAD_ERROR_CODE rc = WelsEventOpen (&m_hEvent, "WelsSem"); //TODO: this is not correct, will fix later
+  WELS_THREAD_ERROR_CODE ret = WelsEventOpen (&m_hEvent);
 
-  if (WELS_THREAD_ERROR_OK != rc) {
+  if (WELS_THREAD_ERROR_OK != ret) {
     m_hEvent = NULL;
   }
 }
 
 CWelsThread::~CWelsThread() {
   Kill();
-  WelsEventClose (&m_hEvent, "WelsSem"); //TODO: this is not correct, will fix later
+  WelsEventClose (&m_hEvent);
   m_hEvent = NULL;
 }
 
