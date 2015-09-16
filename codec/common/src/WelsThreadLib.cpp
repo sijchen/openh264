@@ -162,11 +162,11 @@ void WelsSleep (uint32_t dwMilliSecond) {
     WELS_EVENT hLocalSleepEvent = NULL;
     WELS_THREAD_ERROR_CODE ret = WelsEventOpen (&hLocalSleepEvent, "WelsSleepEvent");
     if (WELS_THREAD_ERROR_OK != ret) {
-      return NULL;
+      return;
     }
     WELS_EVENT hPreviousEvent = InterlockedCompareExchangePointerRelease (&hSleepEvent, hLocalSleepEvent, NULL);
     if (hPreviousEvent) {
-      WelsEventClose (hLocalSleepEvent);
+      WelsEventClose (hLocalSleepEvent, "WelsSleepEvent");
     }
   }
 
