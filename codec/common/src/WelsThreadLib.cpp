@@ -150,14 +150,23 @@ WELS_THREAD_ERROR_CODE    WelsEventSignal (WELS_EVENT* event) {
 WELS_THREAD_ERROR_CODE    WelsEventWait (WELS_EVENT* event) {
   return WaitForSingleObject (*event, INFINITE);
 }
-
-void WelsSleep (WELS_EVENT hEvent, uint32_t dwMilliSecond) {
 #ifndef  WINAPI_FAMILY
+void WelsSleep (WELS_EVENT hEvent, uint32_t dwMilliSecond) {
   ::Sleep (dwMilliSecond);
-#else
-  WaitForSingleObjectEx(hEvent, dwMilliSecond, false);
-  #endif
 }
+#else
+void WelsSleep (WELS_EVENT hEvent, uint32_t dwMilliSecond) {
+  WaitForSingleObjectEx(hEvent, INFINITE, false);
+
+}
+void WelsSleep (WELS_EVENT hArray, int32_t iLengthOfArray) {
+  WaitForMultipleObjectsEx(iLengthOfArray,
+                           hArray
+                           true,
+                           INFINITE,
+                           FALSE);
+}
+#endif
 
 WELS_THREAD_ERROR_CODE    WelsEventWaitWithTimeOut (WELS_EVENT* event, uint32_t dwMilliseconds) {
   return WaitForSingleObject (*event, dwMilliseconds);
