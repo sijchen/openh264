@@ -113,12 +113,10 @@ WELS_THREAD_ERROR_CODE CWelsThreadPool::Uninit() {
 
   ClearWaitedTasks();
 
-
   while (GetBusyThreadNum() > 0) {
     //WELS_INFO_TRACE ("CWelsThreadPool::Uninit - Waiting all thread to exit");
     WelsSleep (10);
   }
-
 
   if (GetIdleThreadNum() != m_iMaxThreadNum) {
     iReturn = WELS_THREAD_ERROR_GENERAL;
