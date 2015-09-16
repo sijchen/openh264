@@ -166,7 +166,7 @@ void WelsSleep (uint32_t dwMilliSecond) {
     }
     WELS_EVENT hPreviousEvent = InterlockedCompareExchangePointerRelease (&hSleepEvent, hLocalSleepEvent, NULL);
     if (hPreviousEvent) {
-      WelsEventClose (hLocalSleepEvent, "WelsSleepEvent");
+      WelsEventClose (&hLocalSleepEvent, "WelsSleepEvent");
     }
   }
 
