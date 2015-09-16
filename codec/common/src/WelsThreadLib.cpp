@@ -151,28 +151,6 @@ WELS_THREAD_ERROR_CODE    WelsEventSignal (WELS_EVENT* event) {
 WELS_THREAD_ERROR_CODE    WelsEventWait (WELS_EVENT* event) {
   return WaitForSingleObject (*event, INFINITE);
 }
-#ifndef WP80
-void WelsSleep (uint32_t dwMilliSecond) {
-  ::Sleep (dwMilliSecond);
-}
-#else
-void WelsSleep (uint32_t dwMilliSecond) {
-  static WELS_EVENT hSleepEvent = NULL;
-  if (!hSleepEvent) {
-    WELS_EVENT hLocalSleepEvent = NULL;
-    WELS_THREAD_ERROR_CODE ret = WelsEventOpen (&hLocalSleepEvent, "WelsSleepEvent");
-    if (WELS_THREAD_ERROR_OK != ret) {
-      return;
-    }
-    WELS_EVENT hPreviousEvent = InterlockedCompareExchangePointerRelease (&hSleepEvent, hLocalSleepEvent, NULL);
-    if (hPreviousEvent) {
-      WelsEventClose (&hLocalSleepEvent, "WelsSleepEvent");
-    }
-  }
-
-  WaitForSingleObject (hSleepEvent, dwMilliSecond);
-}
-#endif
 
 WELS_THREAD_ERROR_CODE    WelsEventWaitWithTimeOut (WELS_EVENT* event, uint32_t dwMilliseconds) {
   return WaitForSingleObject (*event, dwMilliseconds);
@@ -197,9 +175,28 @@ WELS_THREAD_ERROR_CODE    WelsEventClose (WELS_EVENT* event, const char* event_n
   return WELS_THREAD_ERROR_OK;
 }
 
+#ifndef WP80
 void WelsSleep (uint32_t dwMilliSecond) {
   ::Sleep (dwMilliSecond);
 }
+#else
+void WelsSleep (uint32_t dwMilliSecond) {
+  static WELS_EVENT hSleepEvent = NULL;
+  if (!hSleepEvent) {
+    WELS_EVENT hLocalSleepEvent = NULL;
+    WELS_THREAD_ERROR_CODE ret = WelsEventOpen (&hLocalSleepEvent, "WelsSleepEvent");
+    if (WELS_THREAD_ERROR_OK != ret) {
+      return;
+    }
+    WELS_EVENT hPreviousEvent = InterlockedCompareExchangePointerRelease (&hSleepEvent, hLocalSleepEvent, NULL);
+    if (hPreviousEvent) {
+      WelsEventClose (&hLocalSleepEvent, "WelsSleepEvent");
+    }
+  }
+
+  WaitForSingleObject (hSleepEvent, dwMilliSecond);
+}
+#endif
 
 WELS_THREAD_ERROR_CODE    WelsThreadCreate (WELS_THREAD_HANDLE* thread,  LPWELS_THREAD_ROUTINE  routine,
     void* arg, WELS_THREAD_ATTR attr) {
