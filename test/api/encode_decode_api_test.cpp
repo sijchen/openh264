@@ -36,7 +36,7 @@ using namespace WelsCommon;
 #define LONG_TERM_REF_NUM_SCREEN (4)
 #define MAX_REFERENCE_PICTURE_COUNT_NUM_CAMERA (6)
 #define MAX_REFERENCE_PICTURE_COUNT_NUM_SCREEN (8)
-
+#define VALID_SIZE(iSize) (((iSize)>16)?(iSize):16)
 #define GET_MB_WIDTH(x) (((x) + 15)/16)
 
 typedef struct SLost_Sim {
@@ -147,11 +147,11 @@ class EncodeDecodeTestBase : public BaseEncoderTest, public BaseDecoderTest {
 
 
   virtual int GetRandWidth() {
-    return WelsClip3 ((((rand() % MAX_WIDTH) >> 1) + 1) << 1, 2, MAX_WIDTH);
+    return WelsClip3 ((((rand() % MAX_WIDTH) >> 1) + 1) << 1, 16, MAX_WIDTH);
   }
 
   virtual int GetRandHeight() {
-    return WelsClip3 ((((rand() % MAX_HEIGHT) >> 1) + 1) << 1, 2, MAX_HEIGHT);
+    return WelsClip3 ((((rand() % MAX_HEIGHT) >> 1) + 1) << 1, 16, MAX_HEIGHT);
   }
 
  protected:
@@ -2512,7 +2512,7 @@ const uint32_t kiHeight = 96; //DO NOT CHANGE!
 const uint32_t kiFrameRate = 12; //DO NOT CHANGE!
 const uint32_t kiFrameNum = 100; //DO NOT CHANGE!
 const char* pHashStr[] = { //DO NOT CHANGE!
-  "058076b265686fc85b2b99cf7a53106f216f16c3",
+  "585663f78cadb70d9c9f179b9b53b90ffddf3178",
   "f350001c333902029800bd291fbed915a4bdf19a",
   "eb9d853b7daec03052c4850027ac94adc84c3a7e"
 };
@@ -3372,7 +3372,8 @@ TEST_F (EncodeDecodeTestAPI, SimulcastAVC_SPS_PPS_LISTING) {
   float fFrameRate = rand() + 0.5f;
   int iEncFrameNum = WelsClip3 ((rand() % ENCODE_FRAME_NUM) + 1, 1, ENCODE_FRAME_NUM);
   int iSliceNum        = 1;
-
+  iWidth = VALID_SIZE(iWidth);
+  iHeight = VALID_SIZE(iHeight);
   // prepare params
   SEncParamExt   sParam1;
   SEncParamExt   sParam2;
