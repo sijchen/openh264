@@ -46,6 +46,7 @@
 #include <stdio.h>
 #include "WelsTask.h"
 #include "WelsTaskThread.h"
+#include "WelsCircleQueue.h"
 
 namespace WelsCommon {
 
@@ -53,84 +54,6 @@ class IWelsThreadPoolSink {
  public:
   virtual WELS_THREAD_ERROR_CODE OnTaskExecuted (IWelsTask* pTask) = 0;
   virtual WELS_THREAD_ERROR_CODE OnTaskCancelled (IWelsTask* pTask) = 0;
-};
-
-template<typename TNodeType>
-class CWelsCircleQueue {
- public:
-  CWelsCircleQueue() {
-    m_iMaxNodeCount = 50;
-    m_pCurrentQueue = static_cast<TNodeType**> (malloc (m_iMaxNodeCount * sizeof (TNodeType*)));
-    //here using array to simulate list is to avoid the frequent malloc/free of Nodes which may cause fragmented memory
-    m_iCurrentListStart = m_iCurrentListEnd = 0;
-  };
-  ~CWelsCircleQueue() {
-    free (m_pCurrentQueue);
-  };
-
-  int32_t size() {
-    return ((m_iCurrentListEnd >= m_iCurrentListStart)
-            ? (m_iCurrentListEnd - m_iCurrentListStart)
-            : (m_iMaxNodeCount - m_iCurrentListStart + m_iCurrentListEnd));
-  }
-
-  int32_t push_back (TNodeType* pNode) {
-    m_pCurrentQueue[m_iCurrentListEnd] = pNode;
-    m_iCurrentListEnd ++;
-
-    if (m_iCurrentListEnd == m_iMaxNodeCount) {
-      m_iCurrentListEnd = 0;
-    }
-    if (m_iCurrentListEnd == m_iCurrentListStart) {
-      int32_t ret = ExpandList();
-      if (ret) {
-        return 1;
-      }
-    }
-    return 0;
-  }
-
-  void pop_front() {
-    if (size() > 0) {
-      m_pCurrentQueue[m_iCurrentListStart] = NULL;
-      m_iCurrentListStart = ((m_iCurrentListStart < (m_iMaxNodeCount - 1))
-                             ? (m_iCurrentListStart + 1)
-                             : 0);
-    }
-  }
-
-  TNodeType* begin() {
-    return m_pCurrentQueue[m_iCurrentListStart];
-  }
- private:
-  int32_t ExpandList() {
-    TNodeType** tmpCurrentTaskQueue = static_cast<TNodeType**> (malloc (m_iMaxNodeCount * 2 * sizeof (TNodeType*)));
-    if (tmpCurrentTaskQueue == NULL) {
-      return 1;
-    }
-
-    memcpy (tmpCurrentTaskQueue,
-            (m_pCurrentQueue + m_iCurrentListStart),
-            (m_iMaxNodeCount - m_iCurrentListStart)*sizeof (TNodeType*));
-    if (m_iCurrentListEnd > 0) {
-      memcpy (tmpCurrentTaskQueue + m_iMaxNodeCount - m_iCurrentListStart,
-              m_pCurrentQueue,
-              m_iCurrentListEnd * sizeof (TNodeType*));
-    }
-
-    free (m_pCurrentQueue);
-
-    m_pCurrentQueue = tmpCurrentTaskQueue;
-    m_iCurrentListEnd = m_iMaxNodeCount;
-    m_iCurrentListStart = 0;
-    m_iMaxNodeCount = m_iMaxNodeCount * 2;
-
-    return 0;
-  }
-  int32_t m_iCurrentListStart;
-  int32_t m_iCurrentListEnd;
-  int32_t m_iMaxNodeCount;
-  TNodeType** m_pCurrentQueue;
 };
 
 class  CWelsThreadPool : public CWelsThread, public IWelsTaskThreadSink {
