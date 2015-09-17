@@ -192,6 +192,8 @@ void WelsSleep (uint32_t dwMilliSecond) {
     if (hPreviousEvent) {
       WelsEventClose (&hLocalSleepEvent);
     }
+    //On this singleton usage idea of using InterlockedCompareExchangePointerRelease:
+    //   similar idea of can be found at msdn blog when introducing InterlockedCompareExchangePointerRelease
   }
 
   WaitForSingleObject (hSleepEvent, dwMilliSecond);
