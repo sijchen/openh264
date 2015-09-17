@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
-#include "WelsThreadPool.h"
+#include "WelsCircleQueue.h"
+#include "WelsTask.h"
 
 using namespace WelsCommon;
 
