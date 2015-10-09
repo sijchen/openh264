@@ -32,7 +32,7 @@
  *************************************************************************************
  */
 
-#include <stdint.h>
+#include "stdint.h"
 #include <time.h>
 #include <cstdio>
 #include <cstring>
