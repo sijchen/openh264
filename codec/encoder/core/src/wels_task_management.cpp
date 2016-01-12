@@ -94,8 +94,10 @@ WelsErrorType CWelsTaskManageBase::Init (sWelsEncCtx* pEncCtx) {
   m_pEncCtx = pEncCtx;
 
   m_iThreadNum = m_pEncCtx->pSvcParam->iMultipleThreadIdc;
-  m_pThreadPool = WELS_NEW_OP (WelsCommon::CWelsThreadPool (this, m_iThreadNum),
-                               WelsCommon::CWelsThreadPool);
+  //m_pThreadPool = (WelsCommon::CWelsThreadPool*)(CWelsThreadPool::GetThreadPoolInstance(this, m_iThreadNum));
+  m_pThreadPool = WelsCommon::CWelsThreadPool::GetThreadPoolInstance(this, m_iThreadNum);
+  //WELS_NEW_OP (WelsCommon::CWelsThreadPool (this, m_iThreadNum),
+  //                             WelsCommon::CWelsThreadPool);
   WELS_VERIFY_RETURN_IF (ENC_RETURN_MEMALLOCERR, NULL == m_pThreadPool)
 
   int32_t iReturn = 0;

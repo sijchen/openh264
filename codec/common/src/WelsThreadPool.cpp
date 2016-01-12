@@ -55,12 +55,39 @@ CWelsThreadPool::CWelsThreadPool (IWelsThreadPoolSink* pSink, int32_t iMaxThread
 
 
 CWelsThreadPool::~CWelsThreadPool() {
-  Uninit();
 
+}
+
+void CWelsThreadPool::Destroy() {
+  Uninit();
+  
   delete m_cWaitedTasks;
   delete m_cIdleThreads;
   delete m_cBusyThreads;
+
+  delete this;
 }
+  
+CWelsThreadPool& CWelsThreadPool::GetThreadPoolInstance (IWelsThreadPoolSink* pSink, int32_t iMaxThreadNum) {
+  CWelsAutoLock  cLock (m_cLockPool);
+
+  if ( NULL == m_pThreadPoolSelf ) {
+    m_iRefCount = 0;
+    m_pThreadPoolSelf = new CWelsThreadPool(pSink, iMaxThreadNum);
+  }
+
+  ++ m_iRefCount;
+  return m_pThreadPoolSelf;
+}
+
+void CWelsThreadPool::RemoveThreadPoolInstance () {
+  CWelsAutoLock  cLock (m_cLockPool);
+  -- m_iRefCount;
+  if ( 0 == m_iRefCount ) {
+    Destroy();
+  }
+}
+
 
 WELS_THREAD_ERROR_CODE CWelsThreadPool::OnTaskStart (CWelsTaskThread* pThread, IWelsTask* pTask) {
   AddThreadToBusyList (pThread);
@@ -83,7 +110,6 @@ WELS_THREAD_ERROR_CODE CWelsThreadPool::OnTaskStop (CWelsTaskThread* pThread, IW
 }
 
 WELS_THREAD_ERROR_CODE CWelsThreadPool::Init (int32_t iMaxThreadNum) {
-  CWelsAutoLock  cLock (m_cLockPool);
   //WELS_INFO_TRACE("Enter WelsThreadPool Init");
 
   int32_t i;
@@ -106,7 +132,6 @@ WELS_THREAD_ERROR_CODE CWelsThreadPool::Init (int32_t iMaxThreadNum) {
 
 WELS_THREAD_ERROR_CODE CWelsThreadPool::Uninit() {
   WELS_THREAD_ERROR_CODE iReturn = WELS_THREAD_ERROR_OK;
-  CWelsAutoLock  cLock (m_cLockPool);
 
   ClearWaitedTasks();
 
