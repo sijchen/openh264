@@ -56,6 +56,7 @@ class IWelsThreadPoolSink {
   virtual WELS_THREAD_ERROR_CODE OnTaskCancelled (IWelsTask* pTask) = 0;
 };
 
+
 class  CWelsThreadPool : public CWelsThread, public IWelsTaskThreadSink {
  public:
   enum {
@@ -64,9 +65,10 @@ class  CWelsThreadPool : public CWelsThread, public IWelsTaskThreadSink {
 
   CWelsThreadPool (IWelsThreadPoolSink* pSink = NULL, int32_t iMaxThreadNum = DEFAULT_THREAD_NUM);
   virtual ~CWelsThreadPool();
+  
 
-  static CWelsThreadPool& GetThreadPoolInstance(IWelsThreadPoolSink* pSink = NULL, int32_t iMaxThreadNum = DEFAULT_THREAD_NUM);
-  void RemoveThreadPoolInstance ();
+  static CWelsThreadPool& GetInstance(IWelsThreadPoolSink* pSink = NULL, int32_t iMaxThreadNum = DEFAULT_THREAD_NUM);
+  void RemoveInstance ();
   
   //IWelsTaskThreadSink
   virtual WELS_THREAD_ERROR_CODE OnTaskStart (CWelsTaskThread* pThread,  IWelsTask* pTask);
@@ -80,8 +82,9 @@ class  CWelsThreadPool : public CWelsThread, public IWelsTaskThreadSink {
     return m_iMaxThreadNum;
   }
 
+
  protected:
-  WELS_THREAD_ERROR_CODE Init (int32_t iMaxThreadNum = DEFAULT_THREAD_NUM);
+  WELS_THREAD_ERROR_CODE Init (IWelsThreadPoolSink* pSink, int32_t iMaxThreadNum = DEFAULT_THREAD_NUM);
   WELS_THREAD_ERROR_CODE Uninit();
 
   WELS_THREAD_ERROR_CODE CreateIdleThread();
@@ -99,13 +102,11 @@ class  CWelsThreadPool : public CWelsThread, public IWelsTaskThreadSink {
 
  private:
   void Destroy();
-  const CWelsThreadPool* operator=(const CWelsThreadPool* m_pThreadPoolSelf);
-  
-  static CWelsThreadPool* m_pThreadPoolSelf;
-  
-  static int32_t   m_iRefCount;
-  static CWelsLock m_cLockPool;
 
+  static int32_t   m_iRefCount;
+  static CWelsLock m_cInitLock;
+
+  CWelsLock m_cLockPool;
   int32_t   m_iMaxThreadNum;
   CWelsCircleQueue<IWelsTask>* m_cWaitedTasks;
   CWelsCircleQueue<CWelsTaskThread>* m_cIdleThreads;

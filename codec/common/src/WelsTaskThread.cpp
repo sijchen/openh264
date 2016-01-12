@@ -38,7 +38,7 @@
  *************************************************************************************
  */
 #include "WelsTaskThread.h"
-
+#include <stdio.h>
 namespace WelsCommon {
 
 CWelsTaskThread::CWelsTaskThread (IWelsTaskThreadSink* pSink) : m_pSink (pSink) {
@@ -60,6 +60,7 @@ void CWelsTaskThread::ExecuteTask() {
     m_pTask->Execute();
   }
 
+  printf("m_pTask=%x finished\n", m_pTask);
   if (m_pSink) {
     m_pSink->OnTaskStop (this, m_pTask);
   }

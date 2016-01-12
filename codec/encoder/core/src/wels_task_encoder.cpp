@@ -66,6 +66,7 @@ CWelsSliceEncodingTask::~CWelsSliceEncodingTask() {
 
 WelsErrorType CWelsSliceEncodingTask::Execute() {
   WelsThreadSetName ("OpenH264Enc_CWelsSliceEncodingTask_Execute");
+  printf("OpenH264Enc_CWelsSliceEncodingTask_Execute\n");
 
   m_eTaskResult = InitTask();
   WELS_VERIFY_RETURN_IFNEQ (m_eTaskResult, ENC_RETURN_SUCCESS)
@@ -73,6 +74,8 @@ WelsErrorType CWelsSliceEncodingTask::Execute() {
   m_eTaskResult = ExecuteTask();
 
   FinishTask();
+  
+  printf("OpenH264Enc_CWelsSliceEncodingTask_Execute Ends\n");
   return m_eTaskResult;
 }
 

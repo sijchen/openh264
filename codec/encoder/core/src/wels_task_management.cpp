@@ -94,11 +94,14 @@ WelsErrorType CWelsTaskManageBase::Init (sWelsEncCtx* pEncCtx) {
   m_pEncCtx = pEncCtx;
 
   m_iThreadNum = m_pEncCtx->pSvcParam->iMultipleThreadIdc;
-  //m_pThreadPool = (WelsCommon::CWelsThreadPool*)(CWelsThreadPool::GetThreadPoolInstance(this, m_iThreadNum));
-  m_pThreadPool = WelsCommon::CWelsThreadPool::GetThreadPoolInstance(this, m_iThreadNum);
+
+  printf("m_pThreadPool = &(CWelsThreadPool::GetInstance, this=%x\n", this);
+  m_pThreadPool = &(CWelsThreadPool::GetInstance(this, m_iThreadNum));
+  printf("m_pThreadPool = &(CWelsThreadPool::GetInstance2\n");
   //WELS_NEW_OP (WelsCommon::CWelsThreadPool (this, m_iThreadNum),
   //                             WelsCommon::CWelsThreadPool);
   WELS_VERIFY_RETURN_IF (ENC_RETURN_MEMALLOCERR, NULL == m_pThreadPool)
+  printf("m_pThreadPool = &(CWelsThreadPool::GetInstance3\n");
 
   int32_t iReturn = 0;
   for (int32_t iDid = 0; iDid < MAX_DEPENDENCY_LAYER; iDid++) {
@@ -113,8 +116,12 @@ WelsErrorType CWelsTaskManageBase::Init (sWelsEncCtx* pEncCtx) {
 
 void   CWelsTaskManageBase::Uninit() {
   DestroyTasks();
-  WELS_DELETE_OP (m_pThreadPool);
+  printf("m_pThreadPool = m_pThreadPool->RemoveInstance\n");
+  m_pThreadPool->RemoveInstance();
+  //WELS_DELETE_OP (m_pThreadPool);
 
+  printf("m_pThreadPool = m_pThreadPool->RemoveInstance2\n");
+  
   for (int32_t iDid = 0; iDid < MAX_DEPENDENCY_LAYER; iDid++) {
     delete m_cEncodingTaskList[iDid];
     delete m_cPreEncodingTaskList[iDid];
@@ -186,7 +193,7 @@ void  CWelsTaskManageBase::OnTaskMinusOne() {
     WelsEventSignal (&m_hTaskEvent);
     //printf ("OnTaskMinusOne WelsEventSignal m_iWaitTaskNum=%d\n", m_iWaitTaskNum);
   }
-  //printf ("OnTaskMinusOne m_iWaitTaskNum=%d\n", m_iWaitTaskNum);
+  printf ("OnTaskMinusOne m_iWaitTaskNum=%d\n", m_iWaitTaskNum);
 }
 
 WelsErrorType  CWelsTaskManageBase::OnTaskCancelled (WelsCommon::IWelsTask* pTask) {

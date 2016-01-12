@@ -39,12 +39,12 @@ uint32_t CSimpleTask::id = 0;
 TEST (CThreadPoolTest, CThreadPoolTest) {
   CSimpleTask tasks[TEST_TASK_NUM];
   CThreadPoolTest cThreadPoolTest;
-  CWelsThreadPool  cThreadPool (&cThreadPoolTest);
+  CWelsThreadPool* m_pThreadPool = &(CWelsThreadPool::GetInstance(&cThreadPoolTest));
 
   int32_t  i;
 
   for (i = 0; i < TEST_TASK_NUM; i++) {
-    cThreadPool.QueueTask (&tasks[i]);
+    m_pThreadPool->QueueTask (&tasks[i]);
   }
 
   while (cThreadPoolTest.GetTaskCount() < TEST_TASK_NUM) {
