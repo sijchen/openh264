@@ -120,7 +120,10 @@ WELS_THREAD_ERROR_CODE CWelsThreadPool::Init (IWelsThreadPoolSink* pSink, int32_
 
   
   CWelsAutoLock  cLock (m_cLockPool);
-  m_pSink = pSink; //To Volvet Q2: now for one ThreadPool there is only one pSink, how can it be used for multiple modules/encoders at the same time as a singleton? we put a Sink into the class of IWelsTask?
+  if ((NULL!=m_cWaitedTasks) && (NULL!=m_cIdleThreads) && (NULL!=m_cBusyThreads)) {
+    return WELS_THREAD_ERROR_OK;
+  }
+  m_pSink = pSink; //To Volvet Q2: now for one ThreadPool there is only one pSink, how can it be used for multiple modules/encoders at the same time as a singleton? Should we put a Sink into the class of IWelsTask?
   
   if (NULL==m_cWaitedTasks) {
     m_cWaitedTasks = new CWelsCircleQueue<IWelsTask>();}
