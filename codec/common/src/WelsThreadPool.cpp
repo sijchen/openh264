@@ -120,11 +120,11 @@ WELS_THREAD_ERROR_CODE CWelsThreadPool::Init (IWelsThreadPoolSink* pSink, int32_
 
   
   CWelsAutoLock  cLock (m_cLockPool);
+  m_pSink = pSink; //To Volvet Q2: now for one ThreadPool there is only one pSink, how can it be used for multiple modules/encoders at the same time as a singleton? Should we put a Sink into the class of IWelsTask?
+
   if ((NULL!=m_cWaitedTasks) && (NULL!=m_cIdleThreads) && (NULL!=m_cBusyThreads)) {
     return WELS_THREAD_ERROR_OK;
   }
-  m_pSink = pSink; //To Volvet Q2: now for one ThreadPool there is only one pSink, how can it be used for multiple modules/encoders at the same time as a singleton? Should we put a Sink into the class of IWelsTask?
-  
   if (NULL==m_cWaitedTasks) {
     m_cWaitedTasks = new CWelsCircleQueue<IWelsTask>();}
   if (NULL==m_cIdleThreads) { m_cIdleThreads = new CWelsCircleQueue<CWelsTaskThread>();}
@@ -177,7 +177,7 @@ WELS_THREAD_ERROR_CODE CWelsThreadPool::Uninit() {
 }
 
 void CWelsThreadPool::ExecuteTask() {
-  //WELS_INFO_TRACE("ThreadPool: schedule tasks");
+  //printf("ThreadPool: schedule tasks\n");
   CWelsTaskThread* pThread = NULL;
   IWelsTask*    pTask = NULL;
   while (GetWaitedTaskNum() > 0) {
@@ -186,8 +186,7 @@ void CWelsThreadPool::ExecuteTask() {
       break;
     }
     pTask = GetWaitedTask();
-    printf("CWelsThreadPool::ExecuteTask: %x at Thread %x\n", (uint64_t)(pTask), (uint64_t)(pThread));
-    //WELS_INFO_TRACE("ThreadPool:  ExecuteTask = "<<(uint32_t)(pTask)<<" at thread = "<<(uint32_t)(pThread));
+    //printf("ThreadPool:  ExecuteTask = %x at thread %x\n", pTask, pThread);
     pThread->SetTask (pTask);
   }
 }
@@ -197,12 +196,12 @@ WELS_THREAD_ERROR_CODE CWelsThreadPool::QueueTask (IWelsTask* pTask) {
   
   CWelsAutoLock  cLock (m_cLockPool);
 
-  //WELS_INFO_TRACE("ThreadPool:  QueueTask = "<<(uint32_t)(pTask));
+  //printf("ThreadPool:  QueueTask = %x\n", pTask);
   if (GetWaitedTaskNum() == 0) {
     CWelsTaskThread* pThread = GetIdleThread();
 
     if (pThread != NULL) {
-      //WELS_INFO_TRACE("ThreadPool:  ExecuteTask = "<<(uint32_t)(pTask));
+      printf("ThreadPool:  ExecuteTask = %x\n", pTask);
       pThread->SetTask (pTask);
 
       return WELS_THREAD_ERROR_OK;
@@ -210,7 +209,7 @@ WELS_THREAD_ERROR_CODE CWelsThreadPool::QueueTask (IWelsTask* pTask) {
   }
 
   AddTaskToWaitedList (pTask);
-  
+
   SignalThread();
   return WELS_THREAD_ERROR_OK;
 }
