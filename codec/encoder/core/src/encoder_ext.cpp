@@ -3982,6 +3982,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo* pFbi, const SSour
         pLayerBsInfo->uiQualityId   = 0;
         pLayerBsInfo->iNalCount     = 0;
         pLayerBsInfo->eFrameType    = eFrameType;
+
         pCtx->pTaskManage->ExecuteTasks();
         if (pCtx->iEncoderError) {
           WelsLog (pLogCtx, WELS_LOG_ERROR,
@@ -4040,6 +4041,7 @@ int32_t WelsEncoderEncodeExt (sWelsEncCtx* pCtx, SFrameBSInfo* pFbi, const SSour
           SetOneSliceBsBufferUnderMultithread (pCtx, iIdx, iIdx);
           ++ iIdx;
         }
+
         pCtx->pTaskManage->ExecuteTasks();
 
         if (pCtx->iEncoderError) {

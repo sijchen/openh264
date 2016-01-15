@@ -65,11 +65,11 @@ class  CWelsThreadPool : public CWelsThread, public IWelsTaskThreadSink {
 
   CWelsThreadPool (IWelsThreadPoolSink* pSink = NULL, int32_t iMaxThreadNum = DEFAULT_THREAD_NUM);
   virtual ~CWelsThreadPool();
-  
 
-  static CWelsThreadPool& GetInstance(IWelsThreadPoolSink* pSink = NULL, int32_t iMaxThreadNum = DEFAULT_THREAD_NUM);
-  void RemoveInstance ();
-  
+  static CWelsThreadPool& AddInstance (IWelsThreadPoolSink* pSink = NULL, int32_t iMaxThreadNum = DEFAULT_THREAD_NUM);
+  void RemoveInstance();
+  int32_t GetReferenceCount();
+
   //IWelsTaskThreadSink
   virtual WELS_THREAD_ERROR_CODE OnTaskStart (CWelsTaskThread* pThread,  IWelsTask* pTask);
   virtual WELS_THREAD_ERROR_CODE OnTaskStop (CWelsTaskThread* pThread,  IWelsTask* pTask);
@@ -101,19 +101,19 @@ class  CWelsThreadPool : public CWelsThread, public IWelsTaskThreadSink {
   void               ClearWaitedTasks();
 
  private:
-  void Destroy();
+  WELS_THREAD_ERROR_CODE StopAllRunning();
+  void UpdateSink (IWelsThreadPoolSink* pSink);
 
   static int32_t   m_iRefCount;
   static CWelsLock m_cInitLock;
-
-  CWelsLock m_cLockPool;
   int32_t   m_iMaxThreadNum;
+
   CWelsCircleQueue<IWelsTask>* m_cWaitedTasks;
   CWelsCircleQueue<CWelsTaskThread>* m_cIdleThreads;
   CWelsList<CWelsTaskThread>* m_cBusyThreads;
   IWelsThreadPoolSink*   m_pSink;
 
-
+  CWelsLock   m_cLockPool;
   CWelsLock   m_cLockWaitedTasks;
   CWelsLock   m_cLockIdleTasks;
   CWelsLock   m_cLockBusyTasks;
