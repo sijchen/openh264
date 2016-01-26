@@ -66,7 +66,7 @@ void* OneCallingFunc() {
 TEST (CThreadPoolTest, CThreadPoolTest) {
   OneCallingFunc();
 
-  uint32_t iRet = CWelsThreadPool::SetThreadNum (8);
+  int iRet = CWelsThreadPool::SetThreadNum (8);
   EXPECT_EQ (0, iRet);
   EXPECT_EQ (0, CWelsThreadPool::GetReferenceCount());
 
@@ -75,7 +75,7 @@ TEST (CThreadPoolTest, CThreadPoolTest) {
   EXPECT_EQ (8, pThreadPool->GetThreadNum());
 
   iRet = CWelsThreadPool::SetThreadNum (4);
-  EXPECT_EQ (((uint32_t) (-1)), iRet);
+  EXPECT_TRUE (0 != iRet);
   EXPECT_EQ (8, pThreadPool->GetThreadNum());
 
   pThreadPool->RemoveInstance();
