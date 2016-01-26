@@ -39,7 +39,7 @@ uint32_t CSimpleTask::id = 0;
 void* OneCallingFunc () {
   CThreadPoolTest cThreadPoolTest;
   CSimpleTask* aTasks[TEST_TASK_NUM];
-  CWelsThreadPool* pThreadPool = & (CWelsThreadPool::AddInstance (&cThreadPoolTest));
+  CWelsThreadPool* pThreadPool = & (CWelsThreadPool::AddReference (&cThreadPoolTest));
 
   int32_t  i;
   for (i = 0; i < TEST_TASK_NUM; i++) {
@@ -66,9 +66,28 @@ void* OneCallingFunc () {
 TEST (CThreadPoolTest, CThreadPoolTest) {
   OneCallingFunc ();
 
-  CWelsThreadPool* pThreadPool = & (CWelsThreadPool::AddInstance (NULL));
+  int iRet = CWelsThreadPool::SetThreadNum(8);
+  EXPECT_EQ(0, iRet);
+  EXPECT_EQ (0, CWelsThreadPool::GetReferenceCount());
+
+  CWelsThreadPool* pThreadPool = & (CWelsThreadPool::AddReference (NULL));
   EXPECT_EQ (1, pThreadPool->GetReferenceCount());
+  EXPECT_EQ(8, pThreadPool->GetThreadNum());
+
+  iRet = CWelsThreadPool::SetThreadNum(4);
+  EXPECT_EQ(((uint32_t)(-1)), iRet);
+  EXPECT_EQ(8, pThreadPool->GetThreadNum());
+
   pThreadPool->RemoveInstance();
+
+  iRet = CWelsThreadPool::SetThreadNum(4);
+  EXPECT_EQ(0, iRet);
+  pThreadPool = & (CWelsThreadPool::AddReference (NULL));
+  EXPECT_EQ (1, pThreadPool->GetReferenceCount());
+  EXPECT_EQ(4, pThreadPool->GetThreadNum());
+  pThreadPool->RemoveInstance();
+
+  EXPECT_EQ (0, CWelsThreadPool::GetReferenceCount());
 }
 
 
@@ -98,8 +117,6 @@ TEST (CThreadPoolTest, CThreadPoolTestMulti) {
     WelsThreadJoin (mThreadID[i]);
   }
 
-  CWelsThreadPool* pThreadPool = & (CWelsThreadPool::AddInstance (NULL));
-  EXPECT_EQ (1, pThreadPool->GetReferenceCount());
-  pThreadPool->RemoveInstance();
+  EXPECT_EQ (0, CWelsThreadPool::GetReferenceCount());
 }
 
