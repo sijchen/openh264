@@ -45,8 +45,9 @@ namespace WelsCommon {
 
 int32_t CWelsThreadPool::m_iRefCount = 0;
 CWelsLock CWelsThreadPool::m_cInitLock;
+int32_t CWelsThreadPool::m_iMaxThreadNum = DEFAULT_THREAD_NUM;
 
-CWelsThreadPool::CWelsThreadPool (IWelsThreadPoolSink* pSink, int32_t iMaxThreadNum) : m_iMaxThreadNum (iMaxThreadNum),
+CWelsThreadPool::CWelsThreadPool (IWelsThreadPoolSink* pSink) :
   m_cWaitedTasks (NULL), m_cIdleThreads (NULL), m_cBusyThreads (NULL), m_pSink (pSink) {
 }
 
@@ -57,12 +58,26 @@ CWelsThreadPool::~CWelsThreadPool() {
   Uninit();
 }
 
-CWelsThreadPool& CWelsThreadPool::AddInstance (IWelsThreadPoolSink* pSink, int32_t iMaxThreadNum) {
+WELS_THREAD_ERROR_CODE CWelsThreadPool::SetThreadNum(int32_t iMaxThreadNum) {
   CWelsAutoLock  cLock (m_cInitLock);
-  static CWelsThreadPool m_cThreadPoolSelf (pSink, iMaxThreadNum);
+
+  if (m_iRefCount != 0) {
+    return WELS_THREAD_ERROR_GENERAL;
+  }
+
+  if (iMaxThreadNum <= 0) {
+    iMaxThreadNum = 1;
+  }
+  m_iMaxThreadNum = iMaxThreadNum;
+  return WELS_THREAD_ERROR_OK;
+}
+
+CWelsThreadPool& CWelsThreadPool::AddReference (IWelsThreadPoolSink* pSink) {
+  CWelsAutoLock  cLock (m_cInitLock);
+  static CWelsThreadPool m_cThreadPoolSelf (pSink);
   if (m_iRefCount == 0) {
     //TODO: will remove this afterwards
-    if (WELS_THREAD_ERROR_OK != m_cThreadPoolSelf.Init(pSink, iMaxThreadNum)) {
+    if (WELS_THREAD_ERROR_OK != m_cThreadPoolSelf.Init(pSink)) {
       m_cThreadPoolSelf.Uninit();
     }
     m_cThreadPoolSelf.UpdateSink (pSink);
@@ -125,7 +140,7 @@ WELS_THREAD_ERROR_CODE CWelsThreadPool::OnTaskStop (CWelsTaskThread* pThread, IW
   return WELS_THREAD_ERROR_OK;
 }
 
-WELS_THREAD_ERROR_CODE CWelsThreadPool::Init (IWelsThreadPoolSink* pSink, int32_t iMaxThreadNum) {
+WELS_THREAD_ERROR_CODE CWelsThreadPool::Init (IWelsThreadPoolSink* pSink) {
   //fprintf(stdout, "Enter WelsThreadPool Init\n");
 
   CWelsAutoLock  cLock (m_cLockPool);
@@ -136,10 +151,6 @@ WELS_THREAD_ERROR_CODE CWelsThreadPool::Init (IWelsThreadPoolSink* pSink, int32_
   if (NULL == m_cWaitedTasks || NULL == m_cIdleThreads || NULL == m_cBusyThreads) {
     return WELS_THREAD_ERROR_GENERAL;
   }
-
-  m_iMaxThreadNum = 0;
-  if (iMaxThreadNum <= 0)  iMaxThreadNum = 1;
-  m_iMaxThreadNum = iMaxThreadNum;
 
   for (int32_t i = 0; i < m_iMaxThreadNum; i++) {
     if (WELS_THREAD_ERROR_OK != CreateIdleThread()) {
@@ -187,7 +198,6 @@ WELS_THREAD_ERROR_CODE CWelsThreadPool::Uninit() {
   }
   m_cLockIdleTasks.Unlock();
 
-  m_iMaxThreadNum = 0;
   Kill();
 
   WELS_DELETE_OP(m_cWaitedTasks);
