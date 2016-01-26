@@ -68,7 +68,7 @@ CWelsThreadPool::~CWelsThreadPool() {
   delete m_cBusyThreads;
 }
 
-WELS_THREAD_ERROR_CODE CWelsThreadPool::SetThreadNum(int32_t iMaxThreadNum) {
+WELS_THREAD_ERROR_CODE CWelsThreadPool::SetThreadNum (int32_t iMaxThreadNum) {
   CWelsAutoLock  cLock (m_cInitLock);
 
   if (m_iRefCount != 0) {
@@ -86,7 +86,7 @@ CWelsThreadPool& CWelsThreadPool::AddReference (IWelsThreadPoolSink* pSink) {
   CWelsAutoLock  cLock (m_cInitLock);
   static CWelsThreadPool m_cThreadPoolSelf (pSink);
   if (m_iRefCount == 0) {
-    m_cThreadPoolSelf.Init(pSink);
+    m_cThreadPoolSelf.Init (pSink);
     m_cThreadPoolSelf.UpdateSink (pSink); //TODO: will remove this afterwards
   }
 
