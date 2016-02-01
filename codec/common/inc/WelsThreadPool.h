@@ -66,7 +66,7 @@ class  CWelsThreadPool : public CWelsThread, public IWelsTaskThreadSink {
   CWelsThreadPool (IWelsThreadPoolSink* pSink = NULL);
   virtual ~CWelsThreadPool();
 
-  static WELS_THREAD_ERROR_CODE SetThreadNum (int32_t iMaxThreadNum = DEFAULT_THREAD_NUM);
+  static WELS_THREAD_ERROR_CODE SetThreadNum (int32_t iMaxThreadNum);
 
   static CWelsThreadPool& AddReference (IWelsThreadPoolSink* pSink = NULL);
   void RemoveInstance();
