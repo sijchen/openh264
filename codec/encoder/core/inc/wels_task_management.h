@@ -56,13 +56,17 @@ class IWelsTaskManage {
   virtual void            Uninit() = 0;
 
   virtual void            InitFrame (const int32_t kiCurDid) {}
-  virtual WelsErrorType   ExecuteTasks(const CWelsBaseTask::ETaskType iTaskType = CWelsBaseTask::WELS_ENC_TASK_ENCODING) = 0;
+  virtual WelsErrorType   ExecuteTasks (const CWelsBaseTask::ETaskType iTaskType = CWelsBaseTask::WELS_ENC_TASK_ENCODING)
+    = 0;
 
   static IWelsTaskManage* CreateTaskManage (sWelsEncCtx* pCtx, const int32_t iSpatialLayer, const bool bNeedLock);
+
+  virtual int32_t  GetThreadPoolThreadNum() = 0;
 };
 
 
-class  CWelsTaskManageBase : public IWelsTaskManage, public WelsCommon::IWelsThreadPoolSink {
+class  CWelsTaskManageBase : public IWelsTaskManage, public WelsCommon::IWelsThreadPoolSink,
+  public WelsCommon::IWelsTaskSink {
  public:
   typedef  CWelsCircleQueue<CWelsBaseTask>            TASKLIST_TYPE;
   //typedef  std::pair<int, int>                  SLICE_BOUNDARY_PAIR;
@@ -74,11 +78,17 @@ class  CWelsTaskManageBase : public IWelsTaskManage, public WelsCommon::IWelsThr
   virtual WelsErrorType  Init (sWelsEncCtx*   pEncCtx);
   virtual void           InitFrame (const int32_t kiCurDid = 0);
 
-  virtual WelsErrorType  ExecuteTasks(const CWelsBaseTask::ETaskType iTaskType = CWelsBaseTask::WELS_ENC_TASK_ENCODING);
+  virtual WelsErrorType  ExecuteTasks (const CWelsBaseTask::ETaskType iTaskType = CWelsBaseTask::WELS_ENC_TASK_ENCODING);
 
   //IWelsThreadPoolSink
   virtual WelsErrorType  OnTaskExecuted (WelsCommon::IWelsTask* pTask);
   virtual WelsErrorType  OnTaskCancelled (WelsCommon::IWelsTask* pTask);
+
+  //IWelsTaskSink
+  virtual WelsErrorType OnTaskExecuted();
+  virtual WelsErrorType OnTaskCancelled();
+
+  int32_t  GetThreadPoolThreadNum();
 
  protected:
   virtual WelsErrorType  CreateTasks (sWelsEncCtx* pEncCtx, const int32_t kiTaskCount);
@@ -121,6 +131,8 @@ class  CWelsTaskManageOne : public CWelsTaskManageBase {
 
   WelsErrorType   Init (sWelsEncCtx* pEncCtx);
   virtual WelsErrorType  ExecuteTasks(const CWelsBaseTask::ETaskType iTaskType = CWelsBaseTask::WELS_ENC_TASK_ENCODING);
+
+  int32_t  GetThreadPoolThreadNum() {return 1;};
 };
 
 }       //namespace
