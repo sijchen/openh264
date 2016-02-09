@@ -89,6 +89,9 @@ void BaseEncoderTest::EncodeStream (InputStream* in, SEncParamExt* pEncParamExt,
   int rv = InitWithParam (encoder_, pEncParamExt);
   ASSERT_TRUE (rv == cmResultSuccess);
 
+  int iTraceLevel = WELS_LOG_INFO;
+  rv = encoder_->SetOption (ENCODER_OPTION_TRACE_LEVEL, &iTraceLevel);
+
   // I420: 1(Y) + 1/4(U) + 1/4(V)
   int frameSize = pEncParamExt->iPicWidth * pEncParamExt->iPicHeight * 3 / 2;
 
