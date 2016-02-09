@@ -200,16 +200,6 @@ void  CWelsTaskManageBase::OnTaskMinusOne() {
   //fprintf(stdout, "OnTaskMinusOne m_iWaitTaskNum=%d\n", m_iWaitTaskNum);
 }
 
-WelsErrorType  CWelsTaskManageBase::OnTaskCancelled (WelsCommon::IWelsTask* pTask) {
-  OnTaskMinusOne();
-  return ENC_RETURN_SUCCESS;
-}
-
-WelsErrorType  CWelsTaskManageBase::OnTaskExecuted (WelsCommon::IWelsTask* pTask) {
-  OnTaskMinusOne();
-  return ENC_RETURN_SUCCESS;
-}
-
 WelsErrorType  CWelsTaskManageBase::OnTaskCancelled() {
   OnTaskMinusOne();
   return ENC_RETURN_SUCCESS;
