@@ -50,13 +50,6 @@
 
 namespace WelsCommon {
 
-class IWelsThreadPoolSink {
- public:
-  virtual WELS_THREAD_ERROR_CODE OnTaskExecuted (IWelsTask* pTask) = 0;
-  virtual WELS_THREAD_ERROR_CODE OnTaskCancelled (IWelsTask* pTask) = 0;
-};
-
-
 class  CWelsThreadPool : public CWelsThread, public IWelsTaskThreadSink {
  public:
   enum {
