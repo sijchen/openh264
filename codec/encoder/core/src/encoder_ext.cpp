@@ -2023,6 +2023,36 @@ int32_t RequestMemorySvc (sWelsEncCtx** ppCtx, SExistingParasetList* pExistingPa
   return 0;
 }
 
+int TerminateSliceThreads (sWelsEncCtx** ppCtx) {
+  int res = 0;
+  if ((*ppCtx)->pSvcParam->iMultipleThreadIdc > 1 && (*ppCtx)->pSliceThreading != NULL) {
+    const int32_t iThreadCount = (*ppCtx)->pSvcParam->iMultipleThreadIdc;
+    int32_t iThreadIdx = 0;
+
+    while (iThreadIdx < iThreadCount) {
+
+      if ((*ppCtx)->pSliceThreading->pThreadHandles[iThreadIdx]) {
+        WelsEventSignal (& (*ppCtx)->pSliceThreading->pExitEncodeEvent[iThreadIdx]);
+        WelsEventSignal (& (*ppCtx)->pSliceThreading->pThreadMasterEvent[iThreadIdx]);
+        res = WelsThreadJoin ((*ppCtx)->pSliceThreading->pThreadHandles[iThreadIdx]); // waiting thread exit
+        WelsLog (& (*ppCtx)->sLogCtx, WELS_LOG_INFO, "WelsUninitEncoderExt(), pthread_join(pThreadHandles%d) return %d..",
+                 iThreadIdx,
+                 res);
+        (*ppCtx)->pSliceThreading->pThreadHandles[iThreadIdx] = 0;
+      }
+      ++ iThreadIdx;
+    }
+  }
+  return res;
+}
+
+void ReleaseVppResources (sWelsEncCtx** ppCtx) {
+  if ((*ppCtx)->pVpp) {
+    (*ppCtx)->pVpp->FreeSpatialPictures (*ppCtx);
+    delete (*ppCtx)->pVpp;
+    (*ppCtx)->pVpp = NULL;
+  }
+}
 
 /*!
  * \brief   free memory in SVC core encoder
@@ -2071,8 +2101,10 @@ void FreeMemorySvc (sWelsEncCtx** ppCtx) {
       pCtx->pOut = NULL;
     }
 
-    if (pParam != NULL && pParam->iMultipleThreadIdc > 1)
+    if (pParam != NULL && pParam->iMultipleThreadIdc > 1) {
+      TerminateSliceThreads (ppCtx);
       ReleaseMtResource (ppCtx);
+    }
 
     // frame bitstream pBuffer
     if (NULL != pCtx->pFrameBs) {
@@ -2255,6 +2287,7 @@ void FreeMemorySvc (sWelsEncCtx** ppCtx) {
       pMa->WelsFree (pCtx->pVaa, "pVaa");
       pCtx->pVaa = NULL;
     }
+    ReleaseVppResources (ppCtx);
 
     WelsRcFreeMemory (pCtx);
     // rate control module memory free
@@ -2635,30 +2668,9 @@ void WelsUninitEncoderExt (sWelsEncCtx** ppCtx) {
   StatOverallEncodingExt (*ppCtx);
 #endif
 
-  if ((*ppCtx)->pSvcParam->iMultipleThreadIdc > 1 && (*ppCtx)->pSliceThreading != NULL) {
-    const int32_t iThreadCount = (*ppCtx)->pSvcParam->iMultipleThreadIdc;
-    int32_t iThreadIdx = 0;
+  TerminateSliceThreads (ppCtx);
+  ReleaseVppResources (ppCtx);
 
-    while (iThreadIdx < iThreadCount) {
-      int res = 0;
-      if ((*ppCtx)->pSliceThreading->pThreadHandles[iThreadIdx]) {
-        WelsEventSignal (& (*ppCtx)->pSliceThreading->pExitEncodeEvent[iThreadIdx]);
-        WelsEventSignal (& (*ppCtx)->pSliceThreading->pThreadMasterEvent[iThreadIdx]);
-        res = WelsThreadJoin ((*ppCtx)->pSliceThreading->pThreadHandles[iThreadIdx]); // waiting thread exit
-        WelsLog (& (*ppCtx)->sLogCtx, WELS_LOG_INFO, "WelsUninitEncoderExt(), pthread_join(pThreadHandles%d) return %d..",
-                 iThreadIdx,
-                 res);
-        (*ppCtx)->pSliceThreading->pThreadHandles[iThreadIdx] = 0;
-      }
-      ++ iThreadIdx;
-    }
-  }
-
-  if ((*ppCtx)->pVpp) {
-    (*ppCtx)->pVpp->FreeSpatialPictures (*ppCtx);
-    delete (*ppCtx)->pVpp;
-    (*ppCtx)->pVpp = NULL;
-  }
   FreeMemorySvc (ppCtx);
   *ppCtx = NULL;
 }
