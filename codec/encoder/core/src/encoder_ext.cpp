@@ -952,7 +952,7 @@ void FreeMbCache (SMbCache* pMbCache, CMemoryAlign* pMa) {
   }
 }
 
-void FreeDqLayer (SDqLayer* pDq, CMemoryAlign* pMa) {
+void FreeDqLayer (SDqLayer*& pDq, CMemoryAlign* pMa) {
   if (NULL == pDq) {
     return;
   }
@@ -996,6 +996,9 @@ void FreeDqLayer (SDqLayer* pDq, CMemoryAlign* pMa) {
 
   UninitSlicePEncCtx (pDq, pMa);
   pDq->iMaxSliceNum = 0;
+
+  pMa->WelsFree (pDq, "pDqLayer");
+  pDq = NULL;
 }
 
 void  FreeRefList (SRefList* pRefList, CMemoryAlign* pMa, const int iMaxNumRefFrame) {
@@ -2206,8 +2209,6 @@ void FreeMemorySvc (sWelsEncCtx** ppCtx) {
         // pDq layers
         if (NULL != pDq) {
           FreeDqLayer (pDq, pMa);
-          pMa->WelsFree (pDq, "pDq");
-          pDq = NULL;
           pCtx->ppDqLayerList[ilayer] = NULL;
         }
         ++ ilayer;
