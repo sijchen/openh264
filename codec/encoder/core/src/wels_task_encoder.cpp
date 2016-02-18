@@ -65,7 +65,7 @@ CWelsSliceEncodingTask::~CWelsSliceEncodingTask() {
 }
 
 WelsErrorType CWelsSliceEncodingTask::Execute() {
-  WelsThreadSetName ("OpenH264Enc_CWelsSliceEncodingTask_Execute");
+  //fprintf(stdout, "OpenH264Enc_CWelsSliceEncodingTask_Execute, %x, sink=%x\n", this, m_pSink);
 
   m_eTaskResult = InitTask();
   WELS_VERIFY_RETURN_IFNEQ (m_eTaskResult, ENC_RETURN_SUCCESS)
@@ -73,6 +73,8 @@ WelsErrorType CWelsSliceEncodingTask::Execute() {
   m_eTaskResult = ExecuteTask();
 
   FinishTask();
+  
+  //fprintf(stdout, "OpenH264Enc_CWelsSliceEncodingTask_Execute Ends\n");
   return m_eTaskResult;
 }
 
@@ -159,12 +161,12 @@ WelsErrorType CWelsSliceEncodingTask::ExecuteTask() {
   }
 
   WelsLoadNalForSlice (m_pSliceBs, m_eNalType, m_eNalRefIdc);
+
   int32_t iReturn = WelsCodeOneSlice (m_pCtx, m_iSliceIdx, m_eNalType);
   if (ENC_RETURN_SUCCESS != iReturn) {
     return iReturn;
   }
   WelsUnloadNalForSlice (m_pSliceBs);
-
   m_iSliceSize = 0;
   iReturn      = WriteSliceBs (m_pCtx, m_pSliceBs, m_iSliceIdx, m_iSliceSize);
 
