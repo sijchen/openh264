@@ -58,7 +58,7 @@ CWelsThreadPool::~CWelsThreadPool() {
   Uninit();
 }
 
-WELS_THREAD_ERROR_CODE CWelsThreadPool::SetThreadNum(int32_t iMaxThreadNum) {
+WELS_THREAD_ERROR_CODE CWelsThreadPool::SetThreadNum (int32_t iMaxThreadNum) {
   CWelsAutoLock  cLock (m_cInitLock);
 
   if (m_iRefCount != 0) {
