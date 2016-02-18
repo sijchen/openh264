@@ -54,8 +54,10 @@ CWelsThreadPool::CWelsThreadPool (IWelsThreadPoolSink* pSink) :
 
 CWelsThreadPool::~CWelsThreadPool() {
   //fprintf(stdout, "CWelsThreadPool::~CWelsThreadPool: delete %x, %x, %x\n", m_cWaitedTasks, m_cIdleThreads, m_cBusyThreads);
-
-  Uninit();
+  if (0 != m_iRefCount) {
+    m_iRefCount = 0;
+    Uninit();
+  }
 }
 
 WELS_THREAD_ERROR_CODE CWelsThreadPool::SetThreadNum (int32_t iMaxThreadNum) {
