@@ -115,6 +115,58 @@ void CWelsThreadPool::UpdateSink (IWelsThreadPoolSink* pSink) {
   //fprintf(stdout, "m_iRefCount=%d, IdleThreadNum=%d, BusyThreadNum=%d, WaitedTask=%d\n", m_iRefCount, GetIdleThreadNum(), GetBusyThreadNum(), GetWaitedTaskNum());
 }
 
+WELS_THREAD_ERROR_CODE CWelsThreadPool::SetThreadNum (int32_t iMaxThreadNum) {
+  CWelsAutoLock  cLock (m_cInitLock);
+
+  if (m_iRefCount != 0) {
+    return WELS_THREAD_ERROR_GENERAL;
+  }
+
+  if (iMaxThreadNum <= 0) {
+    iMaxThreadNum = 1;
+  }
+  m_iMaxThreadNum = iMaxThreadNum;
+  return WELS_THREAD_ERROR_OK;
+}
+
+CWelsThreadPool& CWelsThreadPool::AddReference (IWelsThreadPoolSink* pSink) {
+  CWelsAutoLock  cLock (m_cInitLock);
+  static CWelsThreadPool m_cThreadPoolSelf (pSink);
+  if (m_iRefCount == 0) {
+    m_cThreadPoolSelf.Init (pSink);
+    m_cThreadPoolSelf.UpdateSink (pSink); //TODO: will remove this afterwards
+  }
+
+  //fprintf(stdout, "m_iRefCount=%d, pSink=%x, iMaxThreadNum=%d\n", m_iRefCount, pSink, iMaxThreadNum);
+
+  ++ m_iRefCount;
+  //fprintf(stdout, "m_iRefCount2=%d\n", m_iRefCount);
+  return m_cThreadPoolSelf;
+}
+
+void CWelsThreadPool::RemoveInstance() {
+  CWelsAutoLock  cLock (m_cInitLock);
+  //fprintf(stdout, "m_iRefCount=%d\n", m_iRefCount);
+  -- m_iRefCount;
+  if (0 == m_iRefCount) {
+    StopAllRunning();
+    m_pSink = NULL;
+    Uninit();
+    //fprintf(stdout, "m_iRefCount=%d, IdleThreadNum=%d, BusyThreadNum=%d, WaitedTask=%d\n", m_iRefCount, GetIdleThreadNum(), GetBusyThreadNum(), GetWaitedTaskNum());
+  }
+}
+
+int32_t CWelsThreadPool::GetReferenceCount() {
+  CWelsAutoLock  cLock (m_cInitLock);
+  return m_iRefCount;
+}
+
+void CWelsThreadPool::UpdateSink (IWelsThreadPoolSink* pSink) {
+  m_pSink = pSink;
+  //fprintf(stdout, "UpdateSink: m_pSink=%x\n", m_pSink);
+  //fprintf(stdout, "m_iRefCount=%d, IdleThreadNum=%d, BusyThreadNum=%d, WaitedTask=%d\n", m_iRefCount, GetIdleThreadNum(), GetBusyThreadNum(), GetWaitedTaskNum());
+}
+
 WELS_THREAD_ERROR_CODE CWelsThreadPool::OnTaskStart (CWelsTaskThread* pThread, IWelsTask* pTask) {
   AddThreadToBusyList (pThread);
   //fprintf(stdout, "CWelsThreadPool::AddThreadToBusyList: Task %x at Thread %x\n", pTask, pThread);
