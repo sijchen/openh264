@@ -99,6 +99,11 @@ CWelsDecoder::CWelsDecoder (void)
   int iBufUsedSize = 0;
   int iBufLeftSize = 1023;
   int iCurUsedSize;
+  
+  m_pTemBuffer = NULL;
+  m_iFrameLen = 0;
+  uiLastInBsTimeStamp = 0;
+  uiLastOutBsTimeStamp = 0;
 #endif//OUTPUT_BIT_STREAM
 
 
@@ -169,7 +174,7 @@ CWelsDecoder::~CWelsDecoder() {
 
   UninitDecoder();
 
-#ifdef OUTPUT_BIT_STREAM
+#if defined(OUTPUT_BIT_STREAM) | defined(OUTPUT_BIT_STREAM2)
   if (m_pFBS) {
     WelsFclose (m_pFBS);
     m_pFBS = NULL;
@@ -177,6 +182,9 @@ CWelsDecoder::~CWelsDecoder() {
   if (m_pFBSSize) {
     WelsFclose (m_pFBSSize);
     m_pFBSSize = NULL;
+  }
+  if (m_pTemBuffer) {
+    m_pDecContext->pMemAlign->WelsFree(m_pTemBuffer, "bs_tmp_buffer");
   }
 #endif//OUTPUT_BIT_STREAM
 
@@ -436,7 +444,7 @@ DECODING_STATE CWelsDecoder::DecodeFrameNoDelay (const unsigned char* kpSrc,
   //ppDst[1] = ppTmpDst[1];
   //ppDst[2] = ppTmpDst[2];
   //}
-
+  
   return (DECODING_STATE) iRet;
 }
 
@@ -502,6 +510,70 @@ DECODING_STATE CWelsDecoder::DecodeFrame2 (const unsigned char* kpSrc,
   }
   WelsDecodeBs (m_pDecContext, kpSrc, kiSrcLen, ppDst,
                 pDstInfo, NULL); //iErrorCode has been modified in this function
+  
+#ifdef OUTPUT_BIT_STREAM2
+  if (kiSrcLen>0) {
+    printf("cpy %d to %x at %d %d %d %d\n", kiSrcLen, m_pTemBuffer, uiInBsTimeStamp, pDstInfo->iBufferStatus, m_pDecContext->sDecoderStatistics.uiDecodedFrameCount, m_pDecContext->eSliceType);
+
+    if (m_pTemBuffer == NULL) {
+      m_iCurrentBufferSize = 2000000;
+      m_pTemBuffer = static_cast<unsigned char *>(m_pDecContext->pMemAlign->WelsMallocz(m_iCurrentBufferSize*sizeof(unsigned char), "bs_tmp_buffer"));
+    }
+    
+    if (m_iFrameLen+kiSrcLen > m_iCurrentBufferSize) {
+      unsigned char* tmpBuffer = static_cast<unsigned char *>(m_pDecContext->pMemAlign->WelsMallocz(m_iCurrentBufferSize*2*sizeof(unsigned char), "bs_tmp_buffer"));
+      memcpy(tmpBuffer, m_pTemBuffer, m_iFrameLen*sizeof (unsigned char));
+      m_pDecContext->pMemAlign->WelsFree(m_pTemBuffer, "bs_tmp_buffer");
+      
+      m_pTemBuffer = tmpBuffer;
+    }
+
+    if (NAL_UNIT_SPS == m_pDecContext->sCurNalHead.eNalUnitType) {
+      printf("cpy %d from %x at %d %d\n", m_iFrameLen, m_pTemBuffer, uiInBsTimeStamp,pDstInfo->iBufferStatus);
+      if (m_pFBS) {
+        WelsFwrite (m_pTemBuffer, sizeof (unsigned char), m_iFrameLen, m_pFBS);
+        WelsFflush (m_pFBS);
+      }
+      if (m_pFBSSize) {
+        WelsFwrite (&m_iFrameLen, sizeof (int), 1, m_pFBSSize);
+        WelsFflush (m_pFBSSize);
+      }
+      m_iFrameLen = 0;
+    }
+    
+    memcpy(m_pTemBuffer+m_iFrameLen, kpSrc, kiSrcLen*sizeof (unsigned char));
+    m_iFrameLen += kiSrcLen;
+  }
+
+  if ((m_iFrameLen>0) && (pDstInfo->iBufferStatus == 1)) {
+  if (m_pDecContext->eSliceType == I_SLICE) {
+    WelsFclose (m_pFBS);
+    WelsFclose (m_pFBSSize);
+    
+    char chFileName[1024] = { 0 };  //for .264
+    char chFileNameSize[1024] = { 0 }; //for .len
+    
+    WelsSnprintf (chFileName,  1023,  "bs_%dx%d.264", pDstInfo->UsrData.sSystemBuffer.iWidth, pDstInfo->UsrData.sSystemBuffer.iHeight);
+    WelsSnprintf (chFileNameSize, 1023, "size_%dx%d.info", pDstInfo->UsrData.sSystemBuffer.iWidth, pDstInfo->UsrData.sSystemBuffer.iHeight);
+    
+    printf("islice: writing %dx%d srclen=%d %d\n", pDstInfo->UsrData.sSystemBuffer.iWidth, pDstInfo->UsrData.sSystemBuffer.iHeight, m_iFrameLen, pDstInfo->iBufferStatus);
+    m_pFBS = WelsFopen (chFileName, "ab+");
+    m_pFBSSize = WelsFopen (chFileNameSize, "ab+");
+  }
+
+    printf("cpy %d from %x at %d %d\n", m_iFrameLen, m_pTemBuffer, uiInBsTimeStamp,pDstInfo->iBufferStatus);
+        if (m_pFBS) {
+          WelsFwrite (m_pTemBuffer, sizeof (unsigned char), m_iFrameLen, m_pFBS);
+          WelsFflush (m_pFBS);
+        }
+        if (m_pFBSSize) {
+          WelsFwrite (&m_iFrameLen, sizeof (int), 1, m_pFBSSize);
+          WelsFflush (m_pFBSSize);
+        }
+        m_iFrameLen = 0;
+  }
+#endif//OUTPUT_BIT_STREAM
+  
   m_pDecContext->bInstantDecFlag = false; //reset no-delay flag
   if (m_pDecContext->iErrorCode) {
     EWelsNalUnitType eNalType =
@@ -613,12 +685,6 @@ DECODING_STATE CWelsDecoder::DecodeParser (const unsigned char* kpSrc,
     return dsOutOfMemory;
   }
   if (kiSrcLen > 0 && kpSrc != NULL) {
-#ifdef OUTPUT_BITSTREAM
-    if (m_pFBS) {
-      WelsFwrite (kpSrc, sizeof (unsigned char), kiSrcLen, m_pFBS);
-      WelsFflush (m_pFBS);
-    }
-#endif//OUTPUT_BIT_STREAM
     m_pDecContext->bEndOfStreamFlag = false;
   } else {
     //For application MODE, the error detection should be added for safe.
@@ -647,7 +713,6 @@ DECODING_STATE CWelsDecoder::DecodeParser (const unsigned char* kpSrc,
   }
 
   m_pDecContext->bInstantDecFlag = false; //reset no-delay flag
-
   return (DECODING_STATE) m_pDecContext->iErrorCode;
 }
 

@@ -53,7 +53,7 @@ class ISVCDecoder;
 namespace WelsDec {
 
 //#define OUTPUT_BIT_STREAM  ////for test to output bitstream
-
+#define OUTPUT_BIT_STREAM2
 class CWelsDecoder : public ISVCDecoder {
  public:
 CWelsDecoder (void);
@@ -113,9 +113,14 @@ int32_t InitDecoder (const SDecodingParam* pParam);
 void UninitDecoder (void);
 int32_t ResetDecoder();
 
-#ifdef OUTPUT_BIT_STREAM
+#if defined(OUTPUT_BIT_STREAM) | defined(OUTPUT_BIT_STREAM2)
 WelsFileHandle* m_pFBS;
 WelsFileHandle* m_pFBSSize;
+unsigned char* m_pTemBuffer;
+int  m_iCurrentBufferSize;
+int  m_iFrameLen;
+unsigned long long uiLastInBsTimeStamp;
+unsigned long long uiLastOutBsTimeStamp;
 #endif//OUTPUT_BIT_STREAM
 
 };
