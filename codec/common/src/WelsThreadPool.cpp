@@ -104,9 +104,9 @@ void CWelsThreadPool::RemoveInstance() {
   }
 }
 
-int32_t CWelsThreadPool::GetReferenceCount() {
+bool CWelsThreadPool::IsReferenced() {
   CWelsAutoLock  cLock (m_cInitLock);
-  return m_iRefCount;
+  return (m_iRefCount>0);
 }
 
 void CWelsThreadPool::UpdateSink (IWelsThreadPoolSink* pSink) {
