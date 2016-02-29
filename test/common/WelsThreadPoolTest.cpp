@@ -68,10 +68,10 @@ TEST (CThreadPoolTest, CThreadPoolTest) {
 
   int iRet = CWelsThreadPool::SetThreadNum (8);
   EXPECT_EQ (0, iRet);
-  EXPECT_EQ (false, CWelsThreadPool::IsReferenced());
+  EXPECT_FALSE (CWelsThreadPool::IsReferenced());
 
   CWelsThreadPool* pThreadPool = & (CWelsThreadPool::AddReference (NULL));
-  EXPECT_EQ (true, pThreadPool->IsReferenced());
+  EXPECT_TRUE(pThreadPool->IsReferenced());
   EXPECT_EQ (8, pThreadPool->GetThreadNum());
 
   iRet = CWelsThreadPool::SetThreadNum (4);
@@ -83,11 +83,11 @@ TEST (CThreadPoolTest, CThreadPoolTest) {
   iRet = CWelsThreadPool::SetThreadNum (4);
   EXPECT_EQ (0, iRet);
   pThreadPool = & (CWelsThreadPool::AddReference (NULL));
-  EXPECT_EQ (true, pThreadPool->IsReferenced());
+  EXPECT_TRUE (pThreadPool->IsReferenced());
   EXPECT_EQ (4, pThreadPool->GetThreadNum());
   pThreadPool->RemoveInstance();
 
-  EXPECT_EQ (false, CWelsThreadPool::IsReferenced());
+  EXPECT_FALSE (CWelsThreadPool::IsReferenced());
 }
 
 
@@ -117,6 +117,6 @@ TEST (CThreadPoolTest, CThreadPoolTestMulti) {
     WelsThreadJoin (mThreadID[i]);
   }
 
-  EXPECT_EQ (false, CWelsThreadPool::IsReferenced());
+  EXPECT_FALSE (CWelsThreadPool::IsReferenced());
 }
 
