@@ -313,6 +313,7 @@ void WelsDecoderDefaults (PWelsDecoderContext pCtx, SLogContext* pLogCtx) {
   pCtx->eErrorConMethod = ERROR_CON_SLICE_MV_COPY_CROSS_IDR_FREEZE_RES_CHANGE;
   pCtx->pPreviousDecodedPictureInDpb = NULL;
   pCtx->sDecoderStatistics.iAvgLumaQp = -1;
+  pCtx->sDecoderStatistics.iStatisticsLogInterval = 1000;
   pCtx->bSpsLatePps = false;
   pCtx->bUseScalingList = false;
   pCtx->iSpsErrorIgnored = 0;
@@ -991,10 +992,12 @@ void ResetDecStatNums (SDecoderStatistics* pDecStat) {
   uint32_t uiWidth = pDecStat->uiWidth;
   uint32_t uiHeight = pDecStat->uiHeight;
   int32_t iAvgLumaQp = pDecStat->iAvgLumaQp;
+  uint32_t iLogInterval = pDecStat->iStatisticsLogInterval;
   memset (pDecStat, 0, sizeof (SDecoderStatistics));
   pDecStat->uiWidth = uiWidth;
   pDecStat->uiHeight = uiHeight;
   pDecStat->iAvgLumaQp = iAvgLumaQp;
+  pDecStat->iStatisticsLogInterval = iLogInterval;
 }
 
 //update information when freezing occurs, including IDR/non-IDR number

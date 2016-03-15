@@ -344,6 +344,8 @@ long CWelsDecoder::SetOption (DECODER_OPTION eOptID, void* pOption) {
     WelsLog (&m_pWelsTrace->m_sLogCtx, WELS_LOG_WARNING,
              "CWelsDecoder::SetOption():DECODER_OPTION_GET_STATISTICS: this option is get-only!");
     return cmInitParaError;
+  } else if (eOptID == DECODER_OPTION_STATISTICS_LOG_INTERVAL) {
+    m_pDecContext->sDecoderStatistics.iStatisticsLogInterval = (* ((unsigned int*)pOption));
   }
 
 
@@ -410,6 +412,10 @@ long CWelsDecoder::GetOption (DECODER_OPTION eOptID, void* pOption) {
           (m_pDecContext->sDecoderStatistics.uiDecodedFrameCount + m_pDecContext->sDecoderStatistics.uiFreezingIDRNum +
            m_pDecContext->sDecoderStatistics.uiFreezingNonIDRNum);
     }
+    return cmResultSuccess;
+  } else if (eOptID == DECODER_OPTION_STATISTICS_LOG_INTERVAL) {
+    iVal = m_pDecContext->sDecoderStatistics.iStatisticsLogInterval;
+    * ((unsigned int*)pOption) = iVal;
     return cmResultSuccess;
   }
 
@@ -598,7 +604,7 @@ DECODING_STATE CWelsDecoder::DecodeFrame2 (const unsigned char* kpSrc,
 }
 
 void CWelsDecoder::OutputStatisticsLog(SDecoderStatistics& sDecoderStatistics) {
-  if (sDecoderStatistics.uiDecodedFrameCount > 0 && sDecoderStatistics.uiDecodedFrameCount%1000==0) {
+  if ((sDecoderStatistics.uiDecodedFrameCount > 0) && (sDecoderStatistics.iStatisticsLogInterval > 0) && ((sDecoderStatistics.uiDecodedFrameCount % sDecoderStatistics.iStatisticsLogInterval) == 0)) {
     WelsLog (&m_pWelsTrace->m_sLogCtx, WELS_LOG_INFO,
              "uiWidth=%d, uiHeight=%d, fAverageFrameSpeedInMs=%.1f, fActualAverageFrameSpeedInMs=%.1f, \
               uiDecodedFrameCount=%d, uiResolutionChangeTimes=%d, uiIDRCorrectNum=%d, \

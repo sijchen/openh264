@@ -160,7 +160,8 @@ typedef enum {
   DECODER_OPTION_TRACE_CALLBACK,        ///< a void (*)(void* context, int level, const char* message) function which receives log messages
   DECODER_OPTION_TRACE_CALLBACK_CONTEXT,///< context info of trace callbac
 
-  DECODER_OPTION_GET_STATISTICS
+  DECODER_OPTION_GET_STATISTICS,
+  DECODER_OPTION_STATISTICS_LOG_INTERVAL,
 
 } DECODER_OPTION;
 
@@ -747,6 +748,8 @@ typedef struct TagVideoDecoderStatistics {
 
   int iCurrentActiveSpsId;                     ///< current active SPS id
   int iCurrentActivePpsId;                     ///< current active PPS id
+
+  unsigned int iStatisticsLogInterval;                  ///< frame interval of statistics log
 } SDecoderStatistics; // in building, coming soon
 
 #endif//WELS_VIDEO_CODEC_APPLICATION_DEFINITION_H__
