@@ -591,7 +591,7 @@ DECODING_STATE CWelsDecoder::DecodeFrame2 (const unsigned char* kpSrc,
   }
   iEnd = WelsTime();
   m_pDecContext->dDecTime += (iEnd - iStart) / 1e3;
-  
+
   OutputStatisticsLog(m_pDecContext->sDecoderStatistics);
 
   return dsErrorFree;
