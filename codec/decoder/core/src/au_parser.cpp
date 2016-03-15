@@ -887,6 +887,37 @@ bool CheckSpsActive (PWelsDecoderContext pCtx, PSps pSps, bool bUseSubsetFlag) {
 #define  SCALING_LIST_DELTA_SCALE_MAX 127
 #define SCALING_LIST_DELTA_SCALE_MIN -128
 
+ProfileIdc GetActualProfile (PSps pSps, PPps pPps) {
+  //TODO: this is just an imcomplete checking, but it is only for statistics use so we can enhance this later
+  if (pSps) {
+    if (pSps->bDirect8x8InferenceFlag || pSps->bQpPrimeYZeroTransfBypassFlag) {
+      return PRO_HIGH;
+    }
+  }
+  if (pPps) {
+    if (pPps->bTransform8x8ModeFlag) {
+      return PRO_HIGH;
+    }
+
+    if (pPps->bEntropyCodingModeFlag || pPps->bWeightedPredFlag) {
+      return PRO_MAIN;
+    }
+  }
+  return PRO_BASELINE;
+}
+
+uint8_t GetActualLevelFromSps (PSps pSps) {
+  for (int iLevel = pSps->uiLevelIdc; iLevel < 52; iLevel++) {
+    const SLevelLimits* pSMaxLevelLimits = GetLevelLimits (iLevel, false);
+    uint32_t uiMbs = pSps->iMbWidth * pSps->iMbHeight;
+    if (uiMbs <= (uint32_t)pSMaxLevelLimits->uiMaxFS && uiMbs * pSps->iNumRefFrames <= pSMaxLevelLimits->uiMaxDPBMbs) {
+      return iLevel;
+    }
+  }
+  return 52;
+}
+
+
 /*!
  *************************************************************************************
  * \brief   to parse Sequence Parameter Set (SPS)
@@ -1278,6 +1309,13 @@ int32_t ParseSps (PWelsDecoderContext pCtx, PBitStringAux pBsAux, int32_t* pPicW
     pCtx->bSpsAvailFlags[iSpsId] = true;
     pCtx->bSpsExistAheadFlag = true;
   }
+
+  pCtx->sDecoderStatistics.uiProfileInSyntax = static_cast<unsigned int> (uiProfileIdc);
+  pCtx->sDecoderStatistics.uiLevelInSyntax = uiLevelIdc;
+  pCtx->sDecoderStatistics.uiProfileActual = WELS_MAX (static_cast<unsigned int> (GetActualProfile (pSps, NULL)),
+      pCtx->sDecoderStatistics.uiProfileActual);
+  pCtx->sDecoderStatistics.uiLevelActual = GetActualLevelFromSps (pSps);
+
   return ERR_NONE;
 }
 
@@ -1450,6 +1488,10 @@ int32_t ParsePps (PWelsDecoderContext pCtx, PPps pPpsList, PBitStringAux pBsAux,
     }
     memcpy (pPpsBs->pPpsBsBuf + iStartDeltaByte, pSrcNal, iActualLen);
   }
+
+  pCtx->sDecoderStatistics.uiProfileActual = WELS_MAX (static_cast<unsigned int> (GetActualProfile (NULL, pPps)),
+      pCtx->sDecoderStatistics.uiProfileActual);
+
   return ERR_NONE;
 }
 

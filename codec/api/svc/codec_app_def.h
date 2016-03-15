@@ -739,6 +739,14 @@ typedef struct TagVideoDecoderStatistics {
   int iSpsNoExistNalNum;                       ///< number of Sps NoExist Nal
   int iSubSpsNoExistNalNum;                    ///< number of SubSps NoExist Nal
   int iPpsNoExistNalNum;                       ///< number of Pps NoExist Nal
+
+  unsigned int uiProfileInSyntax;              ///< Profile idc in syntax
+  unsigned int uiProfileActual;                ///< Profile idc according to coding tools
+  unsigned int uiLevelInSyntax;                ///< level idc in syntax
+  unsigned int uiLevelActual;                  ///< level idc according to Annex A-1
+
+  int iCurrentActiveSpsId;                     ///< current active SPS id
+  int iCurrentActivePpsId;                     ///< current active PPS id
 } SDecoderStatistics; // in building, coming soon
 
 #endif//WELS_VIDEO_CODEC_APPLICATION_DEFINITION_H__

@@ -591,7 +591,56 @@ DECODING_STATE CWelsDecoder::DecodeFrame2 (const unsigned char* kpSrc,
   }
   iEnd = WelsTime();
   m_pDecContext->dDecTime += (iEnd - iStart) / 1e3;
+  
+  OutputStatisticsLog(m_pDecContext->sDecoderStatistics);
+
   return dsErrorFree;
+}
+
+void CWelsDecoder::OutputStatisticsLog(SDecoderStatistics& sDecoderStatistics) {
+  if (sDecoderStatistics.uiDecodedFrameCount > 0 && sDecoderStatistics.uiDecodedFrameCount%1000==0) {
+    WelsLog (&m_pWelsTrace->m_sLogCtx, WELS_LOG_INFO,
+             "uiWidth=%d, uiHeight=%d, fAverageFrameSpeedInMs=%.1f, fActualAverageFrameSpeedInMs=%.1f, \
+              uiDecodedFrameCount=%d, uiResolutionChangeTimes=%d, uiIDRCorrectNum=%d, \
+              uiAvgEcRatio=%d, uiAvgEcPropRatio=%d, uiEcIDRNum=%d, uiEcFrameNum=%d, \
+              uiIDRLostNum=%d, uiFreezingIDRNum=%d, uiFreezingNonIDRNum=%d, iAvgLumaQp=%d, \
+              iSpsReportErrorNum=%d, iSubSpsReportErrorNum=%d, iPpsReportErrorNum=%d, iSpsNoExistNalNum=%d, iSubSpsNoExistNalNum=%d, iPpsNoExistNalNum=%d, \
+              uiProfileInSyntax=%d, uiProfileActual=%d, uiLevelInSyntax=%d, uiLevelActual=%d, \
+              iCurrentActiveSpsId=%d, iCurrentActivePpsId=%d,",
+              sDecoderStatistics.uiWidth,
+              sDecoderStatistics.uiHeight,
+              sDecoderStatistics.fAverageFrameSpeedInMs,
+              sDecoderStatistics.fActualAverageFrameSpeedInMs,
+
+              sDecoderStatistics.uiDecodedFrameCount,
+              sDecoderStatistics.uiResolutionChangeTimes,
+              sDecoderStatistics.uiIDRCorrectNum,
+
+              sDecoderStatistics.uiAvgEcRatio,
+              sDecoderStatistics.uiAvgEcPropRatio,
+              sDecoderStatistics.uiEcIDRNum,
+              sDecoderStatistics.uiEcFrameNum,
+
+              sDecoderStatistics.uiIDRLostNum,
+              sDecoderStatistics.uiFreezingIDRNum,
+              sDecoderStatistics.uiFreezingNonIDRNum,
+              sDecoderStatistics.iAvgLumaQp,
+
+              sDecoderStatistics.iSpsReportErrorNum,
+              sDecoderStatistics.iSubSpsReportErrorNum,
+              sDecoderStatistics.iPpsReportErrorNum,
+              sDecoderStatistics.iSpsNoExistNalNum,
+              sDecoderStatistics.iSubSpsNoExistNalNum,
+              sDecoderStatistics.iPpsNoExistNalNum,
+
+              sDecoderStatistics.uiProfileInSyntax,
+              sDecoderStatistics.uiProfileActual,
+              sDecoderStatistics.uiLevelInSyntax,
+              sDecoderStatistics.uiLevelActual,
+
+              sDecoderStatistics.iCurrentActiveSpsId,
+              sDecoderStatistics.iCurrentActivePpsId);
+  }
 }
 
 DECODING_STATE CWelsDecoder::DecodeParser (const unsigned char* kpSrc,

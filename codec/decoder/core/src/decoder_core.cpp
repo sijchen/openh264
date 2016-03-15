@@ -727,6 +727,7 @@ int32_t ParseSliceHeaderSyntaxs (PWelsDecoderContext pCtx, PBitStringAux pBs, co
                              GENERATE_ERROR_NO (ERR_LEVEL_SLICE_HEADER,
                                  ERR_INFO_PPS_ID_OVERFLOW));
   iPpsId = uiCode;
+  pCtx->sDecoderStatistics.iCurrentActivePpsId = iPpsId;
 
   //add check PPS available here
   if (pCtx->bPpsAvailFlags[iPpsId] == false) {
@@ -792,6 +793,7 @@ int32_t ParseSliceHeaderSyntaxs (PWelsDecoderContext pCtx, PBitStringAux pBs, co
   pSliceHead->pSps   = pSps;
 
   pSliceHeadExt->pSubsetSps = pSubsetSps;
+  pCtx->sDecoderStatistics.iCurrentActiveSpsId = (kbExtensionFlag) ? (pSubsetSps->sSps.iSpsId) : (pSps->iSpsId);
 
   if (pSps->iNumRefFrames == 0) {
     if ((uiSliceType != I_SLICE) && (uiSliceType != SI_SLICE)) {
