@@ -1278,7 +1278,6 @@ int32_t ParseSps (PWelsDecoderContext pCtx, PBitStringAux pBsAux, int32_t* pPicW
     pCtx->bSpsAvailFlags[iSpsId] = true;
     pCtx->bSpsExistAheadFlag = true;
   }
-
   return ERR_NONE;
 }
 
@@ -1451,7 +1450,6 @@ int32_t ParsePps (PWelsDecoderContext pCtx, PPps pPpsList, PBitStringAux pBsAux,
     }
     memcpy (pPpsBs->pPpsBsBuf + iStartDeltaByte, pSrcNal, iActualLen);
   }
-
   return ERR_NONE;
 }
 
