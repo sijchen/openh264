@@ -633,6 +633,45 @@ void DecodeNalHeaderExt (PNalUnit pNal, uint8_t* pSrc) {
   pHeaderExt->uiLayerDqId           = (pHeaderExt->uiDependencyId << 4) | pHeaderExt->uiQualityId;
 }
 
+ProfileIdc GetActualProfile (PSps pSps, PPps pPps) {
+  //TODO: this is just an imcomplete checking, but it is only for statistics use so we can enhance this later
+  if (pSps) {
+    if (pSps->bDirect8x8InferenceFlag || pSps->bQpPrimeYZeroTransfBypassFlag) {
+      return PRO_HIGH;
+    }
+  }
+  if (pPps) {
+    if (pPps->bTransform8x8ModeFlag) {
+      return PRO_HIGH;
+    }
+    if (pPps->bEntropyCodingModeFlag || pPps->bWeightedPredFlag) {
+      return PRO_MAIN;
+    }
+  }
+  return PRO_BASELINE;
+}
+
+uint8_t GetActualLevelFromSps (PSps pSps) {
+  for (int iLevel = pSps->uiLevelIdc; iLevel < 52; iLevel++) {
+    const SLevelLimits* pSMaxLevelLimits = GetLevelLimits (iLevel, false);
+    uint32_t uiMbs = pSps->iMbWidth * pSps->iMbHeight;
+    if (uiMbs <= (uint32_t)pSMaxLevelLimits->uiMaxFS && uiMbs * pSps->iNumRefFrames <= pSMaxLevelLimits->uiMaxDPBMbs) {
+      return iLevel;
+    }
+  }
+  return 52;
+}
+
+void UpdateDecoderStatisticsForActiveParaset(SDecoderStatistics* pDecoderStatistics,
+                                             PSps pSps, PPps pPps, const int32_t iSpsId) {
+  pDecoderStatistics->iCurrentActiveSpsId = iSpsId;
+
+  pDecoderStatistics->iCurrentActivePpsId = pPps->iPpsId;
+  pDecoderStatistics->uiProfileInSyntax = static_cast<unsigned int> (pSps->uiProfileIdc);
+  pDecoderStatistics->uiLevelInSyntax = pSps->uiLevelIdc;
+  pDecoderStatistics->uiProfileActual = static_cast<unsigned int> (GetActualProfile (pSps, pPps));
+  pDecoderStatistics->uiLevelActual = GetActualLevelFromSps (pSps);
+}
 
 #define SLICE_HEADER_IDR_PIC_ID_MAX 65535
 #define SLICE_HEADER_REDUNDANT_PIC_CNT_MAX 127
@@ -727,7 +766,6 @@ int32_t ParseSliceHeaderSyntaxs (PWelsDecoderContext pCtx, PBitStringAux pBs, co
                              GENERATE_ERROR_NO (ERR_LEVEL_SLICE_HEADER,
                                  ERR_INFO_PPS_ID_OVERFLOW));
   iPpsId = uiCode;
-  pCtx->sDecoderStatistics.iCurrentActivePpsId = iPpsId;
 
   //add check PPS available here
   if (pCtx->bPpsAvailFlags[iPpsId] == false) {
@@ -793,7 +831,9 @@ int32_t ParseSliceHeaderSyntaxs (PWelsDecoderContext pCtx, PBitStringAux pBs, co
   pSliceHead->pSps   = pSps;
 
   pSliceHeadExt->pSubsetSps = pSubsetSps;
-  pCtx->sDecoderStatistics.iCurrentActiveSpsId = (kbExtensionFlag) ? (pSubsetSps->sSps.iSpsId) : (pSps->iSpsId);
+  UpdateDecoderStatisticsForActiveParaset(&(pCtx->sDecoderStatistics),
+                                          pSps, pPps,
+                                          (kbExtensionFlag) ? (pSubsetSps->sSps.iSpsId) : (pSps->iSpsId) );
 
   if (pSps->iNumRefFrames == 0) {
     if ((uiSliceType != I_SLICE) && (uiSliceType != SI_SLICE)) {
