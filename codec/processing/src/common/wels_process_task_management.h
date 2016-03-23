@@ -57,7 +57,7 @@ public:
   
   EResult   Init ();
 
-  EResult   ExecuteTasks (IStrategy* pStrategy);
+  EResult   ExecuteTasks (IStrategy* pStrategy, int32_t iType, SPixMap* pSrcPixMap, SPixMap* pRefPixMap);
   
   int32_t  GetThreadPoolThreadNum();
   

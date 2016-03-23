@@ -48,7 +48,6 @@
 #include "WelsFrameWork.h"
 WELSVP_NAMESPACE_BEGIN
 
-
 class CWelsProcessTask : public WelsCommon::IWelsTask {
 public:
   enum ETaskType {
@@ -57,20 +56,28 @@ public:
     WELS_PROCESS_TASK_ALL = 2,
   };
   
-  CWelsProcessTask (WelsCommon::IWelsTaskSink* pSink, IStrategy* pStrategy): IWelsTask (pSink) {};
+  CWelsProcessTask (WelsCommon::IWelsTaskSink* pSink): IWelsTask (pSink) {};
   virtual ~CWelsProcessTask();
   
-  virtual uint32_t GetTaskType() const = 0;
+  //pTask = virtual uint32_t GetTaskType() const = 0;
   
+  void UpdatePixMap(IStrategy* pStrategy, int32_t iType, SPixMap& pSrcPixMap, SPixMap& pRefPixMap) {
+    m_pStrategy = pStrategy;
+    m_pSrcPixMap = pSrcPixMap;
+    m_pRefPixMap = pRefPixMap;
+    m_iType = iType;
+  };
   
-  int32_t Execute(int32_t iType, SPixMap* pSrcPixMap, SPixMap* pRefPixMap) {
-    WelsThreadSetName ("OpenH264Enc_CWelsSceneChangeDetectionTask_Execute");
-    pStrategy->Process(iType, pSrcPixMap, pRefPixMap);
-    return m_eTaskResult;
+  int32_t Execute() {
+    WelsThreadSetName ("OpenH264Enc_CWelsProcessTask_Execute");
+    return m_pStrategy->Process(m_iType, &m_pSrcPixMap, &m_pRefPixMap);
   }
 
 private:
-  
+  IStrategy* m_pStrategy;
+  SPixMap m_pSrcPixMap;
+  SPixMap m_pRefPixMap;
+  int32_t m_iType;
 };
 
 

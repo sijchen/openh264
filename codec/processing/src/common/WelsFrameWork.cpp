@@ -40,6 +40,7 @@
 #include "../adaptivequantization/AdaptiveQuantization.h"
 #include "../complexityanalysis/ComplexityAnalysis.h"
 #include "../imagerotate/imagerotate.h"
+#include "wels_process_task_management.h"
 #include "util.h"
 
 /* interface API implement */
@@ -96,6 +97,8 @@ CVpFrameWork::CVpFrameWork (uint32_t uiThreadsNum, EResult& eReturn) {
 
   WelsMutexInit (&m_mutes);
 
+  pProcessTaskManage = new CWelsProcessTaskManage();
+
   eReturn = RET_SUCCESS;
 }
 
@@ -108,6 +111,8 @@ CVpFrameWork::~CVpFrameWork() {
   }
 
   WelsMutexDestroy (&m_mutes);
+
+  delete pProcessTaskManage;
 }
 
 EResult CVpFrameWork::Init (int32_t iType, void* pCfg) {

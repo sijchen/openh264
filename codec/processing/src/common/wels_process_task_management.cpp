@@ -45,12 +45,12 @@
 #include "WelsLock.h"
 #include "memory_align.h"
 
+#include "wels_process_task_base.h"
 #include "wels_process_task_management.h"
 
 #include "../denoise/denoise.h"
 #include "../downsample/downsample.h"
 #include "../scrolldetection/ScrollDetection.h"
-#include "../scenechangedetection/wels_task_preprocess.h"
 #include "../vaacalc/vaacalculation.h"
 #include "../backgrounddetection/BackgroundDetection.h"
 #include "../adaptivequantization/AdaptiveQuantization.h"
@@ -96,25 +96,17 @@ void   CWelsProcessTaskManage::Uninit() {
 
 EResult CWelsProcessTaskManage::CreateTasks (const int32_t kiTaskCount) {
   CWelsProcessTask* pTask = NULL;
-
-  for (int idx = 0; idx < kiTaskCount; idx++) {
-    pTask = WELS_NEW_OP (CWelsSceneChangeDetectionTask(this), CWelsSceneChangeDetectionTask);
+  int32_t iPartitionNum = m_pThreadPool->GetThreadNum();
+  
+  for (int idx = 0; idx < iPartitionNum; idx++) {
+    pTask = (CWelsProcessTask*)(new CWelsProcessTask(this));
+    //pTask = WELS_NEW_OP (CWelsProcessTask(this), CWelsProcessTask);
     WELS_VERIFY_RETURN_IF (RET_OUTOFMEMORY, NULL == pTask)
-    m_pcAllTaskList[CWelsProcessTask::WELS_PROCESS_TASK_SCENECHAGEDETECT]->push_back (pTask);
+    m_pcAllTaskList[0]->push_back (pTask);
   }
   
   //fprintf(stdout, "CWelsProcessTaskManage CreateTasks m_iThreadNum %d kiTaskCount=%d\n", m_iThreadNum, kiTaskCount);
   return RET_SUCCESS;
-}
-
-void CWelsProcessTaskManage::DestroyTaskList (TASKLIST_TYPE* pTargetTaskList) {
-  //fprintf(stdout, "CWelsProcessTaskManage: pTargetTaskList size=%d m_iTotalTaskNum=%d\n", static_cast<int32_t> (pTargetTaskList->size()), m_iTotalTaskNum);
-  while (NULL != pTargetTaskList->begin()) {
-    CWelsProcessTask* pTask = pTargetTaskList->begin();
-    WELS_DELETE_OP (pTask);
-    pTargetTaskList->pop_front();
-  }
-  pTargetTaskList = NULL;
 }
 
 void CWelsProcessTaskManage::DestroyTasks() {
@@ -144,30 +136,45 @@ int  CWelsProcessTaskManage::OnTaskExecuted() {
   return 0;
 }
 
-EResult  CWelsProcessTaskManage::ExecuteTaskList (TASKLIST_TYPE* pTaskList) {
-  m_iWaitTaskNum = m_iTaskNum;
+
+void GetPartitionOfPixMap(int32_t iIdx, int32_t iTotal, SPixMap& sWholePixMap, SPixMap* pPartPixMap) {
+  *pPartPixMap = sWholePixMap;
+  int32_t iPartitionHeight = sWholePixMap.sRect.iRectHeight/iTotal;
+  
+  //arithmetic on a void* is illegal in both C and C++
+  pPartPixMap->pPixel[0] = sWholePixMap.pPixel[0] + iSizeInBits * (iIdx * iPartitionHeight) * sWholePixMap.iStride[0];
+  pPartPixMap->pPixel[1] = sWholePixMap.pPixel[1] + iSizeInBits * (iIdx * iPartitionHeight >>1) * sWholePixMap.iStride[1];
+  pPartPixMap->pPixel[2] = sWholePixMap.pPixel[2] + iSizeInBits * (iIdx * iPartitionHeight >>1) * sWholePixMap.iStride[2];
+  printf("GetPartitionOfPixMap = %d\n", iSizeInBits);
+  pPartPixMap->sRect.iRectHeight = sWholePixMap.sRect.iRectHeight - iIdx * iPartitionHeight;
+}
+
+
+EResult  CWelsProcessTaskManage::ExecuteTasks (IStrategy* pStrategy, int32_t iType, SPixMap* pSrcPixMap, SPixMap* pRefPixMap) {
+  m_iWaitTaskNum = m_pcAllTaskList[0]->size();
   //fprintf(stdout, "ExecuteTaskList m_iWaitTaskNum=%d\n", m_iWaitTaskNum);
   if (0 == m_iWaitTaskNum) {
     return RET_SUCCESS;
   }
-  
+  for (int32_t iIdx=0; iIdx<m_iWaitTaskNum; iIdx++) {
+    SPixMap sTarRefPixMap;
+    SPixMap sTarSrcPixMap;
+    GetPartitionOfPixMap(iIdx, m_iWaitTaskNum, *pRefPixMap, &sTarRefPixMap);
+    GetPartitionOfPixMap(iIdx, m_iWaitTaskNum, *pSrcPixMap, &sTarSrcPixMap);
+    
+    m_pcAllTaskList[0]->GetIndexNode(iIdx)->UpdatePixMap(pStrategy, iType, sTarSrcPixMap, sTarRefPixMap);
+    
+  }
+
   int32_t iCurrentTaskCount = m_iWaitTaskNum; //if directly use m_iWaitTaskNum in the loop make cause sync problem
   int32_t iIdx = 0;
   while (iIdx < iCurrentTaskCount) {
-    m_pThreadPool->QueueTask (pTaskList->GetIndexNode (iIdx));
+    m_pThreadPool->QueueTask (m_pcAllTaskList[0]->GetIndexNode(iIdx));
     iIdx ++;
   }
   WelsEventWait (&m_hTaskEvent);
   
   return RET_SUCCESS;
-}
-
-
-EResult  CWelsProcessTaskManage::ExecuteTasks (const CWelsProcessTask::ETaskType iTaskType) {
-  int32_t iPartitionNum = m_pThreadPool->GetThreadNum();
-  
-  
-  return ExecuteTaskList (m_pcAllTaskList[iTaskType]);
 }
 
 int32_t  CWelsProcessTaskManage::GetThreadPoolThreadNum() {
