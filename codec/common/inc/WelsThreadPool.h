@@ -50,6 +50,7 @@
 
 namespace WelsCommon {
 
+
 class  CWelsThreadPool : public CWelsThread, public IWelsTaskThreadSink {
  public:
   enum {

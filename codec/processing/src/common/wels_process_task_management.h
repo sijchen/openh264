@@ -51,47 +51,47 @@
 WELSVP_NAMESPACE_BEGIN
 
 class CWelsProcessTaskManage :  public WelsCommon::IWelsTaskSink {
-public:
+ public:
   CWelsProcessTaskManage();
   ~CWelsProcessTaskManage();
-  
-  EResult   Init ();
+
+  EResult   Init();
 
   EResult   ExecuteTasks (IStrategy* pStrategy, int32_t iType, SPixMap* pSrcPixMap, SPixMap* pRefPixMap);
-  
+
   int32_t  GetThreadPoolThreadNum();
-  
+
   typedef  WelsCommon::CWelsCircleQueue<CWelsProcessTask>            TASKLIST_TYPE;
 
   //IWelsTaskSink
   virtual int OnTaskExecuted();
   virtual int OnTaskCancelled();
-  
-protected:
+
+ protected:
   virtual EResult  CreateTasks (const int32_t kiTaskCount);
-  
-  EResult          ExecuteTaskList(TASKLIST_TYPE* pTaskList);
-  
-protected:
+
+  EResult          ExecuteTaskList (TASKLIST_TYPE* pTaskList);
+
+ protected:
   WelsCommon::CWelsThreadPool*   m_pThreadPool;
-  
+
   TASKLIST_TYPE*  m_pcAllTaskList[CWelsProcessTask::WELS_PROCESS_TASK_ALL];
   int32_t         m_iTaskNum;
 
   int32_t         m_iThreadNum;
-  
+
   int32_t          m_iWaitTaskNum;
   WELS_EVENT       m_hTaskEvent;
-  
+
   WelsCommon::CWelsLock  m_cWaitTaskNumLock;
-  
-private:
+
+ private:
   DISALLOW_COPY_AND_ASSIGN (CWelsProcessTaskManage);
   void  OnTaskMinusOne();
-  
+
   void Uninit();
   void DestroyTasks();
-  void DestroyTaskList(TASKLIST_TYPE* pTargetTaskList);
+  void DestroyTaskList (TASKLIST_TYPE* pTargetTaskList);
 
 };
 

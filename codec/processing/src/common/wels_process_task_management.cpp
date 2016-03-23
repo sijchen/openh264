@@ -62,8 +62,8 @@ WELSVP_NAMESPACE_BEGIN
 
 
 CWelsProcessTaskManage::CWelsProcessTaskManage()
-: m_pThreadPool (NULL),
-m_iWaitTaskNum (0) {
+  : m_pThreadPool (NULL),
+    m_iWaitTaskNum (0) {
   m_iTaskNum = 0;
   WelsEventOpen (&m_hTaskEvent);
 }
@@ -73,14 +73,14 @@ CWelsProcessTaskManage::~CWelsProcessTaskManage() {
   Uninit();
 }
 
-EResult CWelsProcessTaskManage::Init () {
+EResult CWelsProcessTaskManage::Init() {
   //fprintf(stdout, "m_pThreadPool = &(CWelsThreadPool::GetInstance, this=%x\n", this);
 
-  m_pThreadPool = & (WelsCommon::CWelsThreadPool::AddReference ());
+  m_pThreadPool = & (WelsCommon::CWelsThreadPool::AddReference());
   WELS_VERIFY_RETURN_IF (RET_OUTOFMEMORY, NULL == m_pThreadPool)
   //fprintf(stdout, "m_pThreadPool = &(CWelsThreadPool::GetInstance3\n");
-  
-  return CreateTasks (m_pThreadPool->GetThreadNum ());
+
+  return CreateTasks (m_pThreadPool->GetThreadNum());
 }
 
 void   CWelsProcessTaskManage::Uninit() {
@@ -88,7 +88,7 @@ void   CWelsProcessTaskManage::Uninit() {
   //fprintf(stdout, "m_pThreadPool = m_pThreadPool->RemoveInstance\n");
   m_pThreadPool->RemoveInstance();
   //WELS_DELETE_OP (m_pThreadPool);
-  
+
   //fprintf(stdout, "m_pThreadPool = m_pThreadPool->RemoveInstance2\n");
 
   WelsEventClose (&m_hTaskEvent);
@@ -97,14 +97,14 @@ void   CWelsProcessTaskManage::Uninit() {
 EResult CWelsProcessTaskManage::CreateTasks (const int32_t kiTaskCount) {
   CWelsProcessTask* pTask = NULL;
   int32_t iPartitionNum = m_pThreadPool->GetThreadNum();
-  
+
   for (int idx = 0; idx < iPartitionNum; idx++) {
-    pTask = (CWelsProcessTask*)(new CWelsProcessTask(this));
+    pTask = (CWelsProcessTask*) (new CWelsProcessTask (this));
     //pTask = WELS_NEW_OP (CWelsProcessTask(this), CWelsProcessTask);
     WELS_VERIFY_RETURN_IF (RET_OUTOFMEMORY, NULL == pTask)
     m_pcAllTaskList[0]->push_back (pTask);
   }
-  
+
   //fprintf(stdout, "CWelsProcessTaskManage CreateTasks m_iThreadNum %d kiTaskCount=%d\n", m_iThreadNum, kiTaskCount);
   return RET_SUCCESS;
 }
@@ -137,43 +137,46 @@ int  CWelsProcessTaskManage::OnTaskExecuted() {
 }
 
 
-void GetPartitionOfPixMap(int32_t iIdx, int32_t iTotal, SPixMap& sWholePixMap, SPixMap* pPartPixMap) {
+void GetPartitionOfPixMap (int32_t iIdx, int32_t iTotal, SPixMap& sWholePixMap, SPixMap* pPartPixMap) {
   *pPartPixMap = sWholePixMap;
-  int32_t iPartitionHeight = sWholePixMap.sRect.iRectHeight/iTotal;
-  
+  int32_t iPartitionHeight = sWholePixMap.sRect.iRectHeight / iTotal;
+
   //arithmetic on a void* is illegal in both C and C++
   pPartPixMap->pPixel[0] = sWholePixMap.pPixel[0] + iSizeInBits * (iIdx * iPartitionHeight) * sWholePixMap.iStride[0];
-  pPartPixMap->pPixel[1] = sWholePixMap.pPixel[1] + iSizeInBits * (iIdx * iPartitionHeight >>1) * sWholePixMap.iStride[1];
-  pPartPixMap->pPixel[2] = sWholePixMap.pPixel[2] + iSizeInBits * (iIdx * iPartitionHeight >>1) * sWholePixMap.iStride[2];
-  printf("GetPartitionOfPixMap = %d\n", iSizeInBits);
+  pPartPixMap->pPixel[1] = sWholePixMap.pPixel[1] + iSizeInBits * (iIdx * iPartitionHeight >> 1) *
+                           sWholePixMap.iStride[1];
+  pPartPixMap->pPixel[2] = sWholePixMap.pPixel[2] + iSizeInBits * (iIdx * iPartitionHeight >> 1) *
+                           sWholePixMap.iStride[2];
+  printf ("GetPartitionOfPixMap = %d\n", iSizeInBits);
   pPartPixMap->sRect.iRectHeight = sWholePixMap.sRect.iRectHeight - iIdx * iPartitionHeight;
 }
 
 
-EResult  CWelsProcessTaskManage::ExecuteTasks (IStrategy* pStrategy, int32_t iType, SPixMap* pSrcPixMap, SPixMap* pRefPixMap) {
+EResult  CWelsProcessTaskManage::ExecuteTasks (IStrategy* pStrategy, int32_t iType, SPixMap* pSrcPixMap,
+    SPixMap* pRefPixMap) {
   m_iWaitTaskNum = m_pcAllTaskList[0]->size();
   //fprintf(stdout, "ExecuteTaskList m_iWaitTaskNum=%d\n", m_iWaitTaskNum);
   if (0 == m_iWaitTaskNum) {
     return RET_SUCCESS;
   }
-  for (int32_t iIdx=0; iIdx<m_iWaitTaskNum; iIdx++) {
+  for (int32_t iIdx = 0; iIdx < m_iWaitTaskNum; iIdx++) {
     SPixMap sTarRefPixMap;
     SPixMap sTarSrcPixMap;
-    GetPartitionOfPixMap(iIdx, m_iWaitTaskNum, *pRefPixMap, &sTarRefPixMap);
-    GetPartitionOfPixMap(iIdx, m_iWaitTaskNum, *pSrcPixMap, &sTarSrcPixMap);
-    
-    m_pcAllTaskList[0]->GetIndexNode(iIdx)->UpdatePixMap(pStrategy, iType, sTarSrcPixMap, sTarRefPixMap);
-    
+    GetPartitionOfPixMap (iIdx, m_iWaitTaskNum, *pRefPixMap, &sTarRefPixMap);
+    GetPartitionOfPixMap (iIdx, m_iWaitTaskNum, *pSrcPixMap, &sTarSrcPixMap);
+
+    m_pcAllTaskList[0]->GetIndexNode (iIdx)->UpdatePixMap (pStrategy, iType, sTarSrcPixMap, sTarRefPixMap);
+
   }
 
   int32_t iCurrentTaskCount = m_iWaitTaskNum; //if directly use m_iWaitTaskNum in the loop make cause sync problem
   int32_t iIdx = 0;
   while (iIdx < iCurrentTaskCount) {
-    m_pThreadPool->QueueTask (m_pcAllTaskList[0]->GetIndexNode(iIdx));
+    m_pThreadPool->QueueTask (m_pcAllTaskList[0]->GetIndexNode (iIdx));
     iIdx ++;
   }
   WelsEventWait (&m_hTaskEvent);
-  
+
   return RET_SUCCESS;
 }
 
