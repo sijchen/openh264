@@ -141,7 +141,7 @@ void GetPartitionOfPixMap (int32_t iIdx, int32_t iTotal, SPixMap& sWholePixMap, 
   *pPartPixMap = sWholePixMap;
   int32_t iPartitionHeight = sWholePixMap.sRect.iRectHeight / iTotal;
 
-  //arithmetic on a void* is illegal in both C and C++
+  //To Volvet: arithmetic on a void* is illegal in both C and C++
   pPartPixMap->pPixel[0] = sWholePixMap.pPixel[0] + iSizeInBits * (iIdx * iPartitionHeight) * sWholePixMap.iStride[0];
   pPartPixMap->pPixel[1] = sWholePixMap.pPixel[1] + iSizeInBits * (iIdx * iPartitionHeight >> 1) *
                            sWholePixMap.iStride[1];
