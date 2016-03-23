@@ -60,7 +60,8 @@ class  CWelsThreadPool : public CWelsThread, public IWelsTaskThreadSink {
 
   static CWelsThreadPool& AddReference();
   void RemoveInstance();
-  static int32_t GetReferenceCount();
+
+  static bool IsReferenced();
 
   //IWelsTaskThreadSink
   virtual WELS_THREAD_ERROR_CODE OnTaskStart (CWelsTaskThread* pThread,  IWelsTask* pTask);

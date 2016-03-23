@@ -63,9 +63,11 @@ IWelsTaskManage*   IWelsTaskManage::CreateTaskManage (sWelsEncCtx* pCtx, const i
 
   IWelsTaskManage* pTaskManage;
   pTaskManage = WELS_NEW_OP (CWelsTaskManageBase(), CWelsTaskManageBase);
+  WELS_VERIFY_RETURN_IF (NULL, NULL == pTaskManage)
 
-  if (pTaskManage) {
-    pTaskManage->Init (pCtx);
+  if ( ENC_RETURN_SUCCESS != pTaskManage->Init (pCtx) ) {
+    pTaskManage->Uninit();
+    WELS_DELETE_OP(pTaskManage);
   }
   return pTaskManage;
 }
@@ -94,19 +96,18 @@ WelsErrorType CWelsTaskManageBase::Init (sWelsEncCtx* pEncCtx) {
   m_pEncCtx = pEncCtx;
   m_iThreadNum = m_pEncCtx->pSvcParam->iMultipleThreadIdc;
 
-  int32_t iReturn = 0;
+  int32_t iReturn = ENC_RETURN_SUCCESS;
   //fprintf(stdout, "m_pThreadPool = &(CWelsThreadPool::GetInstance, this=%x\n", this);
   iReturn = CWelsThreadPool::SetThreadNum (m_iThreadNum);
-
   m_pThreadPool = & (CWelsThreadPool::AddReference ());
-  if ((iReturn != 0) && pEncCtx) {
+  if ( (iReturn != ENC_RETURN_SUCCESS) && pEncCtx ) {
     WelsLog (& (pEncCtx->sLogCtx), WELS_LOG_WARNING, "Set Thread Num to %d did not succeed, current thread num in use: %d",
              m_iThreadNum, m_pThreadPool->GetThreadNum());
   }
   WELS_VERIFY_RETURN_IF (ENC_RETURN_MEMALLOCERR, NULL == m_pThreadPool)
   //fprintf(stdout, "m_pThreadPool = &(CWelsThreadPool::GetInstance3\n");
 
-  iReturn = 0;
+  iReturn = ENC_RETURN_SUCCESS;
   for (int32_t iDid = 0; iDid < MAX_DEPENDENCY_LAYER; iDid++) {
     m_pcAllTaskList[CWelsBaseTask::WELS_ENC_TASK_ENCODING][iDid] = m_cEncodingTaskList[iDid];
     m_pcAllTaskList[CWelsBaseTask::WELS_ENC_TASK_UPDATEMBMAP][iDid] = m_cPreEncodingTaskList[iDid];
@@ -126,8 +127,8 @@ void   CWelsTaskManageBase::Uninit() {
   //fprintf(stdout, "m_pThreadPool = m_pThreadPool->RemoveInstance2\n");
 
   for (int32_t iDid = 0; iDid < MAX_DEPENDENCY_LAYER; iDid++) {
-    delete m_cEncodingTaskList[iDid];
-    delete m_cPreEncodingTaskList[iDid];
+    WELS_DELETE_OP(m_cEncodingTaskList[iDid]);
+    WELS_DELETE_OP(m_cPreEncodingTaskList[iDid]);
   }
   WelsEventClose (&m_hTaskEvent);
 }

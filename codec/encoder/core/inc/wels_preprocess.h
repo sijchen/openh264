@@ -121,7 +121,7 @@ class CWelsPreProcess {
   virtual  ~CWelsPreProcess();
 
  public:
-  int32_t WelsPreprocessReset (sWelsEncCtx* pEncCtx);
+  int32_t WelsPreprocessReset (sWelsEncCtx* pEncCtx,int32_t iWidth,int32_t iHeight);
   int32_t AllocSpatialPictures (sWelsEncCtx* pCtx, SWelsSvcCodingParam* pParam);
   void    FreeSpatialPictures (sWelsEncCtx* pCtx);
   int32_t BuildSpatialPicList (sWelsEncCtx* pEncCtx, const SSourcePicture* kpSrcPic);
@@ -140,7 +140,6 @@ class CWelsPreProcess {
                       const uint32_t kuiShortRefCount);
   void UpdateSrcListLosslessScreenRefSelectionWithLtr (SPicture* pCurPicture, const int32_t kiCurDid,
       const int32_t kuiMarkLongTermPicIdx, SPicture** pLongRefList);
-  bool BuildSpatialLayer(sWelsEncCtx* pCtx, const SSourcePicture* kpSrc,int32_t iSpatialLayer);
  private:
   int32_t WelsPreprocessCreate();
   int32_t WelsPreprocessDestroy();

@@ -251,21 +251,27 @@ void DynamicAdjustSlicing (sWelsEncCtx* pCtx,
 int32_t RequestMtResource (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pCodingParam, const int32_t iCountBsLen,
                            const int32_t iMaxSliceBufferSize, bool bDynamicSlice) {
   CMemoryAlign* pMa             = NULL;
-  SWelsSvcCodingParam* pPara = NULL;
+  SWelsSvcCodingParam* pPara    = NULL;
   SSliceThreading* pSmt         = NULL;
   int32_t iNumSpatialLayers     = 0;
   int32_t iThreadNum            = 0;
   int32_t iIdx                  = 0;
-  int32_t iReturn = ENC_RETURN_SUCCESS;
+  int32_t iReturn               = ENC_RETURN_SUCCESS;
+  int32_t iMaxSliceNumInThread  = 0;
+
   if (NULL == ppCtx || NULL == pCodingParam || NULL == *ppCtx || iCountBsLen <= 0)
     return 1;
 #if defined(ENABLE_TRACE_MT)
   SLogContext* pLogCtx = & ((*ppCtx)->sLogCtx);
 #endif
-  pMa = (*ppCtx)->pMemAlign;
-  pPara = pCodingParam;
-  iNumSpatialLayers = pPara->iSpatialLayerNum;
-  iThreadNum = pPara->iMultipleThreadIdc;
+  pMa                  = (*ppCtx)->pMemAlign;
+  pPara                = pCodingParam;
+  iNumSpatialLayers    = pPara->iSpatialLayerNum;
+  iThreadNum           = pPara->iMultipleThreadIdc;
+
+  assert (iThreadNum > 0);
+  iMaxSliceNumInThread = ((*ppCtx)->iMaxSliceCount / iThreadNum + 1) * 2;
+  iMaxSliceNumInThread =  WELS_MIN ((*ppCtx)->iMaxSliceCount, (int) iMaxSliceNumInThread);
 
   pSmt = (SSliceThreading*)pMa->WelsMalloc (sizeof (SSliceThreading), "SSliceThreading");
   WELS_VERIFY_RETURN_PROC_IF (1, (NULL == pSmt), FreeMemorySvc (ppCtx))
@@ -299,10 +305,10 @@ int32_t RequestMtResource (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pCodingPara
 
   iIdx = 0;
   while (iIdx < iThreadNum) {
-    pSmt->pThreadPEncCtx[iIdx].pWelsPEncCtx     = (void*) *ppCtx;
-    pSmt->pThreadPEncCtx[iIdx].iSliceIndex      = iIdx;
-    pSmt->pThreadPEncCtx[iIdx].iThreadIndex     = iIdx;
-    pSmt->pThreadHandles[iIdx]                  = 0;
+    pSmt->pThreadPEncCtx[iIdx].pWelsPEncCtx   = (void*) *ppCtx;
+    pSmt->pThreadPEncCtx[iIdx].iSliceIndex    = iIdx;
+    pSmt->pThreadPEncCtx[iIdx].iThreadIndex   = iIdx;
+    pSmt->pThreadHandles[iIdx]                = 0;
 
     WelsSnprintf (name, SEM_NAME_MAX, "ee%d%s", iIdx, pSmt->eventNamespace);
     err = WelsEventOpen (&pSmt->pExitEncodeEvent[iIdx], name);
@@ -325,10 +331,8 @@ int32_t RequestMtResource (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pCodingPara
     err = WelsEventOpen (&pSmt->pReadySliceCodingEvent[iIdx], name);
     MT_TRACE_LOG (pLogCtx, WELS_LOG_INFO, "[MT] Open pReadySliceCodingEvent%d = 0x%p named(%s) ret%d err%d", iIdx,
                   (void*)pSmt->pReadySliceCodingEvent[iIdx], name, err, errno);
-
     ++ iIdx;
   }
-
 
   WelsSnprintf (name, SEM_NAME_MAX, "scm%s", pSmt->eventNamespace);
   err = WelsEventOpen (&pSmt->pSliceCodedMasterEvent, name);
@@ -339,13 +343,16 @@ int32_t RequestMtResource (sWelsEncCtx** ppCtx, SWelsSvcCodingParam* pCodingPara
 
   (*ppCtx)->pTaskManage = IWelsTaskManage::CreateTaskManage (*ppCtx, iNumSpatialLayers, bDynamicSlice);
   WELS_VERIFY_RETURN_PROC_IF (iReturn, (NULL == (*ppCtx)->pTaskManage), FreeMemorySvc (ppCtx))
-  int32_t iThreadBufferNum = (*ppCtx)->pTaskManage->GetThreadPoolThreadNum();
+
+  int32_t iThreadBufferNum = WELS_MIN((*ppCtx)->pTaskManage->GetThreadPoolThreadNum(), MAX_THREADS_NUM);
   for (iIdx = 0;iIdx < iThreadBufferNum; iIdx++) {
     pSmt->pThreadBsBuffer[iIdx] = (uint8_t*)pMa->WelsMalloc (iCountBsLen, "pSmt->pThreadBsBuffer");
     WELS_VERIFY_RETURN_PROC_IF (1, (NULL == pSmt->pThreadBsBuffer[iIdx]), FreeMemorySvc (ppCtx))
   }
-  for (; iIdx < MAX_THREADS_NUM; iIdx++) {
-    pSmt->pThreadBsBuffer[iIdx] = NULL;
+  if (iThreadBufferNum < MAX_THREADS_NUM) {
+    for (iIdx = iThreadBufferNum; iIdx < MAX_THREADS_NUM; iIdx++) {
+      pSmt->pThreadBsBuffer[iIdx] = NULL;
+    }
   }
 
   memset (&pSmt->bThreadBsBufferUsage, 0, MAX_THREADS_NUM * sizeof (bool));
@@ -416,8 +423,7 @@ void ReleaseMtResource (sWelsEncCtx** ppCtx) {
   memset (&pSmt->bThreadBsBufferUsage, 0, MAX_THREADS_NUM * sizeof (bool));
 
   if ((*ppCtx)->pTaskManage != NULL) {
-    delete (*ppCtx)->pTaskManage;
-    (*ppCtx)->pTaskManage = NULL;
+    WELS_DELETE_OP((*ppCtx)->pTaskManage);
   }
 
 #ifdef MT_DEBUG
