@@ -2309,6 +2309,10 @@ void FreeMemorySvc (sWelsEncCtx** ppCtx) {
 
     FreeCodingParam (&pCtx->pSvcParam, pMa);
     if (NULL != pCtx->pFuncList) {
+      if (NULL != pCtx->pFuncList->pParametersetIdStrategy) {
+        WELS_DELETE_OP(pCtx->pFuncList->pParametersetIdStrategy);
+      }
+        
       pMa->WelsFree (pCtx->pFuncList, "SWelsFuncPtrList");
       pCtx->pFuncList = NULL;
     }
@@ -3197,6 +3201,11 @@ int32_t WelsWriteOnePPS (sWelsEncCtx* pCtx, const int32_t kiPpsIdx, int32_t& iNa
   int32_t iNal = pCtx->pOut->iNalIndex;
   /* generate picture parameter set */
   WelsLoadNal (pCtx->pOut, NAL_UNIT_PPS, NRI_PRI_HIGHEST);
+
+#if _DEBUG
+  pCtx->pFuncList->pParametersetIdStrategy->DebugPps(&(pCtx->pPPSArray[kiPpsIdx]));
+#endif
+
   WelsWritePpsSyntax (&pCtx->pPPSArray[kiPpsIdx], &pCtx->pOut->sBsWrite,
                       ((SPS_PPS_LISTING != pCtx->pSvcParam->eSpsPpsIdStrategy)) ? (& (pCtx->sPSOVector)) : NULL);
   WelsUnloadNal (pCtx->pOut);

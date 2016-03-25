@@ -45,6 +45,7 @@
 #include "param_svc.h"
 #include "nal_encap.h"
 #include "picture.h"
+#include "paraset_strategy.h"
 #include "dq_map.h"
 #include "stat.h"
 #include "macros.h"
@@ -57,11 +58,12 @@
 
 #include "mt_defs.h" // for multiple threadin,
 #include "WelsThreadLib.h"
+
 #include "wels_task_management.h"
+
 
 namespace WelsEnc {
 
-class IWelsTaskManage;
 /*
  *  reference list for each quality layer in SVC
  */
