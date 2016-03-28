@@ -43,6 +43,7 @@
 #define WELS_ACCESS_UNIT_WRITER_H__
 
 #include "parameter_sets.h"
+#include "paraset_strategy.h"
 #include "param_svc.h"
 #include "utils.h"
 namespace WelsEnc {
@@ -92,7 +93,7 @@ int32_t WelsWriteSubsetSpsSyntax (SSubsetSps* pSubsetSps, SBitStringAux* pBitStr
  * \note    Call it in case EWelsNalUnitType is PPS.
  *************************************************************************************
  */
-int32_t WelsWritePpsSyntax (SWelsPPS* pPps, SBitStringAux* pBitStringAux, SParaSetOffset* sPSOVector);
+int32_t WelsWritePpsSyntax (SWelsPPS* pPps, SBitStringAux* pBitStringAux, IWelsParametersetStrategy* pParametersetStrategy);
 
 /*!
  * \brief   initialize pSps based on configurable parameters in svc

@@ -380,17 +380,12 @@ int32_t WelsWriteSubsetSpsSyntax (SSubsetSps* pSubsetSps, SBitStringAux* pBitStr
  * \note    Call it in case EWelsNalUnitType is PPS.
  *************************************************************************************
  */
-int32_t WelsWritePpsSyntax (SWelsPPS* pPps, SBitStringAux* pBitStringAux, SParaSetOffset* pPSOVector) {
+int32_t WelsWritePpsSyntax (SWelsPPS* pPps, SBitStringAux* pBitStringAux, IWelsParametersetStrategy* pParametersetStrategy) {
   SBitStringAux* pLocalBitStringAux = pBitStringAux;
 
-  const int32_t kiParameterSetType = (pPSOVector != NULL) ? (pPSOVector->bPpsIdMappingIntoSubsetsps[pPps->iPpsId] ?
-                                     PARA_SET_TYPE_SUBSETSPS : PARA_SET_TYPE_AVCSPS) : 0;
-
-  BsWriteUE (pLocalBitStringAux, pPps->iPpsId
-             + ((pPSOVector != NULL) ? (pPSOVector->sParaSetOffsetVariable[PARA_SET_TYPE_PPS].iParaSetIdDelta[pPps->iPpsId]) : 0));
-  BsWriteUE (pLocalBitStringAux, pPps->iSpsId
-             + ((pPSOVector != NULL) ? (pPSOVector->sParaSetOffsetVariable[kiParameterSetType].iParaSetIdDelta[pPps->iSpsId]) : 0));
-
+  BsWriteUE (pLocalBitStringAux, pPps->iPpsId + pParametersetStrategy->GetPpsIdOffset(pPps->iPpsId));
+  BsWriteUE (pLocalBitStringAux, pPps->iSpsId + pParametersetStrategy->GetSpsIdOffset(pPps->iPpsId, pPps->iSpsId));
+  
   BsWriteOneBit (pLocalBitStringAux, pPps->bEntropyCodingModeFlag);
   BsWriteOneBit (pLocalBitStringAux, false/*pPps->bPicOrderPresentFlag*/);
 
