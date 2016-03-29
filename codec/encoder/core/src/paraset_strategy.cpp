@@ -620,12 +620,12 @@ void CWelsParametersetSpsPpsListing::InitPps (sWelsEncCtx* pCtx, uint32_t kiSpsI
     WelsInitPps (pPps, pSps, pSubsetSps, iPpsId, true, kbUsingSubsetSps, kbEntropyCodingModeFlag);
   }
   SetUseSubsetFlag (iPpsId, kbUsingSubsetSps);
-
-  UpdatePpsList (pCtx);
 }
 
 void CWelsParametersetSpsPpsListing::UpdateParaSetNum (sWelsEncCtx* pCtx) {
   CWelsParametersetSpsListing::UpdateParaSetNum (pCtx);
+  
+  UpdatePpsList (pCtx);
   pCtx->iPpsNum = m_sParaSetOffset.uiInUsePpsNum;
 }
 
