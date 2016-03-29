@@ -347,7 +347,7 @@ struct EncodeDecodeParamBase {
   int iTarBitrate;
 };
 
-//#define DEBUG_FILE_SAVE_INCREASING_ID
+#define DEBUG_FILE_SAVE_INCREASING_ID
 TEST_F (EncodeDecodeTestAPI, ParameterSetStrategy_INCREASING_ID) {
 
   int iWidth       = GetRandWidth();

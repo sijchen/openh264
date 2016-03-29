@@ -3055,7 +3055,7 @@ int32_t WelsWriteOneSPS (sWelsEncCtx* pCtx, const int32_t kiSpsIdx, int32_t& iNa
   WelsLoadNal (pCtx->pOut, NAL_UNIT_SPS, NRI_PRI_HIGHEST);
 
   WelsWriteSpsNal (&pCtx->pSpsArray[kiSpsIdx], &pCtx->pOut->sBsWrite,
-                   & (pCtx->sPSOVector.sParaSetOffsetVariable[PARA_SET_TYPE_AVCSPS].iParaSetIdDelta[0]));
+                   pCtx->pFuncList->pParametersetStrategy->GetSpsIdOffsetList(PARA_SET_TYPE_AVCSPS));
   WelsUnloadNal (pCtx->pOut);
 
   int32_t iReturn = WelsEncodeNal (&pCtx->pOut->sNalList[iNal], NULL,
@@ -3101,7 +3101,7 @@ int32_t WelsWriteParameterSets (sWelsEncCtx* pCtx, int32_t* pNalLen, int32_t* pN
   int32_t iNalLength    = 0;
   int32_t iReturn = ENC_RETURN_SUCCESS;
 
-  if (NULL == pCtx || NULL == pNalLen || NULL == pNumNal || pCtx->pFuncList->pParametersetStrategy)
+  if (NULL == pCtx || NULL == pNalLen || NULL == pNumNal || NULL == pCtx->pFuncList->pParametersetStrategy)
     return ENC_RETURN_UNEXPECTED;
   
   *pTotalLength = 0;
@@ -3135,7 +3135,7 @@ int32_t WelsWriteParameterSets (sWelsEncCtx* pCtx, int32_t* pNalLen, int32_t* pN
     WelsLoadNal (pCtx->pOut, NAL_UNIT_SUBSET_SPS, NRI_PRI_HIGHEST);
 
     WelsWriteSubsetSpsSyntax (&pCtx->pSubsetArray[iId], &pCtx->pOut->sBsWrite,
-                              & (pCtx->sPSOVector.sParaSetOffsetVariable[PARA_SET_TYPE_SUBSETSPS].iParaSetIdDelta[0]));
+                              pCtx->pFuncList->pParametersetStrategy->GetSpsIdOffsetList(PARA_SET_TYPE_SUBSETSPS));
     WelsUnloadNal (pCtx->pOut);
 
     iReturn = WelsEncodeNal (&pCtx->pOut->sNalList[iNal], NULL,

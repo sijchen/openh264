@@ -71,87 +71,87 @@ IWelsParametersetStrategy*   IWelsParametersetStrategy::CreateParametersetStrate
   return pParametersetStrategy;
 }
 
-  
-  static int32_t WelsGenerateNewSps (sWelsEncCtx* pCtx, const bool kbUseSubsetSps, const int32_t iDlayerIndex,
-                                     const int32_t iDlayerCount, const int32_t kiSpsId,
-                                     SWelsSPS*& pSps, SSubsetSps*& pSubsetSps, bool bSVCBaselayer) {
-    int32_t iRet = 0;
-    
-    if (!kbUseSubsetSps) {
-      pSps        = & (pCtx->pSpsArray[kiSpsId]);
-    } else {
-      pSubsetSps  = & (pCtx->pSubsetArray[kiSpsId]);
-      pSps        = &pSubsetSps->pSps;
-    }
-    
-    SWelsSvcCodingParam* pParam = pCtx->pSvcParam;
-    SSpatialLayerConfig* pDlayerParam = &pParam->sSpatialLayers[iDlayerIndex];
-    // Need port pSps/pPps initialization due to spatial scalability changed
-    if (!kbUseSubsetSps) {
-      iRet = WelsInitSps (pSps, pDlayerParam, &pParam->sDependencyLayers[iDlayerIndex], pParam->uiIntraPeriod,
-                          pParam->iMaxNumRefFrame,
-                          kiSpsId, pParam->bEnableFrameCroppingFlag, pParam->iRCMode != RC_OFF_MODE, iDlayerCount,
-                          bSVCBaselayer);
-    } else {
-      iRet = WelsInitSubsetSps (pSubsetSps, pDlayerParam, &pParam->sDependencyLayers[iDlayerIndex], pParam->uiIntraPeriod,
-                                pParam->iMaxNumRefFrame,
-                                kiSpsId, pParam->bEnableFrameCroppingFlag, pParam->iRCMode != RC_OFF_MODE, iDlayerCount);
-    }
-    return iRet;
+
+static int32_t WelsGenerateNewSps (sWelsEncCtx* pCtx, const bool kbUseSubsetSps, const int32_t iDlayerIndex,
+                                   const int32_t iDlayerCount, const int32_t kiSpsId,
+                                   SWelsSPS*& pSps, SSubsetSps*& pSubsetSps, bool bSVCBaselayer) {
+  int32_t iRet = 0;
+
+  if (!kbUseSubsetSps) {
+    pSps        = & (pCtx->pSpsArray[kiSpsId]);
+  } else {
+    pSubsetSps  = & (pCtx->pSubsetArray[kiSpsId]);
+    pSps        = &pSubsetSps->pSps;
   }
-  
-  static bool CheckMatchedSps (SWelsSPS* const pSps1, SWelsSPS* const pSps2) {
-    
-    if ((pSps1->iMbWidth != pSps2->iMbWidth)
-        || (pSps1->iMbHeight != pSps2->iMbHeight)) {
-      return false;
-    }
-    
-    if ((pSps1->uiLog2MaxFrameNum != pSps2->uiLog2MaxFrameNum)
-        || (pSps1->iLog2MaxPocLsb != pSps2->iLog2MaxPocLsb)) {
-      return false;
-    }
-    
-    if (pSps1->iNumRefFrames != pSps2->iNumRefFrames) {
-      return false;
-    }
-    
-    if ((pSps1->bFrameCroppingFlag != pSps2->bFrameCroppingFlag)
-        || (pSps1->sFrameCrop.iCropLeft != pSps2->sFrameCrop.iCropLeft)
-        || (pSps1->sFrameCrop.iCropRight != pSps2->sFrameCrop.iCropRight)
-        || (pSps1->sFrameCrop.iCropTop != pSps2->sFrameCrop.iCropTop)
-        || (pSps1->sFrameCrop.iCropBottom != pSps2->sFrameCrop.iCropBottom)
-        ) {
-      return false;
-    }
-    
-    if ((pSps1->uiProfileIdc != pSps2->uiProfileIdc)
-        || (pSps1->bConstraintSet0Flag != pSps2->bConstraintSet0Flag)
-        || (pSps1->bConstraintSet1Flag != pSps2->bConstraintSet1Flag)
-        || (pSps1->bConstraintSet2Flag != pSps2->bConstraintSet2Flag)
-        || (pSps1->bConstraintSet3Flag != pSps2->bConstraintSet3Flag)
-        || (pSps1->iLevelIdc != pSps2->iLevelIdc)) {
-      return false;
-    }
-    
-    return true;
+
+  SWelsSvcCodingParam* pParam = pCtx->pSvcParam;
+  SSpatialLayerConfig* pDlayerParam = &pParam->sSpatialLayers[iDlayerIndex];
+  // Need port pSps/pPps initialization due to spatial scalability changed
+  if (!kbUseSubsetSps) {
+    iRet = WelsInitSps (pSps, pDlayerParam, &pParam->sDependencyLayers[iDlayerIndex], pParam->uiIntraPeriod,
+                        pParam->iMaxNumRefFrame,
+                        kiSpsId, pParam->bEnableFrameCroppingFlag, pParam->iRCMode != RC_OFF_MODE, iDlayerCount,
+                        bSVCBaselayer);
+  } else {
+    iRet = WelsInitSubsetSps (pSubsetSps, pDlayerParam, &pParam->sDependencyLayers[iDlayerIndex], pParam->uiIntraPeriod,
+                              pParam->iMaxNumRefFrame,
+                              kiSpsId, pParam->bEnableFrameCroppingFlag, pParam->iRCMode != RC_OFF_MODE, iDlayerCount);
   }
-  
-  static bool CheckMatchedSubsetSps (SSubsetSps* const pSubsetSps1, SSubsetSps* const pSubsetSps2) {
-    if (!CheckMatchedSps (&pSubsetSps1->pSps, &pSubsetSps2->pSps)) {
-      return false;
-    }
-    
-    if ((pSubsetSps1->sSpsSvcExt.iExtendedSpatialScalability      != pSubsetSps2->sSpsSvcExt.iExtendedSpatialScalability)
-        || (pSubsetSps1->sSpsSvcExt.bAdaptiveTcoeffLevelPredFlag  != pSubsetSps2->sSpsSvcExt.bAdaptiveTcoeffLevelPredFlag)
-        || (pSubsetSps1->sSpsSvcExt.bSeqTcoeffLevelPredFlag != pSubsetSps2->sSpsSvcExt.bSeqTcoeffLevelPredFlag)
-        || (pSubsetSps1->sSpsSvcExt.bSliceHeaderRestrictionFlag != pSubsetSps2->sSpsSvcExt.bSliceHeaderRestrictionFlag)) {
-      return false;
-    }
-    
-    return true;
+  return iRet;
+}
+
+static bool CheckMatchedSps (SWelsSPS* const pSps1, SWelsSPS* const pSps2) {
+
+  if ((pSps1->iMbWidth != pSps2->iMbWidth)
+      || (pSps1->iMbHeight != pSps2->iMbHeight)) {
+    return false;
   }
-  
+
+  if ((pSps1->uiLog2MaxFrameNum != pSps2->uiLog2MaxFrameNum)
+      || (pSps1->iLog2MaxPocLsb != pSps2->iLog2MaxPocLsb)) {
+    return false;
+  }
+
+  if (pSps1->iNumRefFrames != pSps2->iNumRefFrames) {
+    return false;
+  }
+
+  if ((pSps1->bFrameCroppingFlag != pSps2->bFrameCroppingFlag)
+      || (pSps1->sFrameCrop.iCropLeft != pSps2->sFrameCrop.iCropLeft)
+      || (pSps1->sFrameCrop.iCropRight != pSps2->sFrameCrop.iCropRight)
+      || (pSps1->sFrameCrop.iCropTop != pSps2->sFrameCrop.iCropTop)
+      || (pSps1->sFrameCrop.iCropBottom != pSps2->sFrameCrop.iCropBottom)
+     ) {
+    return false;
+  }
+
+  if ((pSps1->uiProfileIdc != pSps2->uiProfileIdc)
+      || (pSps1->bConstraintSet0Flag != pSps2->bConstraintSet0Flag)
+      || (pSps1->bConstraintSet1Flag != pSps2->bConstraintSet1Flag)
+      || (pSps1->bConstraintSet2Flag != pSps2->bConstraintSet2Flag)
+      || (pSps1->bConstraintSet3Flag != pSps2->bConstraintSet3Flag)
+      || (pSps1->iLevelIdc != pSps2->iLevelIdc)) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool CheckMatchedSubsetSps (SSubsetSps* const pSubsetSps1, SSubsetSps* const pSubsetSps2) {
+  if (!CheckMatchedSps (&pSubsetSps1->pSps, &pSubsetSps2->pSps)) {
+    return false;
+  }
+
+  if ((pSubsetSps1->sSpsSvcExt.iExtendedSpatialScalability      != pSubsetSps2->sSpsSvcExt.iExtendedSpatialScalability)
+      || (pSubsetSps1->sSpsSvcExt.bAdaptiveTcoeffLevelPredFlag  != pSubsetSps2->sSpsSvcExt.bAdaptiveTcoeffLevelPredFlag)
+      || (pSubsetSps1->sSpsSvcExt.bSeqTcoeffLevelPredFlag != pSubsetSps2->sSpsSvcExt.bSeqTcoeffLevelPredFlag)
+      || (pSubsetSps1->sSpsSvcExt.bSliceHeaderRestrictionFlag != pSubsetSps2->sSpsSvcExt.bSliceHeaderRestrictionFlag)) {
+    return false;
+  }
+
+  return true;
+}
+
 CWelsParametersetIdConstant::CWelsParametersetIdConstant() {
   memset (&m_sParaSetOffset, 0, sizeof (m_sParaSetOffset));
 }
@@ -172,6 +172,10 @@ int32_t CWelsParametersetIdConstant::GetSpsIdOffset (const int32_t iPpsId, const
   return 0;
 };
 
+int32_t* CWelsParametersetIdConstant::GetSpsIdOffsetList (const int iParasetType) {
+  return & (m_sParaSetOffset.sParaSetOffsetVariable[iParasetType].iParaSetIdDelta[0]);
+}
+  
 uint32_t CWelsParametersetIdConstant::GetAllNeededParasetNum() {
   return (GetNeededSpsNum()
           + GetNeededSubsetSpsNum()
@@ -204,53 +208,57 @@ uint32_t CWelsParametersetIdConstant::GetNeededPpsNum() {
 uint32_t CWelsParametersetIdConstant::GetBasicNeededPpsNum() {
   return (1 + m_iSpatialLayerNum);
 }
-  
-void CWelsParametersetIdConstant::LoadPrevious(SExistingParasetList* pExistingParasetList,  SWelsSPS* pSpsArray, SSubsetSps*       pSubsetArray, SWelsPPS* pPpsArray) {
+
+void CWelsParametersetIdConstant::LoadPrevious (SExistingParasetList* pExistingParasetList,  SWelsSPS* pSpsArray,
+    SSubsetSps*       pSubsetArray, SWelsPPS* pPpsArray) {
   return;
 }
-  
-  void CWelsParametersetIdConstant::Update (const uint32_t kuiId, const int iParasetType) {
-    memset (&m_sParaSetOffset, 0, sizeof (SParaSetOffset));
-  }
-  
-  bool CWelsParametersetIdConstant::GenerateNewSps (sWelsEncCtx* pCtx, const bool kbUseSubsetSps, const int32_t iDlayerIndex,
-                               const int32_t iDlayerCount, const int32_t kiSpsId,
-                                                    SWelsSPS*& pSps, SSubsetSps*& pSubsetSps, bool bSVCBaselayer) {
-    WelsGenerateNewSps(pCtx,kbUseSubsetSps, iDlayerIndex,
-                       iDlayerCount, kiSpsId,
-                       pSps, pSubsetSps, bSVCBaselayer);
-    return true;
-  }
-  
-  
-  void CWelsParametersetIdConstant::InitPps (sWelsEncCtx* pCtx, uint32_t kiSpsId,
-                                              SWelsPPS* pPps,
-                                              SWelsSPS* pSps,
-                                              SSubsetSps* pSubsetSps,
-                                              const uint32_t kuiPpsId,
-                                              const bool kbDeblockingFilterPresentFlag,
-                                              const bool kbUsingSubsetSps,
-                                              const bool kbEntropyCodingModeFlag) {
-      WelsInitPps (pPps, pSps, pSubsetSps, kuiPpsId, true, kbUsingSubsetSps, kbEntropyCodingModeFlag);
-    
-  }
-  
-  void CWelsParametersetIdConstant::SetUseSubsetFlag(const uint32_t iPpsId, const bool bUseSubsetSps) {
-    m_sParaSetOffset.bPpsIdMappingIntoSubsetsps[iPpsId] = bUseSubsetSps;
-  }
-  
-void CWelsParametersetIdNonConstant::OutputCurrentStructure(SParaSetOffsetVariable* pParaSetOffsetVariable, int32_t* pPpsIdList, sWelsEncCtx* pCtx, SExistingParasetList* pExistingParasetList) {
+
+void CWelsParametersetIdConstant::Update (const uint32_t kuiId, const int iParasetType) {
+  memset (&m_sParaSetOffset, 0, sizeof (SParaSetOffset));
+}
+
+bool CWelsParametersetIdConstant::GenerateNewSps (sWelsEncCtx* pCtx, const bool kbUseSubsetSps,
+    const int32_t iDlayerIndex,
+    const int32_t iDlayerCount, const int32_t kiSpsId,
+    SWelsSPS*& pSps, SSubsetSps*& pSubsetSps, bool bSVCBaselayer) {
+  WelsGenerateNewSps (pCtx, kbUseSubsetSps, iDlayerIndex,
+                      iDlayerCount, kiSpsId,
+                      pSps, pSubsetSps, bSVCBaselayer);
+  return true;
+}
+
+
+void CWelsParametersetIdConstant::InitPps (sWelsEncCtx* pCtx, uint32_t kiSpsId,
+    SWelsPPS* pPps,
+    SWelsSPS* pSps,
+    SSubsetSps* pSubsetSps,
+    const uint32_t kuiPpsId,
+    const bool kbDeblockingFilterPresentFlag,
+    const bool kbUsingSubsetSps,
+    const bool kbEntropyCodingModeFlag) {
+  WelsInitPps (pPps, pSps, pSubsetSps, kuiPpsId, true, kbUsingSubsetSps, kbEntropyCodingModeFlag);
+
+}
+
+void CWelsParametersetIdConstant::SetUseSubsetFlag (const uint32_t iPpsId, const bool bUseSubsetSps) {
+  m_sParaSetOffset.bPpsIdMappingIntoSubsetsps[iPpsId] = bUseSubsetSps;
+}
+
+void CWelsParametersetIdNonConstant::OutputCurrentStructure (SParaSetOffsetVariable* pParaSetOffsetVariable,
+    int32_t* pPpsIdList, sWelsEncCtx* pCtx, SExistingParasetList* pExistingParasetList) {
   for (int32_t k = 0; k < PARA_SET_TYPE; k++) {
     memset ((m_sParaSetOffset.sParaSetOffsetVariable[k].bUsedParaSetIdInBs), 0, MAX_PPS_COUNT * sizeof (bool));
   }
   memcpy (pParaSetOffsetVariable, m_sParaSetOffset.sParaSetOffsetVariable,
           (PARA_SET_TYPE)*sizeof (SParaSetOffsetVariable)); // confirmed_safe_unsafe_usage
 }
-void CWelsParametersetIdNonConstant::LoadPreviousStructure(SParaSetOffsetVariable* pParaSetOffsetVariable, int32_t* pPpsIdList) {
+void CWelsParametersetIdNonConstant::LoadPreviousStructure (SParaSetOffsetVariable* pParaSetOffsetVariable,
+    int32_t* pPpsIdList) {
   memcpy (m_sParaSetOffset.sParaSetOffsetVariable, pParaSetOffsetVariable,
           (PARA_SET_TYPE)*sizeof (SParaSetOffsetVariable)); // confirmed_safe_unsafe_usage
 }
-  
+
 //
 //CWelsParametersetIdIncreasing
 //
@@ -272,62 +280,63 @@ void CWelsParametersetIdIncreasing::DebugSpsPps (const int32_t kiPpsId, const in
   //}
   //#endif
 }
-  void CWelsParametersetIdIncreasing::DebugPps (const int32_t kiPpsId) {
-    //#if _DEBUG
-    const int32_t kiTmpPpsIdInBs = kiPpsId +
-    m_sParaSetOffset.sParaSetOffsetVariable[PARA_SET_TYPE_PPS].iParaSetIdDelta[ kiPpsId ];
-    assert (MAX_PPS_COUNT > kiTmpPpsIdInBs);
-    
-    //when activated need to sure there is avialable PPS
-    assert (m_sParaSetOffset.sParaSetOffsetVariable[PARA_SET_TYPE_PPS].bUsedParaSetIdInBs[kiTmpPpsIdInBs]);
-    //#endif
+void CWelsParametersetIdIncreasing::DebugPps (const int32_t kiPpsId) {
+  //#if _DEBUG
+  const int32_t kiTmpPpsIdInBs = kiPpsId +
+                                 m_sParaSetOffset.sParaSetOffsetVariable[PARA_SET_TYPE_PPS].iParaSetIdDelta[ kiPpsId ];
+  assert (MAX_PPS_COUNT > kiTmpPpsIdInBs);
+
+  //when activated need to sure there is avialable PPS
+  assert (m_sParaSetOffset.sParaSetOffsetVariable[PARA_SET_TYPE_PPS].bUsedParaSetIdInBs[kiTmpPpsIdInBs]);
+  //#endif
+}
+
+void CWelsParametersetIdIncreasing::ParasetIdAdditionIdAdjust (SParaSetOffsetVariable* sParaSetOffsetVariable,
+    const int32_t kiCurEncoderParaSetId,
+    const uint32_t kuiMaxIdInBs) { //paraset_type = 0: SPS; =1: PPS
+  //SPS_ID in avc_sps and pSubsetSps will be different using this
+  //SPS_ID case example:
+  //1st enter:  next_spsid_in_bs == 0; spsid == 0; delta==0;            //actual spsid_in_bs == 0
+  //1st finish: next_spsid_in_bs == 1;
+  //2nd enter:  next_spsid_in_bs == 1; spsid == 0; delta==1;            //actual spsid_in_bs == 1
+  //2nd finish: next_spsid_in_bs == 2;
+  //31st enter: next_spsid_in_bs == 31; spsid == 0~2; delta==31~29;     //actual spsid_in_bs == 31
+  //31st finish:next_spsid_in_bs == 0;
+  //31st enter: next_spsid_in_bs == 0; spsid == 0~2; delta==-2~0;       //actual spsid_in_bs == 0
+  //31st finish:next_spsid_in_bs == 1;
+
+  const int32_t kiEncId = kiCurEncoderParaSetId;
+  uint32_t uiNextIdInBs = sParaSetOffsetVariable->uiNextParaSetIdToUseInBs;
+
+  //update current layer's pCodingParam
+  sParaSetOffsetVariable->iParaSetIdDelta[kiEncId] = uiNextIdInBs -
+      kiEncId;  //for current parameter set, change its id_delta
+  //write pso pData for next update:
+  sParaSetOffsetVariable->bUsedParaSetIdInBs[uiNextIdInBs] = true; //   update current used_id
+
+  //prepare for next update:
+  //   find the next avaibable iId
+  ++uiNextIdInBs;
+  if (uiNextIdInBs >= kuiMaxIdInBs) {
+    uiNextIdInBs = 0;//ensure the SPS_ID wound not exceed MAX_SPS_COUNT
   }
-  
-  void CWelsParametersetIdIncreasing::ParasetIdAdditionIdAdjust (SParaSetOffsetVariable* sParaSetOffsetVariable, const int32_t kiCurEncoderParaSetId,
-                                  const uint32_t kuiMaxIdInBs) { //paraset_type = 0: SPS; =1: PPS
-    //SPS_ID in avc_sps and pSubsetSps will be different using this
-    //SPS_ID case example:
-    //1st enter:  next_spsid_in_bs == 0; spsid == 0; delta==0;            //actual spsid_in_bs == 0
-    //1st finish: next_spsid_in_bs == 1;
-    //2nd enter:  next_spsid_in_bs == 1; spsid == 0; delta==1;            //actual spsid_in_bs == 1
-    //2nd finish: next_spsid_in_bs == 2;
-    //31st enter: next_spsid_in_bs == 31; spsid == 0~2; delta==31~29;     //actual spsid_in_bs == 31
-    //31st finish:next_spsid_in_bs == 0;
-    //31st enter: next_spsid_in_bs == 0; spsid == 0~2; delta==-2~0;       //actual spsid_in_bs == 0
-    //31st finish:next_spsid_in_bs == 1;
-    
-    const int32_t kiEncId = kiCurEncoderParaSetId;
-    uint32_t uiNextIdInBs = sParaSetOffsetVariable->uiNextParaSetIdToUseInBs;
-    
-    //update current layer's pCodingParam
-    sParaSetOffsetVariable->iParaSetIdDelta[kiEncId] = uiNextIdInBs -
-    kiEncId;  //for current parameter set, change its id_delta
-    //write pso pData for next update:
-    sParaSetOffsetVariable->bUsedParaSetIdInBs[uiNextIdInBs] = true; //   update current used_id
-    
-    //prepare for next update:
-    //   find the next avaibable iId
-    ++uiNextIdInBs;
-    if (uiNextIdInBs >= kuiMaxIdInBs) {
-      uiNextIdInBs = 0;//ensure the SPS_ID wound not exceed MAX_SPS_COUNT
-    }
-    //   update next_id
-    sParaSetOffsetVariable->uiNextParaSetIdToUseInBs = uiNextIdInBs;
-  }
-  
-  void CWelsParametersetIdIncreasing::Update (const uint32_t kuiId, const int iParasetType) {
+  //   update next_id
+  sParaSetOffsetVariable->uiNextParaSetIdToUseInBs = uiNextIdInBs;
+}
+
+void CWelsParametersetIdIncreasing::Update (const uint32_t kuiId, const int iParasetType) {
 #if _DEBUG
-    m_sParaSetOffset.SpsPpsIdStrategy = INCREASING_ID;
-    assert(kuiId < MAX_DQ_LAYER_NUM);
+  m_sParaSetOffset.SpsPpsIdStrategy = INCREASING_ID;
+  assert (kuiId < MAX_DQ_LAYER_NUM);
 #endif
-    
-    ParasetIdAdditionIdAdjust (& (m_sParaSetOffset.sParaSetOffsetVariable[iParasetType]),
-                               kuiId,
-                               (iParasetType != PARA_SET_TYPE_PPS) ? MAX_SPS_COUNT : MAX_PPS_COUNT);
-  }
+
+  ParasetIdAdditionIdAdjust (& (m_sParaSetOffset.sParaSetOffsetVariable[iParasetType]),
+                             kuiId,
+                             (iParasetType != PARA_SET_TYPE_PPS) ? MAX_SPS_COUNT : MAX_PPS_COUNT);
+}
 //((SPS_PPS_LISTING != pEncCtx->pSvcParam->eSpsPpsIdStrategy) ? (&
 //  (pEncCtx->sPSOVector.sParaSetOffsetVariable[PARA_SET_TYPE_PPS].iParaSetIdDelta[0])) : NULL)
-  
+
 int32_t CWelsParametersetIdIncreasing::GetPpsIdOffset (const int32_t kiPpsId) {
 #if _DEBUG
   DebugPps (kiPpsId);
@@ -341,6 +350,7 @@ int32_t CWelsParametersetIdIncreasing::GetSpsIdOffset (const int32_t kiPpsId, co
 #if _DEBUG
   DebugSpsPps (kiPpsId, kiSpsId);
 #endif
+  printf("%d %d\n", kiParameterSetType, m_sParaSetOffset.sParaSetOffsetVariable[kiParameterSetType].iParaSetIdDelta[kiSpsId]);
   return (m_sParaSetOffset.sParaSetOffsetVariable[kiParameterSetType].iParaSetIdDelta[kiSpsId]);
 }
 
@@ -361,28 +371,30 @@ uint32_t CWelsParametersetSpsListing::GetNeededSubsetSpsNum() {
   return m_sParaSetOffset.uiNeededSubsetSpsNum;
 }
 
-void CWelsParametersetSpsListing::LoadPreviousSps(SExistingParasetList* pExistingParasetList, SWelsSPS* pSpsArray, SSubsetSps*       pSubsetArray) {
+void CWelsParametersetSpsListing::LoadPreviousSps (SExistingParasetList* pExistingParasetList, SWelsSPS* pSpsArray,
+    SSubsetSps*       pSubsetArray) {
   //if ((SPS_LISTING & pParam->eSpsPpsIdStrategy) && (NULL != pExistingParasetList)) {
-    m_sParaSetOffset.uiInUseSpsNum = pExistingParasetList->uiInUseSpsNum;
-    memcpy (pSpsArray, pExistingParasetList->sSps, MAX_SPS_COUNT * sizeof (SWelsSPS));
-    
-    if (GetNeededSubsetSpsNum() > 0) {
-      m_sParaSetOffset.uiInUseSubsetSpsNum = pExistingParasetList->uiInUseSubsetSpsNum;
-      memcpy (pSubsetArray, pExistingParasetList->sSubsetSps, MAX_SPS_COUNT * sizeof (SSubsetSps));
-    } else {
-      m_sParaSetOffset.uiInUseSubsetSpsNum = 0;
-    }
+  m_sParaSetOffset.uiInUseSpsNum = pExistingParasetList->uiInUseSpsNum;
+  memcpy (pSpsArray, pExistingParasetList->sSps, MAX_SPS_COUNT * sizeof (SWelsSPS));
+
+  if (GetNeededSubsetSpsNum() > 0) {
+    m_sParaSetOffset.uiInUseSubsetSpsNum = pExistingParasetList->uiInUseSubsetSpsNum;
+    memcpy (pSubsetArray, pExistingParasetList->sSubsetSps, MAX_SPS_COUNT * sizeof (SSubsetSps));
+  } else {
+    m_sParaSetOffset.uiInUseSubsetSpsNum = 0;
+  }
   //}
 
 }
-void CWelsParametersetSpsListing::LoadPrevious(SExistingParasetList* pExistingParasetList,  SWelsSPS* pSpsArray, SSubsetSps*       pSubsetArray, SWelsPPS* pPpsArray) {
-    if (NULL==pExistingParasetList) {
-      return;
-    }
-    LoadPreviousSps(pExistingParasetList, pSpsArray, pSubsetArray);
-    LoadPreviousPps(pExistingParasetList, pPpsArray);
+void CWelsParametersetSpsListing::LoadPrevious (SExistingParasetList* pExistingParasetList,  SWelsSPS* pSpsArray,
+    SSubsetSps*       pSubsetArray, SWelsPPS* pPpsArray) {
+  if (NULL == pExistingParasetList) {
+    return;
+  }
+  LoadPreviousSps (pExistingParasetList, pSpsArray, pSubsetArray);
+  LoadPreviousPps (pExistingParasetList, pPpsArray);
 }
-  
+
 bool CWelsParametersetSpsListing::CheckParamCompatibility (SWelsSvcCodingParam* pCodingParam, SLogContext* pLogCtx) {
   if (pCodingParam->iSpatialLayerNum > 1 && (!pCodingParam->bSimulcastAVC)) {
     WelsLog (pLogCtx, WELS_LOG_WARNING,
@@ -393,81 +405,83 @@ bool CWelsParametersetSpsListing::CheckParamCompatibility (SWelsSvcCodingParam* 
   }
   return true;
 }
-  
-  bool CWelsParametersetSpsListing::CheckPpsGenerating() {
-    return true;
+
+bool CWelsParametersetSpsListing::CheckPpsGenerating() {
+  return true;
+}
+int32_t CWelsParametersetSpsListing::SpsReset (sWelsEncCtx* pCtx, bool kbUseSubsetSps) {
+
+  // reset current list
+  if (!kbUseSubsetSps) {
+    m_sParaSetOffset.uiInUseSpsNum = 1;
+    memset (pCtx->pSpsArray, 0, MAX_SPS_COUNT * sizeof (SWelsSPS));
+  } else {
+    m_sParaSetOffset.uiInUseSubsetSpsNum = 1;
+    memset (pCtx->pSubsetArray, 0, MAX_SPS_COUNT * sizeof (SSubsetSps));
   }
-  int32_t CWelsParametersetSpsListing::SpsReset(sWelsEncCtx* pCtx, bool kbUseSubsetSps) {
-    
-    // reset current list
+
+  //iSpsId = 0;
+  return 0;
+}
+bool CWelsParametersetSpsListing::GenerateNewSps (sWelsEncCtx* pCtx, const bool kbUseSubsetSps,
+    const int32_t iDlayerIndex,
+    const int32_t iDlayerCount, const int32_t kiSpsId,
+    SWelsSPS*& pSps, SSubsetSps*& pSubsetSps, bool bSvcBaselayer) {
+  int32_t iSpsId               = 0;
+
+  //check if the current param can fit in an existing SPS
+  const int32_t kiFoundSpsId = FindExistingSps (pCtx->pSvcParam, kbUseSubsetSps, iDlayerIndex, iDlayerCount,
+                               kbUseSubsetSps ? (m_sParaSetOffset.uiInUseSubsetSpsNum) : (m_sParaSetOffset.uiInUseSpsNum),
+                               pCtx->pSpsArray,
+                               pCtx->pSubsetArray, bSvcBaselayer);
+
+
+  if (INVALID_ID != kiFoundSpsId) {
+    //if yes, set pSps or pSubsetSps to it
+    iSpsId = kiFoundSpsId;
     if (!kbUseSubsetSps) {
-      m_sParaSetOffset.uiInUseSpsNum = 1;
-      memset (pCtx->pSpsArray, 0, MAX_SPS_COUNT * sizeof (SWelsSPS));
+      pSps = & (pCtx->pSpsArray[kiFoundSpsId]);
     } else {
-      m_sParaSetOffset.uiInUseSubsetSpsNum = 1;
-      memset (pCtx->pSubsetArray, 0, MAX_SPS_COUNT * sizeof (SSubsetSps));
+      pSubsetSps = & (pCtx->pSubsetArray[kiFoundSpsId]);
     }
+  } else {
+    //if no, generate a new SPS as usual
+    CheckPpsGenerating();
 
-    //iSpsId = 0;
-    return 0;
-  }
-  bool CWelsParametersetSpsListing::GenerateNewSps (sWelsEncCtx* pCtx, const bool kbUseSubsetSps, const int32_t iDlayerIndex,
-                                                    const int32_t iDlayerCount, const int32_t kiSpsId,
-                                                    SWelsSPS*& pSps, SSubsetSps*& pSubsetSps, bool bSvcBaselayer) {
-    int32_t iSpsId               = 0;
-    
-    //check if the current param can fit in an existing SPS
-    const int32_t kiFoundSpsId = FindExistingSps (pCtx->pSvcParam, kbUseSubsetSps, iDlayerIndex, iDlayerCount,
-                                                  kbUseSubsetSps ? (m_sParaSetOffset.uiInUseSubsetSpsNum) : (m_sParaSetOffset.uiInUseSpsNum),
-                                                  pCtx->pSpsArray,
-                                                  pCtx->pSubsetArray, bSvcBaselayer);
-    
-    
-    if (INVALID_ID != kiFoundSpsId) {
-      //if yes, set pSps or pSubsetSps to it
-      iSpsId = kiFoundSpsId;
-      if (!kbUseSubsetSps) {
-        pSps = & (pCtx->pSpsArray[kiFoundSpsId]);
-      } else {
-        pSubsetSps = & (pCtx->pSubsetArray[kiFoundSpsId]);
+    iSpsId = (!kbUseSubsetSps) ? (m_sParaSetOffset.uiInUseSpsNum++) : (m_sParaSetOffset.uiInUseSubsetSpsNum++);
+    if (iSpsId >= MAX_SPS_COUNT) {
+      iSpsId = SpsReset (pCtx, kbUseSubsetSps);
+      if (iSpsId < 0) {
+        return false;
       }
-    } else {
-      //if no, generate a new SPS as usual
-      CheckPpsGenerating();
-      
-      iSpsId = (!kbUseSubsetSps) ? (m_sParaSetOffset.uiInUseSpsNum++) : (m_sParaSetOffset.uiInUseSubsetSpsNum++);
-      if (iSpsId >= MAX_SPS_COUNT) {
-        iSpsId = SpsReset(pCtx, kbUseSubsetSps);
-        if (iSpsId<0) {
-          return false;
-        }
-      }
-      
-      WelsGenerateNewSps (pCtx, kbUseSubsetSps, iDlayerIndex,
-                          iDlayerCount, iSpsId, pSps, pSubsetSps, bSvcBaselayer);
     }
-    return true;
-  }
-  
-  void CWelsParametersetSpsListing::UpdateParaSetNum(sWelsEncCtx* pCtx) {
-    pCtx->iSpsNum = m_sParaSetOffset.uiInUseSpsNum;
-    pCtx->iSubsetSpsNum = m_sParaSetOffset.uiInUseSubsetSpsNum;
-  };
-  
-  void CWelsParametersetSpsListing::OutputCurrentStructure(SParaSetOffsetVariable* pParaSetOffsetVariable, int32_t* pPpsIdList, sWelsEncCtx* pCtx, SExistingParasetList* pExistingParasetList) {
-    CWelsParametersetIdNonConstant::OutputCurrentStructure(pParaSetOffsetVariable, pPpsIdList, pCtx, pExistingParasetList);
 
-    pExistingParasetList->uiInUseSpsNum = m_sParaSetOffset.uiInUseSpsNum;
-
-    memcpy (pExistingParasetList->sSps, pCtx->pSpsArray, MAX_SPS_COUNT * sizeof (SWelsSPS));
-    if (NULL != pCtx->pSubsetArray) {
-      pExistingParasetList->uiInUseSubsetSpsNum = m_sParaSetOffset.uiInUseSubsetSpsNum;
-      memcpy (pExistingParasetList->sSubsetSps, pCtx->pSubsetArray, MAX_SPS_COUNT * sizeof (SSubsetSps));
-    } else {
-      pExistingParasetList->uiInUseSubsetSpsNum = 0;
-    }
+    WelsGenerateNewSps (pCtx, kbUseSubsetSps, iDlayerIndex,
+                        iDlayerCount, iSpsId, pSps, pSubsetSps, bSvcBaselayer);
   }
-  
+  return true;
+}
+
+void CWelsParametersetSpsListing::UpdateParaSetNum (sWelsEncCtx* pCtx) {
+  pCtx->iSpsNum = m_sParaSetOffset.uiInUseSpsNum;
+  pCtx->iSubsetSpsNum = m_sParaSetOffset.uiInUseSubsetSpsNum;
+};
+
+void CWelsParametersetSpsListing::OutputCurrentStructure (SParaSetOffsetVariable* pParaSetOffsetVariable,
+    int32_t* pPpsIdList, sWelsEncCtx* pCtx, SExistingParasetList* pExistingParasetList) {
+  CWelsParametersetIdNonConstant::OutputCurrentStructure (pParaSetOffsetVariable, pPpsIdList, pCtx, pExistingParasetList);
+
+  pExistingParasetList->uiInUseSpsNum = m_sParaSetOffset.uiInUseSpsNum;
+
+  memcpy (pExistingParasetList->sSps, pCtx->pSpsArray, MAX_SPS_COUNT * sizeof (SWelsSPS));
+  if (NULL != pCtx->pSubsetArray) {
+    pExistingParasetList->uiInUseSubsetSpsNum = m_sParaSetOffset.uiInUseSubsetSpsNum;
+    memcpy (pExistingParasetList->sSubsetSps, pCtx->pSubsetArray, MAX_SPS_COUNT * sizeof (SSubsetSps));
+  } else {
+    pExistingParasetList->uiInUseSubsetSpsNum = 0;
+  }
+}
+
 //
 //CWelsParametersetSpsPpsListing
 //
@@ -475,149 +489,151 @@ uint32_t CWelsParametersetSpsPpsListing::GetBasicNeededPpsNum() {
   //sPSOVector.uiNeededPpsNum = ((pSvcParam->eSpsPpsIdStrategy & SPS_PPS_LISTING) ? (MAX_PPS_COUNT) :(1 + pSvcParam->iSpatialLayerNum));
   return MAX_PPS_COUNT;
 }
-  
-void CWelsParametersetSpsPpsListing::LoadPreviousPps(SExistingParasetList* pExistingParasetList, SWelsPPS* pPpsArray)
-{
+
+void CWelsParametersetSpsPpsListing::LoadPreviousPps (SExistingParasetList* pExistingParasetList, SWelsPPS* pPpsArray) {
   // copy from existing if the pointer exists
   //if ((SPS_PPS_LISTING == pParam->eSpsPpsIdStrategy) && (NULL != pExistingParasetList)) {
-    m_sParaSetOffset.uiInUsePpsNum = pExistingParasetList->uiInUsePpsNum;
-    memcpy (pPpsArray, pExistingParasetList->sPps, MAX_PPS_COUNT * sizeof (SWelsPPS));
+  m_sParaSetOffset.uiInUsePpsNum = pExistingParasetList->uiInUsePpsNum;
+  memcpy (pPpsArray, pExistingParasetList->sPps, MAX_PPS_COUNT * sizeof (SWelsPPS));
   //}
 }
 
-  /*  if ((SPS_PPS_LISTING == pCtx->pSvcParam->eSpsPpsIdStrategy) && (pCtx->iPpsNum < MAX_PPS_COUNT)) {
-   UpdatePpsList (pCtx);
+/*  if ((SPS_PPS_LISTING == pCtx->pSvcParam->eSpsPpsIdStrategy) && (pCtx->iPpsNum < MAX_PPS_COUNT)) {
+ UpdatePpsList (pCtx);
+ }*/
+void CWelsParametersetSpsPpsListing::UpdatePpsList (sWelsEncCtx* pCtx) {
+  if (pCtx->iPpsNum >= MAX_PPS_COUNT) {
+    return;
+  }
+  assert (pCtx->iPpsNum <= MAX_DQ_LAYER_NUM);
+
+  //Generate PPS LIST
+  int32_t iPpsId = 0, iUsePpsNum = pCtx->iPpsNum;
+
+  for (int32_t iIdrRound = 0; iIdrRound < MAX_PPS_COUNT; iIdrRound++) {
+    for (iPpsId = 0; iPpsId < pCtx->iPpsNum; iPpsId++) {
+      m_sParaSetOffset.iPpsIdList[iPpsId][iIdrRound] = ((iIdrRound * iUsePpsNum + iPpsId) % MAX_PPS_COUNT);
+    }
+  }
+
+  for (iPpsId = iUsePpsNum; iPpsId < MAX_PPS_COUNT; iPpsId++) {
+    memcpy (& (pCtx->pPPSArray[iPpsId]), & (pCtx->pPPSArray[iPpsId % iUsePpsNum]), sizeof (SWelsPPS));
+    pCtx->pPPSArray[iPpsId].iPpsId = iPpsId;
+    pCtx->iPpsNum++;
+  }
+
+  assert (pCtx->iPpsNum == MAX_PPS_COUNT);
+  m_sParaSetOffset.uiInUsePpsNum = pCtx->iPpsNum;
+}
+
+
+bool CWelsParametersetSpsPpsListing::CheckPpsGenerating() {
+  /*if ((SPS_PPS_LISTING == pCtx->pSvcParam->eSpsPpsIdStrategy) && (MAX_PPS_COUNT <= pCtx->sPSOVector.uiInUsePpsNum)) {
+    //check if we can generate new SPS or not
+    WelsLog (& pCtx->sLogCtx, WELS_LOG_ERROR,
+             "InitDqLayers(), cannot generate new SPS under the SPS_PPS_LISTING mode!");
+    return ENC_RETURN_UNSUPPORTED_PARA;
+  }*/
+  if (MAX_PPS_COUNT <= m_sParaSetOffset.uiInUsePpsNum) {
+    return false;
+  }
+
+  return true;
+}
+int32_t CWelsParametersetSpsPpsListing::SpsReset (sWelsEncCtx* pCtx, bool kbUseSubsetSps) {
+  /*        if (SPS_PPS_LISTING == pParam->eSpsPpsIdStrategy) {
+   WelsLog (& (*ppCtx)->sLogCtx, WELS_LOG_ERROR,
+   "InitDqLayers(), cannot generate new SPS under the SPS_PPS_LISTING mode!");
+   return ENC_RETURN_UNSUPPORTED_PARA;
    }*/
-  void CWelsParametersetSpsPpsListing::UpdatePpsList(sWelsEncCtx* pCtx) {
-    if (pCtx->iPpsNum >= MAX_PPS_COUNT) {
-      return;
-    }
-    assert (pCtx->iPpsNum <= MAX_DQ_LAYER_NUM);
-    
-    //Generate PPS LIST
-    int32_t iPpsId = 0, iUsePpsNum = pCtx->iPpsNum;
-    
-    for (int32_t iIdrRound = 0; iIdrRound < MAX_PPS_COUNT; iIdrRound++) {
-      for (iPpsId = 0; iPpsId < pCtx->iPpsNum; iPpsId++) {
-        m_sParaSetOffset.iPpsIdList[iPpsId][iIdrRound] = ((iIdrRound * iUsePpsNum + iPpsId) % MAX_PPS_COUNT);
-      }
-    }
-    
-    for (iPpsId = iUsePpsNum; iPpsId < MAX_PPS_COUNT; iPpsId++) {
-      memcpy (& (pCtx->pPPSArray[iPpsId]), & (pCtx->pPPSArray[iPpsId % iUsePpsNum]), sizeof (SWelsPPS));
-      pCtx->pPPSArray[iPpsId].iPpsId = iPpsId;
-      pCtx->iPpsNum++;
-    }
-    
-    assert (pCtx->iPpsNum == MAX_PPS_COUNT);
-    m_sParaSetOffset.uiInUsePpsNum = pCtx->iPpsNum;
-  }
-  
-  
-  bool CWelsParametersetSpsPpsListing::CheckPpsGenerating() {
-    /*if ((SPS_PPS_LISTING == pCtx->pSvcParam->eSpsPpsIdStrategy) && (MAX_PPS_COUNT <= pCtx->sPSOVector.uiInUsePpsNum)) {
-      //check if we can generate new SPS or not
-      WelsLog (& pCtx->sLogCtx, WELS_LOG_ERROR,
-               "InitDqLayers(), cannot generate new SPS under the SPS_PPS_LISTING mode!");
-      return ENC_RETURN_UNSUPPORTED_PARA;
-    }*/
-    if (MAX_PPS_COUNT <= m_sParaSetOffset.uiInUsePpsNum) {
-      return false;}
+  return -1;
+}
 
-    return true;
-  }
-  int32_t CWelsParametersetSpsPpsListing::SpsReset(sWelsEncCtx* pCtx, bool kbUseSubsetSps) {
-    /*        if (SPS_PPS_LISTING == pParam->eSpsPpsIdStrategy) {
-     WelsLog (& (*ppCtx)->sLogCtx, WELS_LOG_ERROR,
-     "InitDqLayers(), cannot generate new SPS under the SPS_PPS_LISTING mode!");
-     return ENC_RETURN_UNSUPPORTED_PARA;
-     }*/
-    return -1;
-  }
-  
-  int32_t FindExistingPps (SWelsSPS* pSps, SSubsetSps* pSubsetSps, const bool kbUseSubsetSps, const int32_t iSpsId,
-                           const bool kbEntropyCodingFlag, const int32_t iPpsNumInUse,
-                           SWelsPPS* pPpsArray) {
+int32_t FindExistingPps (SWelsSPS* pSps, SSubsetSps* pSubsetSps, const bool kbUseSubsetSps, const int32_t iSpsId,
+                         const bool kbEntropyCodingFlag, const int32_t iPpsNumInUse,
+                         SWelsPPS* pPpsArray) {
 #if !defined(DISABLE_FMO_FEATURE)
-    // feature not supported yet
-    return INVALID_ID;
+  // feature not supported yet
+  return INVALID_ID;
 #endif//!DISABLE_FMO_FEATURE
-    
-    SWelsPPS sTmpPps;
-    WelsInitPps (&sTmpPps,
-                 pSps,
-                 pSubsetSps,
-                 0,
-                 true,
-                 kbUseSubsetSps,
-                 kbEntropyCodingFlag);
-    
-    assert (iPpsNumInUse <= MAX_PPS_COUNT);
-    for (int32_t iId = 0; iId < iPpsNumInUse; iId++) {
-      if ((sTmpPps.iSpsId == pPpsArray[iId].iSpsId)
-          && (sTmpPps.bEntropyCodingModeFlag == pPpsArray[iId].bEntropyCodingModeFlag)
-          && (sTmpPps.iPicInitQp == pPpsArray[iId].iPicInitQp)
-          && (sTmpPps.iPicInitQs == pPpsArray[iId].iPicInitQs)
-          && (sTmpPps.uiChromaQpIndexOffset == pPpsArray[iId].uiChromaQpIndexOffset)
-          && (sTmpPps.bDeblockingFilterControlPresentFlag == pPpsArray[iId].bDeblockingFilterControlPresentFlag)
-          ) {
-        return iId;
-      }
-    }
-    
-    return INVALID_ID;
-  }
-  
-  void CWelsParametersetSpsPpsListing::InitPps (sWelsEncCtx* pCtx, uint32_t kiSpsId,
-                                                SWelsPPS* pPps,
-                                             SWelsSPS* pSps,
-                                             SSubsetSps* pSubsetSps,
-                                             const uint32_t kuiPpsId,
-                                             const bool kbDeblockingFilterPresentFlag,
-                                             const bool kbUsingSubsetSps,
-                                             const bool kbEntropyCodingModeFlag) {
-    uint32_t iPpsId = 0;
-    const int32_t kiFoundPpsId = FindExistingPps (pSps, pSubsetSps, kbUsingSubsetSps, kiSpsId,
-                                                  kbEntropyCodingModeFlag,
-                                                  m_sParaSetOffset.uiInUsePpsNum,
-                                                  pCtx->pPPSArray);
-    
-    
-    if (INVALID_ID != kiFoundPpsId) {
-      //if yes, set pPps to it
-      iPpsId = kiFoundPpsId;
-      pPps = & (pCtx->pPPSArray[kiFoundPpsId]);
-    } else {
-      iPpsId = (m_sParaSetOffset.uiInUsePpsNum++);
-      pPps    = & pCtx->pPPSArray[iPpsId];
-      WelsInitPps (pPps, pSps, pSubsetSps, iPpsId, true, kbUsingSubsetSps, kbEntropyCodingModeFlag);
-    }
 
-    
-  }
-  
-  void CWelsParametersetSpsPpsListing::UpdateParaSetNum(sWelsEncCtx* pCtx) {
-    CWelsParametersetSpsListing::UpdateParaSetNum(pCtx);
-    pCtx->iPpsNum = m_sParaSetOffset.uiInUsePpsNum;
-  }
-  
-  int32_t CWelsParametersetSpsPpsListing::GetCurrentPpsId(const int32_t iPpsId, const int32_t iIdrLoop) {
-      return m_sParaSetOffset.iPpsIdList[iPpsId][iIdrLoop];
-  }
-  
-  void CWelsParametersetSpsPpsListing::LoadPreviousStructure(SParaSetOffsetVariable* pParaSetOffsetVariable, int32_t* pPpsIdList) {
-    memcpy (m_sParaSetOffset.sParaSetOffsetVariable, pParaSetOffsetVariable,
-            (PARA_SET_TYPE)*sizeof (SParaSetOffsetVariable)); // confirmed_safe_unsafe_usage
-    
-    memcpy ((m_sParaSetOffset.iPpsIdList), pPpsIdList, MAX_DQ_LAYER_NUM * MAX_PPS_COUNT * sizeof (int32_t));
+  SWelsPPS sTmpPps;
+  WelsInitPps (&sTmpPps,
+               pSps,
+               pSubsetSps,
+               0,
+               true,
+               kbUseSubsetSps,
+               kbEntropyCodingFlag);
 
+  assert (iPpsNumInUse <= MAX_PPS_COUNT);
+  for (int32_t iId = 0; iId < iPpsNumInUse; iId++) {
+    if ((sTmpPps.iSpsId == pPpsArray[iId].iSpsId)
+        && (sTmpPps.bEntropyCodingModeFlag == pPpsArray[iId].bEntropyCodingModeFlag)
+        && (sTmpPps.iPicInitQp == pPpsArray[iId].iPicInitQp)
+        && (sTmpPps.iPicInitQs == pPpsArray[iId].iPicInitQs)
+        && (sTmpPps.uiChromaQpIndexOffset == pPpsArray[iId].uiChromaQpIndexOffset)
+        && (sTmpPps.bDeblockingFilterControlPresentFlag == pPpsArray[iId].bDeblockingFilterControlPresentFlag)
+       ) {
+      return iId;
+    }
   }
-  
-void CWelsParametersetSpsPpsListing::OutputCurrentStructure(SParaSetOffsetVariable* pParaSetOffsetVariable, int32_t* pPpsIdList, sWelsEncCtx* pCtx, SExistingParasetList* pExistingParasetList) {
-    CWelsParametersetSpsListing::OutputCurrentStructure(pParaSetOffsetVariable, pPpsIdList, pCtx, pExistingParasetList);
-    
-    pExistingParasetList->uiInUsePpsNum = m_sParaSetOffset.uiInUsePpsNum;
-        memcpy (pExistingParasetList->sPps, pCtx->pPps, MAX_PPS_COUNT * sizeof (SWelsPPS));
-        memcpy (pPpsIdList, (m_sParaSetOffset.iPpsIdList), MAX_DQ_LAYER_NUM * MAX_PPS_COUNT * sizeof (int32_t));
+
+  return INVALID_ID;
+}
+
+void CWelsParametersetSpsPpsListing::InitPps (sWelsEncCtx* pCtx, uint32_t kiSpsId,
+    SWelsPPS* pPps,
+    SWelsSPS* pSps,
+    SSubsetSps* pSubsetSps,
+    const uint32_t kuiPpsId,
+    const bool kbDeblockingFilterPresentFlag,
+    const bool kbUsingSubsetSps,
+    const bool kbEntropyCodingModeFlag) {
+  uint32_t iPpsId = 0;
+  const int32_t kiFoundPpsId = FindExistingPps (pSps, pSubsetSps, kbUsingSubsetSps, kiSpsId,
+                               kbEntropyCodingModeFlag,
+                               m_sParaSetOffset.uiInUsePpsNum,
+                               pCtx->pPPSArray);
+
+
+  if (INVALID_ID != kiFoundPpsId) {
+    //if yes, set pPps to it
+    iPpsId = kiFoundPpsId;
+    pPps = & (pCtx->pPPSArray[kiFoundPpsId]);
+  } else {
+    iPpsId = (m_sParaSetOffset.uiInUsePpsNum++);
+    pPps    = & pCtx->pPPSArray[iPpsId];
+    WelsInitPps (pPps, pSps, pSubsetSps, iPpsId, true, kbUsingSubsetSps, kbEntropyCodingModeFlag);
   }
+
+
+}
+
+void CWelsParametersetSpsPpsListing::UpdateParaSetNum (sWelsEncCtx* pCtx) {
+  CWelsParametersetSpsListing::UpdateParaSetNum (pCtx);
+  pCtx->iPpsNum = m_sParaSetOffset.uiInUsePpsNum;
+}
+
+int32_t CWelsParametersetSpsPpsListing::GetCurrentPpsId (const int32_t iPpsId, const int32_t iIdrLoop) {
+  return m_sParaSetOffset.iPpsIdList[iPpsId][iIdrLoop];
+}
+
+void CWelsParametersetSpsPpsListing::LoadPreviousStructure (SParaSetOffsetVariable* pParaSetOffsetVariable,
+    int32_t* pPpsIdList) {
+  memcpy (m_sParaSetOffset.sParaSetOffsetVariable, pParaSetOffsetVariable,
+          (PARA_SET_TYPE)*sizeof (SParaSetOffsetVariable)); // confirmed_safe_unsafe_usage
+
+  memcpy ((m_sParaSetOffset.iPpsIdList), pPpsIdList, MAX_DQ_LAYER_NUM * MAX_PPS_COUNT * sizeof (int32_t));
+
+}
+
+void CWelsParametersetSpsPpsListing::OutputCurrentStructure (SParaSetOffsetVariable* pParaSetOffsetVariable,
+    int32_t* pPpsIdList, sWelsEncCtx* pCtx, SExistingParasetList* pExistingParasetList) {
+  CWelsParametersetSpsListing::OutputCurrentStructure (pParaSetOffsetVariable, pPpsIdList, pCtx, pExistingParasetList);
+
+  pExistingParasetList->uiInUsePpsNum = m_sParaSetOffset.uiInUsePpsNum;
+  memcpy (pExistingParasetList->sPps, pCtx->pPps, MAX_PPS_COUNT * sizeof (SWelsPPS));
+  memcpy (pPpsIdList, (m_sParaSetOffset.iPpsIdList), MAX_DQ_LAYER_NUM * MAX_PPS_COUNT * sizeof (int32_t));
+}
 }
