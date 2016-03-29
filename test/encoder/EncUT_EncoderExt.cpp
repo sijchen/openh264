@@ -152,7 +152,7 @@ void EncoderInterfaceTest::InitializeParamExt() {
 TEST_F (EncoderInterfaceTest, EncoderOptionSetTest) {
   int iResult, iValue, iReturn;
   float fFrameRate, fReturn;
-  int uiTraceLevel = WELS_LOG_DEBUG;
+  int uiTraceLevel = WELS_LOG_QUIET;
 
   pPtrEnc->SetOption (ENCODER_OPTION_TRACE_LEVEL, &uiTraceLevel);
 

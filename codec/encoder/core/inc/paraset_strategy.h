@@ -300,6 +300,11 @@ class CWelsParametersetSpsListingPpsIncreasing : public CWelsParametersetSpsList
   virtual void Update (const uint32_t kuiId, const int iParasetType);
 };
 
+int32_t FindExistingSps (SWelsSvcCodingParam* pParam, const bool kbUseSubsetSps, const int32_t iDlayerIndex,
+                         const int32_t iDlayerCount, const int32_t iSpsNumInUse,
+                         SWelsSPS* pSpsArray,
+                         SSubsetSps* pSubsetArray, bool bSVCBaseLayer);
+
 }
 
 #endif

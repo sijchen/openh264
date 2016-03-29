@@ -155,6 +155,51 @@ static bool CheckMatchedSubsetSps (SSubsetSps* const pSubsetSps1, SSubsetSps* co
   return true;
 }
 
+/*!
+ * \brief   check if the current parameter can found a presenting sps
+ * \param   pParam          the current encoding paramter in SWelsSvcCodingParam
+ * \param   kbUseSubsetSps  bool
+ * \param   iDlayerIndex    int, the index of current D layer
+ * \param   iDlayerCount    int, the number of total D layer
+ * \param pSpsArray         array of all the stored SPSs
+ * \param   pSubsetArray    array of all the stored Subset-SPSs
+ * \return  0 - successful
+ *         -1 - cannot find existing SPS for current encoder parameter
+ */
+int32_t FindExistingSps (SWelsSvcCodingParam* pParam, const bool kbUseSubsetSps, const int32_t iDlayerIndex,
+                         const int32_t iDlayerCount, const int32_t iSpsNumInUse,
+                         SWelsSPS* pSpsArray,
+                         SSubsetSps* pSubsetArray, bool bSVCBaseLayer) {
+  SSpatialLayerConfig* pDlayerParam = &pParam->sSpatialLayers[iDlayerIndex];
+
+  assert (iSpsNumInUse <= MAX_SPS_COUNT);
+  if (!kbUseSubsetSps) {
+    SWelsSPS sTmpSps;
+    WelsInitSps (&sTmpSps, pDlayerParam, &pParam->sDependencyLayers[iDlayerIndex], pParam->uiIntraPeriod,
+                 pParam->iMaxNumRefFrame,
+                 0, pParam->bEnableFrameCroppingFlag, pParam->iRCMode != RC_OFF_MODE, iDlayerCount,
+                 bSVCBaseLayer);
+    for (int32_t iId = 0; iId < iSpsNumInUse; iId++) {
+      if (CheckMatchedSps (&sTmpSps, &pSpsArray[iId])) {
+        return iId;
+      }
+    }
+  } else {
+    SSubsetSps sTmpSubsetSps;
+    WelsInitSubsetSps (&sTmpSubsetSps, pDlayerParam, &pParam->sDependencyLayers[iDlayerIndex], pParam->uiIntraPeriod,
+                       pParam->iMaxNumRefFrame,
+                       0, pParam->bEnableFrameCroppingFlag, pParam->iRCMode != RC_OFF_MODE, iDlayerCount);
+
+    for (int32_t iId = 0; iId < iSpsNumInUse; iId++) {
+      if (CheckMatchedSubsetSps (&sTmpSubsetSps, &pSubsetArray[iId])) {
+        return iId;
+      }
+    }
+  }
+
+  return INVALID_ID;
+}
+
 CWelsParametersetIdConstant::CWelsParametersetIdConstant (const bool bSimulcastAVC, const int32_t kiSpatialLayerNum) {
   memset (&m_sParaSetOffset, 0, sizeof (m_sParaSetOffset));
 
@@ -263,7 +308,7 @@ void CWelsParametersetIdNonConstant::LoadPreviousStructure (SParaSetOffsetVariab
 //
 
 void CWelsParametersetIdIncreasing::DebugSpsPps (const int32_t kiPpsId, const int32_t kiSpsId) {
-  //#if _DEBUG
+#if _DEBUG
   //SParaSetOffset use, 110421
   //if ( (INCREASING_ID & eSpsPpsIdStrategy)) {
   const int32_t kiParameterSetType = (m_sParaSetOffset.bPpsIdMappingIntoSubsetsps[kiPpsId] ?
@@ -277,17 +322,17 @@ void CWelsParametersetIdIncreasing::DebugSpsPps (const int32_t kiPpsId, const in
   assert (MAX_PPS_COUNT > tmp_pps_id_in_bs);
   assert (m_sParaSetOffset.sParaSetOffsetVariable[kiParameterSetType].bUsedParaSetIdInBs[kiTmpSpsIdInBs]);
   //}
-  //#endif
+#endif
 }
 void CWelsParametersetIdIncreasing::DebugPps (const int32_t kiPpsId) {
-  //#if _DEBUG
+#if _DEBUG
   const int32_t kiTmpPpsIdInBs = kiPpsId +
                                  m_sParaSetOffset.sParaSetOffsetVariable[PARA_SET_TYPE_PPS].iParaSetIdDelta[ kiPpsId ];
   assert (MAX_PPS_COUNT > kiTmpPpsIdInBs);
 
   //when activated need to sure there is avialable PPS
   assert (m_sParaSetOffset.sParaSetOffsetVariable[PARA_SET_TYPE_PPS].bUsedParaSetIdInBs[kiTmpPpsIdInBs]);
-  //#endif
+#endif
 }
 
 void ParasetIdAdditionIdAdjust (SParaSetOffsetVariable* sParaSetOffsetVariable,
@@ -545,10 +590,7 @@ bool CWelsParametersetSpsPpsListing::CheckPpsGenerating() {
              "InitDqLayers(), cannot generate new SPS under the SPS_PPS_LISTING mode!");
     return ENC_RETURN_UNSUPPORTED_PARA;
   }*/
-  printf ("CWelsParametersetSpsPpsListing::CheckPpsGenerating: %d, %d\n", MAX_PPS_COUNT, m_sParaSetOffset.uiInUsePpsNum);
   if (MAX_PPS_COUNT <= m_sParaSetOffset.uiInUsePpsNum) {
-    printf ("CWelsParametersetSpsPpsListing::CheckPpsGenerating return false: %d, %d\n", MAX_PPS_COUNT,
-            m_sParaSetOffset.uiInUsePpsNum);
     return false;
   }
 
@@ -628,8 +670,6 @@ void CWelsParametersetSpsPpsListing::UpdateParaSetNum (sWelsEncCtx* pCtx) {
 }
 
 int32_t CWelsParametersetSpsPpsListing::GetCurrentPpsId (const int32_t iPpsId, const int32_t iIdrLoop) {
-  printf ("CWelsParametersetSpsPpsListing::GetCurrentPpsId: %d, %d\n", iPpsId,
-          m_sParaSetOffset.iPpsIdList[iPpsId][iIdrLoop]);
   return m_sParaSetOffset.iPpsIdList[iPpsId][iIdrLoop];
 }
 
