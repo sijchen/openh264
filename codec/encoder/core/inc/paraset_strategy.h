@@ -57,23 +57,27 @@ class IWelsParametersetStrategy {
   virtual uint32_t GetNeededSubsetSpsNum() = 0;
   virtual uint32_t GetNeededPpsNum() = 0;
 
+  virtual void LoadPrevious (SExistingParasetList* pExistingParasetList,  SWelsSPS* pSpsArray,
+                             SSubsetSps*       pSubsetArray,
+                             SWelsPPS* pPpsArray) = 0;
+
   virtual void Update (const uint32_t kuiId, const int iParasetType) = 0;
   virtual void UpdatePpsList (sWelsEncCtx* pCtx) = 0;
 
   virtual bool CheckParamCompatibility (SWelsSvcCodingParam* pCodingParam, SLogContext* pLogCtx) = 0;
 
-  virtual bool GenerateNewSps (sWelsEncCtx* pCtx, const bool kbUseSubsetSps, const int32_t iDlayerIndex,
-                               const int32_t iDlayerCount, const int32_t kiSpsId,
-                               SWelsSPS*& pSps, SSubsetSps*& pSubsetSps, bool bSVCBaselayer) = 0;
+  virtual uint32_t GenerateNewSps (sWelsEncCtx* pCtx, const bool kbUseSubsetSps, const int32_t iDlayerIndex,
+                                   const int32_t iDlayerCount,
+                                   uint32_t kuiSpsId,
+                                   SWelsSPS*& pSps, SSubsetSps*& pSubsetSps, bool bSVCBaselayer) = 0;
 
-  virtual void InitPps (sWelsEncCtx* pCtx, uint32_t kiSpsId,
-                        SWelsPPS* pPps,
-                        SWelsSPS* pSps,
-                        SSubsetSps* pSubsetSps,
-                        const uint32_t kuiPpsId,
-                        const bool kbDeblockingFilterPresentFlag,
-                        const bool kbUsingSubsetSps,
-                        const bool kbEntropyCodingModeFlag) = 0;
+  virtual uint32_t InitPps (sWelsEncCtx* pCtx, uint32_t kiSpsId,
+                            SWelsSPS* pSps,
+                            SSubsetSps* pSubsetSps,
+                            uint32_t kuiPpsId,
+                            const bool kbDeblockingFilterPresentFlag,
+                            const bool kbUsingSubsetSps,
+                            const bool kbEntropyCodingModeFlag) = 0;
 
   virtual  void SetUseSubsetFlag (const uint32_t iPpsId, const bool bUseSubsetSps) = 0;
 
@@ -95,59 +99,60 @@ class  CWelsParametersetIdConstant : public IWelsParametersetStrategy {
   CWelsParametersetIdConstant (const bool bSimulcastAVC, const int32_t kiSpatialLayerNum);
   virtual ~ CWelsParametersetIdConstant();
 
-  int32_t GetPpsIdOffset (const int32_t iPpsId);
-  int32_t GetSpsIdOffset (const int32_t iPpsId, const int32_t iSpsId);
+  virtual int32_t GetPpsIdOffset (const int32_t iPpsId);
+  virtual int32_t GetSpsIdOffset (const int32_t iPpsId, const int32_t iSpsId);
   int32_t* GetSpsIdOffsetList (const int iParasetType);
 
   uint32_t GetAllNeededParasetNum();
 
-  uint32_t GetNeededSpsNum();
-  uint32_t GetNeededSubsetSpsNum();
-  uint32_t GetNeededPpsNum();
+  virtual uint32_t GetNeededSpsNum();
+  virtual uint32_t GetNeededSubsetSpsNum();
+  virtual uint32_t GetNeededPpsNum();
 
-  void LoadPrevious (SExistingParasetList* pExistingParasetList, SWelsSPS* pSpsArray, SSubsetSps*       pSubsetArray,
-                     SWelsPPS* pPpsArray);
+  virtual void LoadPrevious (SExistingParasetList* pExistingParasetList, SWelsSPS* pSpsArray,
+                             SSubsetSps*       pSubsetArray,
+                             SWelsPPS* pPpsArray);
 
-  void Update (const uint32_t kuiId, const int iParasetType);
-  void UpdatePpsList (sWelsEncCtx* pCtx) {};
+  virtual void Update (const uint32_t kuiId, const int iParasetType);
+  virtual void UpdatePpsList (sWelsEncCtx* pCtx) {};
 
   bool CheckParamCompatibility (SWelsSvcCodingParam* pCodingParam, SLogContext* pLogCtx) {
     return true;
   };
 
-  bool GenerateNewSps (sWelsEncCtx* pCtx, const bool kbUseSubsetSps, const int32_t iDlayerIndex,
-                       const int32_t iDlayerCount, const int32_t kiSpsId,
-                       SWelsSPS*& pSps, SSubsetSps*& pSubsetSps, bool bSVCBaselayer);
+  virtual uint32_t GenerateNewSps (sWelsEncCtx* pCtx, const bool kbUseSubsetSps, const int32_t iDlayerIndex,
+                                   const int32_t iDlayerCount, uint32_t kuiSpsId,
+                                   SWelsSPS*& pSps, SSubsetSps*& pSubsetSps, bool bSVCBaselayer);
 
-  void InitPps (sWelsEncCtx* pCtx, uint32_t kiSpsId,
-                SWelsPPS* pPps,
-                SWelsSPS* pSps,
-                SSubsetSps* pSubsetSps,
-                const uint32_t kuiPpsId,
-                const bool kbDeblockingFilterPresentFlag,
-                const bool kbUsingSubsetSps,
-                const bool kbEntropyCodingModeFlag);
+  virtual uint32_t InitPps (sWelsEncCtx* pCtx, uint32_t kiSpsId,
+                            SWelsSPS* pSps,
+                            SSubsetSps* pSubsetSps,
+                            uint32_t kuiPpsId,
+                            const bool kbDeblockingFilterPresentFlag,
+                            const bool kbUsingSubsetSps,
+                            const bool kbEntropyCodingModeFlag);
 
-  void SetUseSubsetFlag (const uint32_t iPpsId, const bool bUseSubsetSps);
+  virtual void SetUseSubsetFlag (const uint32_t iPpsId, const bool bUseSubsetSps);
 
-  void UpdateParaSetNum (sWelsEncCtx* pCtx) {};
+  virtual void UpdateParaSetNum (sWelsEncCtx* pCtx) {};
 
-  int32_t GetCurrentPpsId (const int32_t iPpsId, const int32_t iIdrLoop) {
+  virtual int32_t GetCurrentPpsId (const int32_t iPpsId, const int32_t iIdrLoop) {
     return iPpsId;
   };
 
-  void OutputCurrentStructure (SParaSetOffsetVariable* pParaSetOffsetVariable, int32_t* pPpsIdList, sWelsEncCtx* pCtx,
-                               SExistingParasetList* pExistingParasetList) {};
-  void LoadPreviousStructure (SParaSetOffsetVariable* pParaSetOffsetVariable, int32_t* pPpsIdList) {};
+  virtual void OutputCurrentStructure (SParaSetOffsetVariable* pParaSetOffsetVariable, int32_t* pPpsIdList,
+                                       sWelsEncCtx* pCtx,
+                                       SExistingParasetList* pExistingParasetList) {};
+  virtual void LoadPreviousStructure (SParaSetOffsetVariable* pParaSetOffsetVariable, int32_t* pPpsIdList) {};
 
-  int32_t GetSpsIdx (const int32_t iIdx) {
+  virtual int32_t GetSpsIdx (const int32_t iIdx) {
     return 0;
   };
  protected:
 
-  void LoadPreviousSps (SExistingParasetList* pExistingParasetList, SWelsSPS* pSpsArray,
-                        SSubsetSps*       pSubsetArray) {};
-  void LoadPreviousPps (SExistingParasetList* pExistingParasetList, SWelsPPS* pPpsArray) {};
+  virtual void LoadPreviousSps (SExistingParasetList* pExistingParasetList, SWelsSPS* pSpsArray,
+                                SSubsetSps*       pSubsetArray) {};
+  virtual void LoadPreviousPps (SExistingParasetList* pExistingParasetList, SWelsPPS* pPpsArray) {};
 
  protected:
   SParaSetOffset m_sParaSetOffset;
@@ -195,9 +200,10 @@ class  CWelsParametersetIdNonConstant : public CWelsParametersetIdConstant {
   CWelsParametersetIdNonConstant (const bool bSimulcastAVC,
                                   const int32_t kiSpatialLayerNum): CWelsParametersetIdConstant (bSimulcastAVC, kiSpatialLayerNum) {};
 
-  void OutputCurrentStructure (SParaSetOffsetVariable* pParaSetOffsetVariable, int32_t* pPpsIdList, sWelsEncCtx* pCtx,
-                               SExistingParasetList* pExistingParasetList);
-  void LoadPreviousStructure (SParaSetOffsetVariable* pParaSetOffsetVariable, int32_t* pPpsIdList);
+  virtual void OutputCurrentStructure (SParaSetOffsetVariable* pParaSetOffsetVariable, int32_t* pPpsIdList,
+                                       sWelsEncCtx* pCtx,
+                                       SExistingParasetList* pExistingParasetList);
+  virtual void LoadPreviousStructure (SParaSetOffsetVariable* pParaSetOffsetVariable, int32_t* pPpsIdList);
 };
 
 class  CWelsParametersetIdIncreasing : public CWelsParametersetIdNonConstant {
@@ -206,10 +212,10 @@ class  CWelsParametersetIdIncreasing : public CWelsParametersetIdNonConstant {
                                  const int32_t kiSpatialLayerNum): CWelsParametersetIdNonConstant (bSimulcastAVC, kiSpatialLayerNum) {};
 
 
-  int32_t GetPpsIdOffset (const int32_t iPpsId);
-  int32_t GetSpsIdOffset (const int32_t iPpsId, const int32_t iSpsId);
+  virtual int32_t GetPpsIdOffset (const int32_t iPpsId);
+  virtual int32_t GetSpsIdOffset (const int32_t iPpsId, const int32_t iSpsId);
 
-  void Update (const uint32_t kuiId, const int iParasetType);
+  virtual void Update (const uint32_t kuiId, const int iParasetType);
 
  protected:
 
@@ -226,29 +232,32 @@ class  CWelsParametersetSpsListing : public CWelsParametersetIdNonConstant {
  public:
   CWelsParametersetSpsListing (const bool bSimulcastAVC, const int32_t kiSpatialLayerNum);
 
-  uint32_t GetNeededSubsetSpsNum();
+  virtual uint32_t GetNeededSubsetSpsNum();
 
-  void LoadPrevious (SExistingParasetList* pExistingParasetList,  SWelsSPS* pSpsArray, SSubsetSps*       pSubsetArray,
-                     SWelsPPS* pPpsArray);
+  virtual void LoadPrevious (SExistingParasetList* pExistingParasetList,  SWelsSPS* pSpsArray,
+                             SSubsetSps*       pSubsetArray,
+                             SWelsPPS* pPpsArray);
 
   bool CheckParamCompatibility (SWelsSvcCodingParam* pCodingParam, SLogContext* pLogCtx);
 
-  bool GenerateNewSps (sWelsEncCtx* pCtx, const bool kbUseSubsetSps, const int32_t iDlayerIndex,
-                       const int32_t iDlayerCount, const int32_t kiSpsId,
-                       SWelsSPS*& pSps, SSubsetSps*& pSubsetSps, bool bSVCBaselayer);
+  virtual uint32_t GenerateNewSps (sWelsEncCtx* pCtx, const bool kbUseSubsetSps, const int32_t iDlayerIndex,
+                                   const int32_t iDlayerCount, uint32_t kuiSpsId,
+                                   SWelsSPS*& pSps, SSubsetSps*& pSubsetSps, bool bSVCBaselayer);
 
-  void UpdateParaSetNum (sWelsEncCtx* pCtx);
+  virtual void UpdateParaSetNum (sWelsEncCtx* pCtx);
 
   int32_t GetSpsIdx (const int32_t iIdx) {
     return iIdx;
   };
 
-  void OutputCurrentStructure (SParaSetOffsetVariable* pParaSetOffsetVariable, int32_t* pPpsIdList, sWelsEncCtx* pCtx,
-                               SExistingParasetList* pExistingParasetList);
+  virtual void OutputCurrentStructure (SParaSetOffsetVariable* pParaSetOffsetVariable, int32_t* pPpsIdList,
+                                       sWelsEncCtx* pCtx,
+                                       SExistingParasetList* pExistingParasetList);
  protected:
-  void LoadPreviousSps (SExistingParasetList* pExistingParasetList, SWelsSPS* pSpsArray, SSubsetSps*       pSubsetArray);
-  bool CheckPpsGenerating();
-  int32_t SpsReset (sWelsEncCtx* pCtx, bool kbUseSubsetSps);
+  virtual void LoadPreviousSps (SExistingParasetList* pExistingParasetList, SWelsSPS* pSpsArray,
+                                SSubsetSps*       pSubsetArray);
+  virtual bool CheckPpsGenerating();
+  virtual int32_t SpsReset (sWelsEncCtx* pCtx, bool kbUseSubsetSps);
 };
 
 class  CWelsParametersetSpsPpsListing : public CWelsParametersetSpsListing {
@@ -257,29 +266,29 @@ class  CWelsParametersetSpsPpsListing : public CWelsParametersetSpsListing {
 
   //uint32_t GetNeededPpsNum();
 
-  void UpdatePpsList (sWelsEncCtx* pCtx);
+  virtual void UpdatePpsList (sWelsEncCtx* pCtx);
 
-  void InitPps (sWelsEncCtx* pCtx, uint32_t kiSpsId,
-                SWelsPPS* pPps,
-                SWelsSPS* pSps,
-                SSubsetSps* pSubsetSps,
-                const uint32_t kuiPpsId,
-                const bool kbDeblockingFilterPresentFlag,
-                const bool kbUsingSubsetSps,
-                const bool kbEntropyCodingModeFlag);
+  virtual uint32_t InitPps (sWelsEncCtx* pCtx, uint32_t kiSpsId,
+                            SWelsSPS* pSps,
+                            SSubsetSps* pSubsetSps,
+                            uint32_t kuiPpsId,
+                            const bool kbDeblockingFilterPresentFlag,
+                            const bool kbUsingSubsetSps,
+                            const bool kbEntropyCodingModeFlag);
 
-  void UpdateParaSetNum (sWelsEncCtx* pCtx);
+  virtual void UpdateParaSetNum (sWelsEncCtx* pCtx);
 
-  int32_t GetCurrentPpsId (const int32_t iPpsId, const int32_t iIdrLoop);
+  virtual int32_t GetCurrentPpsId (const int32_t iPpsId, const int32_t iIdrLoop);
 
-  void OutputCurrentStructure (SParaSetOffsetVariable* pParaSetOffsetVariable, int32_t* pPpsIdList, sWelsEncCtx* pCtx,
-                               SExistingParasetList* pExistingParasetList);
-  void LoadPreviousStructure (SParaSetOffsetVariable* pParaSetOffsetVariable, int32_t* pPpsIdList);
+  virtual void OutputCurrentStructure (SParaSetOffsetVariable* pParaSetOffsetVariable, int32_t* pPpsIdList,
+                                       sWelsEncCtx* pCtx,
+                                       SExistingParasetList* pExistingParasetList);
+  virtual void LoadPreviousStructure (SParaSetOffsetVariable* pParaSetOffsetVariable, int32_t* pPpsIdList);
  protected:
-  void LoadPreviousPps (SExistingParasetList* pExistingParasetList, SWelsPPS* pPpsArray);
+  virtual void LoadPreviousPps (SExistingParasetList* pExistingParasetList, SWelsPPS* pPpsArray);
 
-  bool CheckPpsGenerating();
-  int32_t SpsReset (sWelsEncCtx* pCtx, bool kbUseSubsetSps);
+  virtual bool CheckPpsGenerating();
+  virtual int32_t SpsReset (sWelsEncCtx* pCtx, bool kbUseSubsetSps);
 };
 
 }

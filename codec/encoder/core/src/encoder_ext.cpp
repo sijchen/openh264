@@ -1374,7 +1374,10 @@ static inline int32_t InitDqLayers (sWelsEncCtx** ppCtx, SExistingParasetList* p
   const int32_t kiNeededPpsNum = (*ppCtx)->pFuncList->pParametersetStrategy->GetNeededPpsNum();
   (*ppCtx)->pPPSArray = (SWelsPPS*)pMa->WelsMallocz (kiNeededPpsNum * sizeof (SWelsPPS), "pPPSArray");
   WELS_VERIFY_RETURN_PROC_IF (1, (NULL == (*ppCtx)->pPPSArray), FreeMemorySvc (ppCtx))
-
+  
+  (*ppCtx)->pFuncList->pParametersetStrategy->LoadPrevious(pExistingParasetList, (*ppCtx)->pSpsArray, (*ppCtx)->pSubsetArray, (*ppCtx)->pPPSArray);
+  
+  
   (*ppCtx)->pDqIdcMap = (SDqIdc*)pMa->WelsMallocz (iDlayerCount * sizeof (SDqIdc), "pDqIdcMap");
   WELS_VERIFY_RETURN_PROC_IF (1, (NULL == (*ppCtx)->pDqIdcMap), FreeMemorySvc (ppCtx))
 
@@ -1387,9 +1390,17 @@ static inline int32_t InitDqLayers (sWelsEncCtx** ppCtx, SExistingParasetList* p
                          && (iDlayerIndex == BASE_DEPENDENCY_ID);
     pDqIdc->uiSpatialId = iDlayerIndex;
 
-    (*ppCtx)->pFuncList->pParametersetStrategy->GenerateNewSps(*ppCtx, bUseSubsetSps, iDlayerIndex,
+    iSpsId = (*ppCtx)->pFuncList->pParametersetStrategy->GenerateNewSps(*ppCtx, bUseSubsetSps, iDlayerIndex,
                                                                iDlayerCount, iSpsId, pSps, pSubsetSps, bSvcBaselayer);
-    (*ppCtx)->pFuncList->pParametersetStrategy->InitPps((*ppCtx), iSpsId, & (*ppCtx)->pPPSArray[iPpsId], pSps, pSubsetSps, iPpsId, true, bUseSubsetSps, pParam->iEntropyCodingModeFlag != 0);
+    WELS_VERIFY_RETURN_IF (ENC_RETURN_UNSUPPORTED_PARA, (0 > iSpsId))
+    if (!bUseSubsetSps) {
+      pSps = & ((*ppCtx)->pSpsArray[iSpsId]);
+    } else {
+      pSubsetSps = & ((*ppCtx)->pSubsetArray[iSpsId]);
+    }
+    
+    iPpsId = (*ppCtx)->pFuncList->pParametersetStrategy->InitPps((*ppCtx), iSpsId, pSps, pSubsetSps, iPpsId, true, bUseSubsetSps, pParam->iEntropyCodingModeFlag != 0);
+    pPps = &((*ppCtx)->pPPSArray[iPpsId]);
 
     // Not using FMO in SVC coding so far, come back if need FMO
     {
@@ -3154,7 +3165,7 @@ int32_t WelsWriteParameterSets (sWelsEncCtx* pCtx, int32_t* pNalLen, int32_t* pN
   //if ((SPS_PPS_LISTING == pCtx->pSvcParam->eSpsPpsIdStrategy) && (pCtx->iPpsNum < MAX_PPS_COUNT)) {
   //  UpdatePpsList (pCtx);
   //}
-  //pCtx->pFuncList->pParametersetStrategy->UpdatePpsList(pCtx);
+pCtx->pFuncList->pParametersetStrategy->UpdatePpsList(pCtx);
   
   iIdx = 0;
   while (iIdx < pCtx->iPpsNum) {
@@ -3483,7 +3494,7 @@ int32_t WriteSavcParaset_Listing (sWelsEncCtx* pCtx, const int32_t kiSpatialNum,
   }
 
   // write PPS
-  //pCtx->pFuncList->pParametersetStrategy->UpdatePpsList(pCtx);
+  pCtx->pFuncList->pParametersetStrategy->UpdatePpsList(pCtx);
 
   //TODO: under new strategy, will PPS be correctly updated?
   for (int32_t iSpatialId = 0; iSpatialId < kiSpatialNum; iSpatialId++) {

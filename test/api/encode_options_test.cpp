@@ -737,6 +737,7 @@ TEST_F (EncodeDecodeTestAPI, ParameterSetStrategy_SPS_PPS_LISTING1) {
 #endif
 }
 
+#define DEBUG_FILE_SAVE5
 TEST_F (EncodeDecodeTestAPI, ParameterSetStrategy_SPS_PPS_LISTING2) {
   //usage 2: 2 resolution Params, encode IDR0, IDR1, IDR2;
   //the bs will show two SPS and different PPS
