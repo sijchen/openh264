@@ -1387,10 +1387,8 @@ static inline int32_t InitDqLayers (sWelsEncCtx** ppCtx, SExistingParasetList* p
                          && (iDlayerIndex == BASE_DEPENDENCY_ID);
     pDqIdc->uiSpatialId = iDlayerIndex;
 
-    
     (*ppCtx)->pFuncList->pParametersetStrategy->GenerateNewSps(*ppCtx, bUseSubsetSps, iDlayerIndex,
                                                                iDlayerCount, iSpsId, pSps, pSubsetSps, bSvcBaselayer);
-    
     (*ppCtx)->pFuncList->pParametersetStrategy->InitPps((*ppCtx), iSpsId, & (*ppCtx)->pPPSArray[iPpsId], pSps, pSubsetSps, iPpsId, true, bUseSubsetSps, pParam->iEntropyCodingModeFlag != 0);
 
     // Not using FMO in SVC coding so far, come back if need FMO
@@ -1411,7 +1409,7 @@ static inline int32_t InitDqLayers (sWelsEncCtx** ppCtx, SExistingParasetList* p
     pDqIdc->iSpsId = iSpsId;
     pDqIdc->iPpsId = iPpsId;
 
-    (*ppCtx)->pFuncList->pParametersetStrategy->SetUseSubsetFlag(iPpsId, bUseSubsetSps);
+    //(*ppCtx)->pFuncList->pParametersetStrategy->SetUseSubsetFlag(iPpsId, bUseSubsetSps);
     //(*ppCtx)->sPSOVector.bPpsIdMappingIntoSubsetsps[iPpsId] = bUseSubsetSps;
 
     if ((pParam->bSimulcastAVC) || (bUseSubsetSps))
@@ -3156,7 +3154,7 @@ int32_t WelsWriteParameterSets (sWelsEncCtx* pCtx, int32_t* pNalLen, int32_t* pN
   //if ((SPS_PPS_LISTING == pCtx->pSvcParam->eSpsPpsIdStrategy) && (pCtx->iPpsNum < MAX_PPS_COUNT)) {
   //  UpdatePpsList (pCtx);
   //}
-  pCtx->pFuncList->pParametersetStrategy->UpdatePpsList(pCtx);
+  //pCtx->pFuncList->pParametersetStrategy->UpdatePpsList(pCtx);
   
   iIdx = 0;
   while (iIdx < pCtx->iPpsNum) {
@@ -3485,7 +3483,7 @@ int32_t WriteSavcParaset_Listing (sWelsEncCtx* pCtx, const int32_t kiSpatialNum,
   }
 
   // write PPS
-  pCtx->pFuncList->pParametersetStrategy->UpdatePpsList(pCtx);
+  //pCtx->pFuncList->pParametersetStrategy->UpdatePpsList(pCtx);
 
   //TODO: under new strategy, will PPS be correctly updated?
   for (int32_t iSpatialId = 0; iSpatialId < kiSpatialNum; iSpatialId++) {

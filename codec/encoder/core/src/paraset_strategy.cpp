@@ -44,30 +44,30 @@ IWelsParametersetStrategy*   IWelsParametersetStrategy::CreateParametersetStrate
   IWelsParametersetStrategy* pParametersetStrategy = NULL;
   switch (eSpsPpsIdStrategy) {
   case INCREASING_ID:
-    pParametersetStrategy = WELS_NEW_OP (CWelsParametersetIdIncreasing(), CWelsParametersetIdIncreasing);
+    pParametersetStrategy = WELS_NEW_OP (CWelsParametersetIdIncreasing (bSimulcastAVC, kiSpatialLayerNum),
+                                         CWelsParametersetIdIncreasing);
     WELS_VERIFY_RETURN_IF (NULL, NULL == pParametersetStrategy)
     break;
   case SPS_LISTING:
-    pParametersetStrategy = WELS_NEW_OP (CWelsParametersetSpsListing(), CWelsParametersetSpsListing);
+    pParametersetStrategy = WELS_NEW_OP (CWelsParametersetSpsListing (bSimulcastAVC, kiSpatialLayerNum),
+                                         CWelsParametersetSpsListing);
     WELS_VERIFY_RETURN_IF (NULL, NULL == pParametersetStrategy)
     break;
   case SPS_LISTING_AND_PPS_INCREASING:
     break;
   case SPS_PPS_LISTING:
-    pParametersetStrategy = WELS_NEW_OP (CWelsParametersetSpsPpsListing(), CWelsParametersetSpsPpsListing);
+    pParametersetStrategy = WELS_NEW_OP (CWelsParametersetSpsPpsListing (bSimulcastAVC, kiSpatialLayerNum),
+                                         CWelsParametersetSpsPpsListing);
     WELS_VERIFY_RETURN_IF (NULL, NULL == pParametersetStrategy)
     break;
   case CONSTANT_ID:
   default:
-    pParametersetStrategy = WELS_NEW_OP (CWelsParametersetIdConstant(), CWelsParametersetIdConstant);
+    pParametersetStrategy = WELS_NEW_OP (CWelsParametersetIdConstant (bSimulcastAVC, kiSpatialLayerNum),
+                                         CWelsParametersetIdConstant);
     WELS_VERIFY_RETURN_IF (NULL, NULL == pParametersetStrategy)
     break;
   }
 
-  if (pParametersetStrategy) {
-    pParametersetStrategy->UpdateParam (bSimulcastAVC,
-                                        kiSpatialLayerNum);
-  }
   return pParametersetStrategy;
 }
 
@@ -152,17 +152,17 @@ static bool CheckMatchedSubsetSps (SSubsetSps* const pSubsetSps1, SSubsetSps* co
   return true;
 }
 
-CWelsParametersetIdConstant::CWelsParametersetIdConstant() {
+CWelsParametersetIdConstant::CWelsParametersetIdConstant (const bool bSimulcastAVC, const int32_t kiSpatialLayerNum) {
   memset (&m_sParaSetOffset, 0, sizeof (m_sParaSetOffset));
+
+  m_bSimulcastAVC = bSimulcastAVC;
+  m_iSpatialLayerNum = kiSpatialLayerNum;
+
+  m_iBasicNeededSpsNum = 1;
+  m_iBasicNeededPpsNum = (1 + m_iSpatialLayerNum);
 }
 
 CWelsParametersetIdConstant::~CWelsParametersetIdConstant() {
-}
-
-void CWelsParametersetIdConstant::UpdateParam (const bool bSimulcastAVC,
-    const int32_t kiSpatialLayerNum) {
-  m_bSimulcastAVC = bSimulcastAVC;
-  m_iSpatialLayerNum = kiSpatialLayerNum;
 }
 
 int32_t CWelsParametersetIdConstant::GetPpsIdOffset (const int32_t iPpsId) {
@@ -175,7 +175,7 @@ int32_t CWelsParametersetIdConstant::GetSpsIdOffset (const int32_t iPpsId, const
 int32_t* CWelsParametersetIdConstant::GetSpsIdOffsetList (const int iParasetType) {
   return & (m_sParaSetOffset.sParaSetOffsetVariable[iParasetType].iParaSetIdDelta[0]);
 }
-  
+
 uint32_t CWelsParametersetIdConstant::GetAllNeededParasetNum() {
   return (GetNeededSpsNum()
           + GetNeededSubsetSpsNum()
@@ -184,7 +184,7 @@ uint32_t CWelsParametersetIdConstant::GetAllNeededParasetNum() {
 
 uint32_t CWelsParametersetIdConstant::GetNeededSpsNum() {
   if (0 >= m_sParaSetOffset.uiNeededSpsNum) {
-    m_sParaSetOffset.uiNeededSpsNum = GetBasicNeededSpsNum() * ((m_bSimulcastAVC) ? (m_iSpatialLayerNum) : (1));
+    m_sParaSetOffset.uiNeededSpsNum = m_iBasicNeededSpsNum * ((m_bSimulcastAVC) ? (m_iSpatialLayerNum) : (1));
   }
   return m_sParaSetOffset.uiNeededSpsNum;
 }
@@ -199,14 +199,12 @@ uint32_t CWelsParametersetIdConstant::GetNeededSubsetSpsNum() {
 
 uint32_t CWelsParametersetIdConstant::GetNeededPpsNum() {
   if (0 == m_sParaSetOffset.uiNeededPpsNum) {
-    m_sParaSetOffset.uiNeededPpsNum = GetBasicNeededPpsNum() * ((m_bSimulcastAVC) ? (m_iSpatialLayerNum) :
+    m_sParaSetOffset.uiNeededPpsNum = m_iBasicNeededPpsNum * ((m_bSimulcastAVC) ? (m_iSpatialLayerNum) :
                                       (1));
+    printf ("CWelsParametersetIdConstant::GetNeededPpsNum %d (%d)\n", m_sParaSetOffset.uiNeededPpsNum,
+            m_iBasicNeededPpsNum);
   }
   return m_sParaSetOffset.uiNeededPpsNum;
-}
-
-uint32_t CWelsParametersetIdConstant::GetBasicNeededPpsNum() {
-  return (1 + m_iSpatialLayerNum);
 }
 
 void CWelsParametersetIdConstant::LoadPrevious (SExistingParasetList* pExistingParasetList,  SWelsSPS* pSpsArray,
@@ -238,7 +236,7 @@ void CWelsParametersetIdConstant::InitPps (sWelsEncCtx* pCtx, uint32_t kiSpsId,
     const bool kbUsingSubsetSps,
     const bool kbEntropyCodingModeFlag) {
   WelsInitPps (pPps, pSps, pSubsetSps, kuiPpsId, true, kbUsingSubsetSps, kbEntropyCodingModeFlag);
-
+  SetUseSubsetFlag (kuiPpsId, kbUsingSubsetSps);
 }
 
 void CWelsParametersetIdConstant::SetUseSubsetFlag (const uint32_t iPpsId, const bool bUseSubsetSps) {
@@ -350,16 +348,24 @@ int32_t CWelsParametersetIdIncreasing::GetSpsIdOffset (const int32_t kiPpsId, co
 #if _DEBUG
   DebugSpsPps (kiPpsId, kiSpsId);
 #endif
-  printf("%d %d\n", kiParameterSetType, m_sParaSetOffset.sParaSetOffsetVariable[kiParameterSetType].iParaSetIdDelta[kiSpsId]);
+  printf ("%d %d\n", kiParameterSetType,
+          m_sParaSetOffset.sParaSetOffsetVariable[kiParameterSetType].iParaSetIdDelta[kiSpsId]);
   return (m_sParaSetOffset.sParaSetOffsetVariable[kiParameterSetType].iParaSetIdDelta[kiSpsId]);
 }
 
 //
 //CWelsParametersetSpsListing
 //
-uint32_t CWelsParametersetSpsListing::GetBasicNeededSpsNum() {
-  //m_sParaSetOffset.uiNeededSpsNum = ((SPS_LISTING & pSvcParam->eSpsPpsIdStrategy) ? (MAX_SPS_COUNT) : (1));
-  return MAX_SPS_COUNT;
+
+CWelsParametersetSpsListing::CWelsParametersetSpsListing (const bool bSimulcastAVC,
+    const int32_t kiSpatialLayerNum) : CWelsParametersetIdNonConstant (bSimulcastAVC, kiSpatialLayerNum) {
+  memset (&m_sParaSetOffset, 0, sizeof (m_sParaSetOffset));
+
+  m_bSimulcastAVC = bSimulcastAVC;
+  m_iSpatialLayerNum = kiSpatialLayerNum;
+
+  m_iBasicNeededSpsNum = MAX_SPS_COUNT;
+  m_iBasicNeededPpsNum = 1;
 }
 
 uint32_t CWelsParametersetSpsListing::GetNeededSubsetSpsNum() {
@@ -485,9 +491,16 @@ void CWelsParametersetSpsListing::OutputCurrentStructure (SParaSetOffsetVariable
 //
 //CWelsParametersetSpsPpsListing
 //
-uint32_t CWelsParametersetSpsPpsListing::GetBasicNeededPpsNum() {
-  //sPSOVector.uiNeededPpsNum = ((pSvcParam->eSpsPpsIdStrategy & SPS_PPS_LISTING) ? (MAX_PPS_COUNT) :(1 + pSvcParam->iSpatialLayerNum));
-  return MAX_PPS_COUNT;
+
+CWelsParametersetSpsPpsListing::CWelsParametersetSpsPpsListing (const bool bSimulcastAVC,
+    const int32_t kiSpatialLayerNum): CWelsParametersetSpsListing (bSimulcastAVC, kiSpatialLayerNum) {
+  memset (&m_sParaSetOffset, 0, sizeof (m_sParaSetOffset));
+
+  m_bSimulcastAVC = bSimulcastAVC;
+  m_iSpatialLayerNum = kiSpatialLayerNum;
+
+  m_iBasicNeededSpsNum = MAX_SPS_COUNT;
+  m_iBasicNeededPpsNum = MAX_PPS_COUNT;
 }
 
 void CWelsParametersetSpsPpsListing::LoadPreviousPps (SExistingParasetList* pExistingParasetList, SWelsPPS* pPpsArray) {
@@ -606,8 +619,9 @@ void CWelsParametersetSpsPpsListing::InitPps (sWelsEncCtx* pCtx, uint32_t kiSpsI
     pPps    = & pCtx->pPPSArray[iPpsId];
     WelsInitPps (pPps, pSps, pSubsetSps, iPpsId, true, kbUsingSubsetSps, kbEntropyCodingModeFlag);
   }
+  SetUseSubsetFlag (iPpsId, kbUsingSubsetSps);
 
-
+  UpdatePpsList (pCtx);
 }
 
 void CWelsParametersetSpsPpsListing::UpdateParaSetNum (sWelsEncCtx* pCtx) {
