@@ -1217,7 +1217,7 @@ static inline int32_t InitDqLayers (sWelsEncCtx** ppCtx, SExistingParasetList* p
   CMemoryAlign* pMa             = NULL;
   int32_t iDlayerCount          = 0;
   int32_t iDlayerIndex          = 0;
-  uint32_t iSpsId               = 0;
+  int32_t iSpsId               = 0;
   uint32_t iPpsId               = 0;
   uint32_t iNumRef              = 0;
   int32_t iResult               = 0;
@@ -3024,39 +3024,6 @@ static inline void PrefetchReferencePicture (sWelsEncCtx* pCtx, const EVideoFram
     ++ pSliceBase;
     ++ iIdx;
   }
-}
-
-
-void ParasetIdAdditionIdAdjust (SParaSetOffsetVariable* sParaSetOffsetVariable, const int32_t kiCurEncoderParaSetId,
-                                const uint32_t kuiMaxIdInBs) { //paraset_type = 0: SPS; =1: PPS
-  //SPS_ID in avc_sps and pSubsetSps will be different using this
-  //SPS_ID case example:
-  //1st enter:  next_spsid_in_bs == 0; spsid == 0; delta==0;            //actual spsid_in_bs == 0
-  //1st finish: next_spsid_in_bs == 1;
-  //2nd enter:  next_spsid_in_bs == 1; spsid == 0; delta==1;            //actual spsid_in_bs == 1
-  //2nd finish: next_spsid_in_bs == 2;
-  //31st enter: next_spsid_in_bs == 31; spsid == 0~2; delta==31~29;     //actual spsid_in_bs == 31
-  //31st finish:next_spsid_in_bs == 0;
-  //31st enter: next_spsid_in_bs == 0; spsid == 0~2; delta==-2~0;       //actual spsid_in_bs == 0
-  //31st finish:next_spsid_in_bs == 1;
-
-  const int32_t kiEncId = kiCurEncoderParaSetId;
-  uint32_t uiNextIdInBs = sParaSetOffsetVariable->uiNextParaSetIdToUseInBs;
-
-  //update current layer's pCodingParam
-  sParaSetOffsetVariable->iParaSetIdDelta[kiEncId] = uiNextIdInBs -
-      kiEncId;  //for current parameter set, change its id_delta
-  //write pso pData for next update:
-  sParaSetOffsetVariable->bUsedParaSetIdInBs[uiNextIdInBs] = true; //   update current used_id
-
-  //prepare for next update:
-  //   find the next avaibable iId
-  ++uiNextIdInBs;
-  if (uiNextIdInBs >= kuiMaxIdInBs) {
-    uiNextIdInBs = 0;//ensure the SPS_ID wound not exceed MAX_SPS_COUNT
-  }
-  //   update next_id
-  sParaSetOffsetVariable->uiNextParaSetIdToUseInBs = uiNextIdInBs;
 }
 
 int32_t WelsWriteOneSPS (sWelsEncCtx* pCtx, const int32_t kiSpsIdx, int32_t& iNalSize) {
