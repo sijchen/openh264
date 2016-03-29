@@ -2747,7 +2747,7 @@ void WelsInitCurrentLayer (sWelsEncCtx* pCtx,
   int32_t iCurPpsId = pDqIdc->iPpsId;
   int32_t iCurSpsId = pDqIdc->iSpsId;
 
-  pCtx->pFuncList->pParametersetStrategy->GetCurrentPpsId(iCurPpsId, WELS_ABS (pCtx->uiIdrPicId - 1) % MAX_PPS_COUNT);
+  iCurPpsId = pCtx->pFuncList->pParametersetStrategy->GetCurrentPpsId(iCurPpsId, WELS_ABS (pCtx->uiIdrPicId - 1) % MAX_PPS_COUNT);
 
   pBaseSlice->sSliceHeaderExt.sSliceHeader.iPpsId       = iCurPpsId;
   pCurDq->sLayerInfo.pPpsP                              =

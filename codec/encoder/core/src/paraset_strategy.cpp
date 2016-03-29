@@ -55,7 +55,7 @@ IWelsParametersetStrategy*   IWelsParametersetStrategy::CreateParametersetStrate
     break;
   case SPS_LISTING_AND_PPS_INCREASING:
     pParametersetStrategy = WELS_NEW_OP (CWelsParametersetSpsListingPpsIncreasing (bSimulcastAVC, kiSpatialLayerNum),
-                                           CWelsParametersetSpsListingPpsIncreasing);
+                                         CWelsParametersetSpsListingPpsIncreasing);
     WELS_VERIFY_RETURN_IF (NULL, NULL == pParametersetStrategy)
     break;
   case SPS_PPS_LISTING:
@@ -204,8 +204,6 @@ uint32_t CWelsParametersetIdConstant::GetNeededPpsNum() {
   if (0 == m_sParaSetOffset.uiNeededPpsNum) {
     m_sParaSetOffset.uiNeededPpsNum = m_iBasicNeededPpsNum * ((m_bSimulcastAVC) ? (m_iSpatialLayerNum) :
                                       (1));
-    printf ("CWelsParametersetIdConstant::GetNeededPpsNum %d (%d)\n", m_sParaSetOffset.uiNeededPpsNum,
-            m_iBasicNeededPpsNum);
   }
   return m_sParaSetOffset.uiNeededPpsNum;
 }
@@ -293,8 +291,8 @@ void CWelsParametersetIdIncreasing::DebugPps (const int32_t kiPpsId) {
 }
 
 void ParasetIdAdditionIdAdjust (SParaSetOffsetVariable* sParaSetOffsetVariable,
-    const int32_t kiCurEncoderParaSetId,
-    const uint32_t kuiMaxIdInBs) { //paraset_type = 0: SPS; =1: PPS
+                                const int32_t kiCurEncoderParaSetId,
+                                const uint32_t kuiMaxIdInBs) { //paraset_type = 0: SPS; =1: PPS
   //SPS_ID in avc_sps and pSubsetSps will be different using this
   //SPS_ID case example:
   //1st enter:  next_spsid_in_bs == 0; spsid == 0; delta==0;            //actual spsid_in_bs == 0
@@ -344,15 +342,13 @@ int32_t CWelsParametersetIdIncreasing::GetPpsIdOffset (const int32_t kiPpsId) {
 #endif
   return (m_sParaSetOffset.sParaSetOffsetVariable[PARA_SET_TYPE_PPS].iParaSetIdDelta[kiPpsId]);
 }
-  
+
 int32_t CWelsParametersetIdIncreasing::GetSpsIdOffset (const int32_t kiPpsId, const int32_t kiSpsId) {
   const int32_t kiParameterSetType = (m_sParaSetOffset.bPpsIdMappingIntoSubsetsps[kiPpsId] ?
                                       PARA_SET_TYPE_SUBSETSPS : PARA_SET_TYPE_AVCSPS);
 #if _DEBUG
   DebugSpsPps (kiPpsId, kiSpsId);
 #endif
-  printf ("%d %d\n", kiParameterSetType,
-          m_sParaSetOffset.sParaSetOffsetVariable[kiParameterSetType].iParaSetIdDelta[kiSpsId]);
   return (m_sParaSetOffset.sParaSetOffsetVariable[kiParameterSetType].iParaSetIdDelta[kiSpsId]);
 }
 
@@ -416,7 +412,6 @@ bool CWelsParametersetSpsListing::CheckParamCompatibility (SWelsSvcCodingParam* 
 }
 
 bool CWelsParametersetSpsListing::CheckPpsGenerating() {
-  printf ("CWelsParametersetSpsListing::CheckPpsGenerating\n");
   return true;
 }
 int32_t CWelsParametersetSpsListing::SpsReset (sWelsEncCtx* pCtx, bool kbUseSubsetSps) {
@@ -463,6 +458,7 @@ uint32_t CWelsParametersetSpsListing::GenerateNewSps (sWelsEncCtx* pCtx, const b
       if (SpsReset (pCtx, kbUseSubsetSps) < 0) {
         return -1;
       }
+      kuiSpsId = 0;
     }
 
     WelsGenerateNewSps (pCtx, kbUseSubsetSps, iDlayerIndex,
@@ -479,7 +475,6 @@ void CWelsParametersetSpsListing::UpdateParaSetNum (sWelsEncCtx* pCtx) {
 void CWelsParametersetSpsListing::OutputCurrentStructure (SParaSetOffsetVariable* pParaSetOffsetVariable,
     int32_t* pPpsIdList, sWelsEncCtx* pCtx, SExistingParasetList* pExistingParasetList) {
   CWelsParametersetIdNonConstant::OutputCurrentStructure (pParaSetOffsetVariable, pPpsIdList, pCtx, pExistingParasetList);
-
   pExistingParasetList->uiInUseSpsNum = m_sParaSetOffset.uiInUseSpsNum;
 
   memcpy (pExistingParasetList->sSps, pCtx->pSpsArray, MAX_SPS_COUNT * sizeof (SWelsSPS));
@@ -655,24 +650,24 @@ void CWelsParametersetSpsPpsListing::OutputCurrentStructure (SParaSetOffsetVaria
   memcpy (pExistingParasetList->sPps, pCtx->pPps, MAX_PPS_COUNT * sizeof (SWelsPPS));
   memcpy (pPpsIdList, (m_sParaSetOffset.iPpsIdList), MAX_DQ_LAYER_NUM * MAX_PPS_COUNT * sizeof (int32_t));
 }
-  
-  //
-  //CWelsParametersetSpsListingPpsIncreasing
-  //
-  
-  int32_t CWelsParametersetSpsListingPpsIncreasing::GetPpsIdOffset (const int32_t kiPpsId) {
-    //same as CWelsParametersetIdIncreasing::GetPpsIdOffset
-    return (m_sParaSetOffset.sParaSetOffsetVariable[PARA_SET_TYPE_PPS].iParaSetIdDelta[kiPpsId]);
-  }
-  
-  void CWelsParametersetSpsListingPpsIncreasing::Update (const uint32_t kuiId, const int iParasetType) {
-    //same as CWelsParametersetIdIncreasing::Update
+
+//
+//CWelsParametersetSpsListingPpsIncreasing
+//
+
+int32_t CWelsParametersetSpsListingPpsIncreasing::GetPpsIdOffset (const int32_t kiPpsId) {
+  //same as CWelsParametersetIdIncreasing::GetPpsIdOffset
+  return (m_sParaSetOffset.sParaSetOffsetVariable[PARA_SET_TYPE_PPS].iParaSetIdDelta[kiPpsId]);
+}
+
+void CWelsParametersetSpsListingPpsIncreasing::Update (const uint32_t kuiId, const int iParasetType) {
+  //same as CWelsParametersetIdIncreasing::Update
 #if _DEBUG
-    assert (kuiId < MAX_DQ_LAYER_NUM);
+  assert (kuiId < MAX_DQ_LAYER_NUM);
 #endif
-    
-    ParasetIdAdditionIdAdjust (& (m_sParaSetOffset.sParaSetOffsetVariable[iParasetType]),
-                               kuiId,
-                               (iParasetType != PARA_SET_TYPE_PPS) ? MAX_SPS_COUNT : MAX_PPS_COUNT);
-  }
+
+  ParasetIdAdditionIdAdjust (& (m_sParaSetOffset.sParaSetOffsetVariable[iParasetType]),
+                             kuiId,
+                             (iParasetType != PARA_SET_TYPE_PPS) ? MAX_SPS_COUNT : MAX_PPS_COUNT);
+}
 }

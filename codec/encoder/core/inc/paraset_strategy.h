@@ -220,7 +220,7 @@ class  CWelsParametersetIdIncreasing : public CWelsParametersetIdNonConstant {
  protected:
 
   //void ParasetIdAdditionIdAdjust (SParaSetOffsetVariable* sParaSetOffsetVariable, const int32_t kiCurEncoderParaSetId,
-    //                              const uint32_t kuiMaxIdInBs);
+  //                              const uint32_t kuiMaxIdInBs);
 
  private:
   void DebugPps (const int32_t kiPpsId);
@@ -292,9 +292,10 @@ class  CWelsParametersetSpsPpsListing : public CWelsParametersetSpsListing {
 };
 
 class CWelsParametersetSpsListingPpsIncreasing : public CWelsParametersetSpsListing {
-public:
-  CWelsParametersetSpsListingPpsIncreasing (const bool bSimulcastAVC, const int32_t kiSpatialLayerNum): CWelsParametersetSpsListing (bSimulcastAVC, kiSpatialLayerNum) {};
-  
+ public:
+  CWelsParametersetSpsListingPpsIncreasing (const bool bSimulcastAVC,
+      const int32_t kiSpatialLayerNum): CWelsParametersetSpsListing (bSimulcastAVC, kiSpatialLayerNum) {};
+
   virtual int32_t GetPpsIdOffset (const int32_t kiPpsId);
   virtual void Update (const uint32_t kuiId, const int iParasetType);
 };
