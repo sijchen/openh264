@@ -41,8 +41,6 @@
 #include <assert.h>
 
 #include "typedefs.h"
-//#include "utils.h"
-#include "WelsLock.h"
 #include "memory_align.h"
 
 #include "wels_process_task_base.h"
