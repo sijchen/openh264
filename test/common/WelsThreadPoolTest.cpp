@@ -4,6 +4,7 @@
 #include <list>
 #include <map>
 
+#include "codec_def.h"
 #include "typedefs.h"
 #include "WelsThreadLib.h"
 #include "WelsThreadPool.h"

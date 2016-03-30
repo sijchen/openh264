@@ -374,6 +374,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\common\wels_process_task_base.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\common\wels_process_task_management.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\common\WelsFrameWork.cpp"
 				>
 			</File>
@@ -382,7 +390,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\common\src\WelsTaskThread.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\common\src\WelsThread.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\common\src\WelsThreadLib.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\common\src\WelsThreadPool.cpp"
 				>
 			</File>
 		</Filter>

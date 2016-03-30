@@ -41,8 +41,6 @@
 #ifndef _WELS_TASK_H_
 #define _WELS_TASK_H_
 
-#include "codec_def.h"
-
 namespace WelsCommon {
 
 class IWelsTaskSink {
