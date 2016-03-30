@@ -138,22 +138,61 @@ int  CWelsProcessTaskManage::OnTaskExecuted() {
 
 
 void GetPartitionOfPixMap (int32_t iIdx, int32_t iTotal, SPixMap& sWholePixMap, SPixMap* pPartPixMap) {
-  *pPartPixMap = sWholePixMap;
-  int32_t iPartitionHeight = sWholePixMap.sRect.iRectHeight / iTotal;
+  memcpy(pPartPixMap, &sWholePixMap, sizeof(SPixMap));
 
+  int32_t iPartitionHeight = ((sWholePixMap.sRect.iRectHeight >> 3) / iTotal ) << 3; //many processing are with x8 blocks
+
+  if (sWholePixMap.iSizeInBits != 8) {
+    return;
+  }
   //To Volvet: arithmetic on a void* is illegal in both C and C++
-  pPartPixMap->pPixel[0] = sWholePixMap.pPixel[0] + iSizeInBits * (iIdx * iPartitionHeight) * sWholePixMap.iStride[0];
-  pPartPixMap->pPixel[1] = sWholePixMap.pPixel[1] + iSizeInBits * (iIdx * iPartitionHeight >> 1) *
+  pPartPixMap->pPixel[0] = (uint8_t*)(sWholePixMap.pPixel[0]) +  (iIdx * iPartitionHeight) * sWholePixMap.iStride[0];
+  pPartPixMap->pPixel[1] = (uint8_t*)sWholePixMap.pPixel[1] +  (iIdx * iPartitionHeight >> 1) *
                            sWholePixMap.iStride[1];
-  pPartPixMap->pPixel[2] = sWholePixMap.pPixel[2] + iSizeInBits * (iIdx * iPartitionHeight >> 1) *
+  pPartPixMap->pPixel[2] = (uint8_t*)sWholePixMap.pPixel[2] +  (iIdx * iPartitionHeight >> 1) *
                            sWholePixMap.iStride[2];
+
+  //iRectHeight
+  pPartPixMap->sRect.iRectHeight = iPartitionHeight;
+  if (iIdx == iTotal-1) {
+    pPartPixMap->sRect.iRectHeight = sWholePixMap.sRect.iRectHeight - (iIdx-1) * iPartitionHeight;
+  }
+}
+
+void GetTransposePartitionOfPixMap (int32_t iIdx, int32_t iTotal, SPixMap& sWholePixMap, SPixMap* pPartPixMap) {
+  memcpy(pPartPixMap, &sWholePixMap, sizeof(SPixMap));
+
+  int32_t iPartitionHeight = ((sWholePixMap.sRect.iRectHeight >> 3) / iTotal ) << 3; //many
+  
+  //To Volvet: arithmetic on a void* is illegal in both C and C++
+  int  iSizeInBits = 8;
+  pPartPixMap->pPixel[0] = (uint8_t*)(sWholePixMap.pPixel[0]) + iSizeInBits * (iIdx * iPartitionHeight) * sWholePixMap.iStride[0];
+  pPartPixMap->pPixel[1] = (uint8_t*)sWholePixMap.pPixel[1] + iSizeInBits * (iIdx * iPartitionHeight >> 1) *
+  sWholePixMap.iStride[1];
+  pPartPixMap->pPixel[2] = (uint8_t*)sWholePixMap.pPixel[2] + iSizeInBits * (iIdx * iPartitionHeight >> 1) *
+  sWholePixMap.iStride[2];
   printf ("GetPartitionOfPixMap = %d\n", iSizeInBits);
   pPartPixMap->sRect.iRectHeight = sWholePixMap.sRect.iRectHeight - iIdx * iPartitionHeight;
 }
 
-
 EResult  CWelsProcessTaskManage::ExecuteTasks (IStrategy* pStrategy, int32_t iType, SPixMap* pSrcPixMap,
     SPixMap* pRefPixMap) {
+  /*METHOD_DENOISE              ,
+  METHOD_SCENE_CHANGE_DETECTION_VIDEO ,
+  METHOD_SCENE_CHANGE_DETECTION_SCREEN ,
+  METHOD_DOWNSAMPLE            ,
+  METHOD_VAA_STATISTICS        ,
+  METHOD_BACKGROUND_DETECTION  ,
+  METHOD_ADAPTIVE_QUANT ,
+  METHOD_COMPLEXITY_ANALYSIS   ,
+  METHOD_COMPLEXITY_ANALYSIS_SCREEN,
+  METHOD_IMAGE_ROTATE          ,
+  METHOD_SCROLL_DETECTION,
+  METHOD_MASK*/
+  if (METHOD_IMAGE_ROTATE == pStrategy->m_eMethod || pSrcPixMap->eFormat != VIDEO_FORMAT_420|| pRefPixMap->eFormat != VIDEO_FORMAT_420) {
+    return RET_NOTSUPPORTED;
+  }
+
   m_iWaitTaskNum = m_pcAllTaskList[0]->size();
   //fprintf(stdout, "ExecuteTaskList m_iWaitTaskNum=%d\n", m_iWaitTaskNum);
   if (0 == m_iWaitTaskNum) {
