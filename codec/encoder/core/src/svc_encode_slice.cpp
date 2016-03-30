@@ -285,7 +285,7 @@ void WelsSliceHeaderWrite (sWelsEncCtx* pCtx, SBitStringAux* pBs, SDqLayer* pCur
   BsWriteUE (pBs, pSliceHeader->iFirstMbInSlice);
   BsWriteUE (pBs, pSliceHeader->eSliceType);    /* same type things */
 
-  BsWriteUE (pBs, pSliceHeader->pPps->iPpsId + pParametersetStrategy->GetPpsIdOffset(pSliceHeader->pPps->iPpsId));
+  BsWriteUE (pBs, pSliceHeader->pPps->iPpsId + pParametersetStrategy->GetPpsIdOffset (pSliceHeader->pPps->iPpsId));
 
   BsWriteBits (pBs, pSps->uiLog2MaxFrameNum, pSliceHeader->iFrameNum);
 
@@ -354,7 +354,7 @@ void WelsSliceHeaderExtWrite (sWelsEncCtx* pCtx, SBitStringAux* pBs, SDqLayer* p
   BsWriteUE (pBs, pSliceHeader->eSliceType);    /* same type things */
 
   BsWriteUE (pBs, pSliceHeader->pPps->iPpsId +
-             pParametersetStrategy->GetPpsIdOffset(pSliceHeader->pPps->iPpsId));
+             pParametersetStrategy->GetPpsIdOffset (pSliceHeader->pPps->iPpsId));
 
   BsWriteBits (pBs, pSps->uiLog2MaxFrameNum, pSliceHeader->iFrameNum);
 

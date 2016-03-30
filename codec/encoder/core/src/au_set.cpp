@@ -380,12 +380,13 @@ int32_t WelsWriteSubsetSpsSyntax (SSubsetSps* pSubsetSps, SBitStringAux* pBitStr
  * \note    Call it in case EWelsNalUnitType is PPS.
  *************************************************************************************
  */
-int32_t WelsWritePpsSyntax (SWelsPPS* pPps, SBitStringAux* pBitStringAux, IWelsParametersetStrategy* pParametersetStrategy) {
+int32_t WelsWritePpsSyntax (SWelsPPS* pPps, SBitStringAux* pBitStringAux,
+                            IWelsParametersetStrategy* pParametersetStrategy) {
   SBitStringAux* pLocalBitStringAux = pBitStringAux;
 
-  BsWriteUE (pLocalBitStringAux, pPps->iPpsId + pParametersetStrategy->GetPpsIdOffset(pPps->iPpsId));
-  BsWriteUE (pLocalBitStringAux, pPps->iSpsId + pParametersetStrategy->GetSpsIdOffset(pPps->iPpsId, pPps->iSpsId));
-  
+  BsWriteUE (pLocalBitStringAux, pPps->iPpsId + pParametersetStrategy->GetPpsIdOffset (pPps->iPpsId));
+  BsWriteUE (pLocalBitStringAux, pPps->iSpsId + pParametersetStrategy->GetSpsIdOffset (pPps->iPpsId, pPps->iSpsId));
+
   BsWriteOneBit (pLocalBitStringAux, pPps->bEntropyCodingModeFlag);
   BsWriteOneBit (pLocalBitStringAux, false/*pPps->bPicOrderPresentFlag*/);
 
