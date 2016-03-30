@@ -194,7 +194,7 @@ typedef void (*PStashMBStatus) (SDynamicSlicingStack* pDss, SSlice* pSlice, int3
 typedef int32_t (*PStashPopMBStatus) (SDynamicSlicingStack* pDss, SSlice* pSlice);
 
 class IWelsParametersetStrategy;
-  
+
 struct TagWelsFuncPointerList {
   SExpandPicFunc sExpandPicFunc;
   PFillInterNeighborCacheFunc       pfFillInterNeighborCache;
@@ -296,7 +296,7 @@ struct TagWelsFuncPointerList {
   PWelsSpatialWriteMbSyn pfWelsSpatialWriteMbSyn;
   PStashMBStatus pfStashMBStatus;
   PStashPopMBStatus pfStashPopMBStatus;
-  
+
   IWelsParametersetStrategy* pParametersetStrategy;
 };
 

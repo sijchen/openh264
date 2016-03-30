@@ -58,9 +58,7 @@
 
 #include "mt_defs.h" // for multiple threadin,
 #include "WelsThreadLib.h"
-
 #include "wels_task_management.h"
-
 
 namespace WelsEnc {
 
