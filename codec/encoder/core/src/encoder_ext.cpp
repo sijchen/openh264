@@ -1311,9 +1311,6 @@ static inline int32_t InitDqLayers (sWelsEncCtx** ppCtx, SExistingParasetList* p
     pDqIdc->iSpsId = iSpsId;
     pDqIdc->iPpsId = iPpsId;
 
-    //(*ppCtx)->pFuncList->pParametersetStrategy->SetUseSubsetFlag(iPpsId, bUseSubsetSps);
-    //(*ppCtx)->sPSOVector.bPpsIdMappingIntoSubsetsps[iPpsId] = bUseSubsetSps;
-
     if ((pParam->bSimulcastAVC) || (bUseSubsetSps))
       ++ iSpsId;
     ++ iPpsId;
@@ -3020,10 +3017,6 @@ int32_t WelsWriteParameterSets (sWelsEncCtx* pCtx, int32_t* pNalLen, int32_t* pN
     ++ iCountNal;
   }
 
-  /* write all PPS */
-  //if ((SPS_PPS_LISTING == pCtx->pSvcParam->eSpsPpsIdStrategy) && (pCtx->iPpsNum < MAX_PPS_COUNT)) {
-  //  UpdatePpsList (pCtx);
-  //}
   pCtx->pFuncList->pParametersetStrategy->UpdatePpsList (pCtx);
 
   iIdx = 0;
