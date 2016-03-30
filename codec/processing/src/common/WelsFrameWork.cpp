@@ -98,6 +98,9 @@ CVpFrameWork::CVpFrameWork (uint32_t uiThreadsNum, EResult& eReturn) {
   WelsMutexInit (&m_mutes);
 
   pProcessTaskManage = new CWelsProcessTaskManage();
+  if (NULL == pProcessTaskManage) {
+    eReturn = RET_OUTOFMEMORY;
+  }
 
   eReturn = RET_SUCCESS;
 }

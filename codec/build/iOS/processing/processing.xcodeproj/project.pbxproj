@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0D4314EF1C1A4312009BB351 /* wels_process_task_management.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4314ED1C1A4312009BB351 /* wels_process_task_management.cpp */; };
+		0D73206D1CAC6D3A00A4B6C7 /* wels_process_task_base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D73206C1CAC6D3A00A4B6C7 /* wels_process_task_base.cpp */; };
 		4CC6094F197E009D00BE8B8B /* down_sample_aarch64_neon.S in Sources */ = {isa = PBXBuildFile; fileRef = 4CC6094E197E009D00BE8B8B /* down_sample_aarch64_neon.S */; };
 		4CC6095A1980F34F00BE8B8B /* vaa_calc_aarch64_neon.S in Sources */ = {isa = PBXBuildFile; fileRef = 4CC609591980F34F00BE8B8B /* vaa_calc_aarch64_neon.S */; };
 		4CD0FE36199082AD00375C9A /* pixel_sad_aarch64_neon.S in Sources */ = {isa = PBXBuildFile; fileRef = 4CD0FE35199082AD00375C9A /* pixel_sad_aarch64_neon.S */; };
@@ -53,6 +54,7 @@
 		0D4314ED1C1A4312009BB351 /* wels_process_task_management.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = wels_process_task_management.cpp; sourceTree = "<group>"; };
 		0D4314EE1C1A4312009BB351 /* wels_process_task_management.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wels_process_task_management.h; sourceTree = "<group>"; };
 		0D4314F41C1A4906009BB351 /* wels_process_task_base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wels_process_task_base.h; sourceTree = "<group>"; };
+		0D73206C1CAC6D3A00A4B6C7 /* wels_process_task_base.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = wels_process_task_base.cpp; sourceTree = "<group>"; };
 		4CC6094E197E009D00BE8B8B /* down_sample_aarch64_neon.S */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; name = down_sample_aarch64_neon.S; path = arm64/down_sample_aarch64_neon.S; sourceTree = "<group>"; };
 		4CC609591980F34F00BE8B8B /* vaa_calc_aarch64_neon.S */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; name = vaa_calc_aarch64_neon.S; path = arm64/vaa_calc_aarch64_neon.S; sourceTree = "<group>"; };
 		4CD0FE35199082AD00375C9A /* pixel_sad_aarch64_neon.S */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; name = pixel_sad_aarch64_neon.S; path = arm64/pixel_sad_aarch64_neon.S; sourceTree = "<group>"; };
@@ -225,6 +227,7 @@
 				549947BC196A3FB400BA3D87 /* WelsFrameWork.h */,
 				549947BD196A3FB400BA3D87 /* WelsFrameWorkEx.cpp */,
 				0D4314F41C1A4906009BB351 /* wels_process_task_base.h */,
+				0D73206C1CAC6D3A00A4B6C7 /* wels_process_task_base.cpp */,
 				0D4314EE1C1A4312009BB351 /* wels_process_task_management.h */,
 				0D4314ED1C1A4312009BB351 /* wels_process_task_management.cpp */,
 				549947BE196A3FB400BA3D87 /* WelsVP.def */,
@@ -361,6 +364,7 @@
 				549947EA196A3FB400BA3D87 /* denoise.cpp in Sources */,
 				549947E7196A3FB400BA3D87 /* WelsFrameWork.cpp in Sources */,
 				549947F1196A3FB400BA3D87 /* ScrollDetection.cpp in Sources */,
+				0D73206D1CAC6D3A00A4B6C7 /* wels_process_task_base.cpp in Sources */,
 				549947E4196A3FB400BA3D87 /* BackgroundDetection.cpp in Sources */,
 				549947F3196A3FB400BA3D87 /* vaacalcfuncs.cpp in Sources */,
 				4CD0FE36199082AD00375C9A /* pixel_sad_aarch64_neon.S in Sources */,

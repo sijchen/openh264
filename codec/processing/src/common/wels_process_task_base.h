@@ -57,21 +57,13 @@ class CWelsProcessTask : public WelsCommon::IWelsTask {
   };
 
   CWelsProcessTask (WelsCommon::IWelsTaskSink* pSink): IWelsTask (pSink) {};
-  virtual ~CWelsProcessTask();
+  virtual ~CWelsProcessTask() {};
 
   //pTask = virtual uint32_t GetTaskType() const = 0;
 
-  void UpdatePixMap (IStrategy* pStrategy, int32_t iType, SPixMap& pSrcPixMap, SPixMap& pRefPixMap) {
-    m_pStrategy = pStrategy;
-    m_pSrcPixMap = pSrcPixMap;
-    m_pRefPixMap = pRefPixMap;
-    m_iType = iType;
-  };
+  void UpdatePixMap (IStrategy* pStrategy, int32_t iType, SPixMap& pSrcPixMap, SPixMap& pRefPixMap);
 
-  int32_t Execute() {
-    WelsThreadSetName ("OpenH264Enc_CWelsProcessTask_Execute");
-    return m_pStrategy->Process (m_iType, &m_pSrcPixMap, &m_pRefPixMap);
-  }
+  int32_t Execute();
 
  private:
   IStrategy* m_pStrategy;

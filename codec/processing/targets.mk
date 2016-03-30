@@ -5,6 +5,7 @@ PROCESSING_CPP_SRCS=\
 	$(PROCESSING_SRCDIR)/src/common/memory.cpp\
 	$(PROCESSING_SRCDIR)/src/common/WelsFrameWork.cpp\
 	$(PROCESSING_SRCDIR)/src/common/WelsFrameWorkEx.cpp\
+	$(PROCESSING_SRCDIR)/src/common/wels_process_task_base.cpp\
 	$(PROCESSING_SRCDIR)/src/common/wels_process_task_management.cpp\
 	$(PROCESSING_SRCDIR)/src/complexityanalysis/ComplexityAnalysis.cpp\
 	$(PROCESSING_SRCDIR)/src/denoise/denoise.cpp\
