@@ -41,7 +41,7 @@
 #include <assert.h>
 
 #include "typedefs.h"
-#include "utils.h"
+//#include "utils.h"
 #include "WelsLock.h"
 #include "memory_align.h"
 
@@ -80,7 +80,7 @@ CWelsProcessTaskManage::CWelsProcessTaskManage()
 }
 
 CWelsProcessTaskManage::~CWelsProcessTaskManage() {
-  fprintf(stdout, "~CWelsProcessTaskManage\n");
+  //fprintf(stdout, "~CWelsProcessTaskManage\n");
   Uninit();
 }
 
@@ -108,7 +108,7 @@ void   CWelsProcessTaskManage::Uninit() {
 EResult CWelsProcessTaskManage::CreateTasks (const int32_t kiTaskCount) {
   CWelsProcessTask* pTask = NULL;
   int32_t iPartitionNum = m_pThreadPool->GetThreadNum();
-  printf("iPartitionNum=%d\n", iPartitionNum );
+  //printf("iPartitionNum=%d\n", iPartitionNum );
 
   m_pcAllTaskList[0] = new TASKLIST_TYPE();
   WELS_VERIFY_RETURN_IF (RET_OUTOFMEMORY, NULL == m_pcAllTaskList[0])

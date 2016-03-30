@@ -173,7 +173,7 @@ EResult CVpFrameWork::Process (int32_t iType, SPixMap* pSrcPixMap, SPixMap* pDst
   WelsMutexLock (&m_mutes);
 
   IStrategy* pStrategy = m_pStgChain[iCurIdx];
-  if (eMethod != METHOD_SCROLL_DETECTION) {
+  if (eMethod != METHOD_DENOISE || eMethod != METHOD_DOWNSAMPLE || eMethod != METHOD_IMAGE_ROTATE) {
   if (pStrategy)
     eReturn = pStrategy->Process (0, &sSrcPic, &sDstPic);
   } else {
