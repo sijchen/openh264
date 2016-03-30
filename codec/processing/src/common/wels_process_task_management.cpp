@@ -111,7 +111,8 @@ EResult CWelsProcessTaskManage::CreateTasks (const int32_t kiTaskCount) {
 }
 
 void CWelsProcessTaskManage::DestroyTasks() {
-  for (int32_t iIdx = 0; iIdx < CWelsProcessTask::WELS_PROCESS_TASK_ALL; iIdx++)  {
+  //for (int32_t iIdx = 0; iIdx < CWelsProcessTask::WELS_PROCESS_TASK_ALL; iIdx++)  {
+  int32_t iIdx = 0;
     while (NULL != m_pcAllTaskList[iIdx]->begin()) {
       CWelsProcessTask* pTask = m_pcAllTaskList[iIdx]->begin();
       WELS_DELETE_OP (pTask);
@@ -119,7 +120,7 @@ void CWelsProcessTaskManage::DestroyTasks() {
     }
     m_pcAllTaskList[iIdx] = NULL;
 
-  }
+  //}
   //fprintf(stdout, "[MT] CWelsProcessTaskManage() DestroyTasks, cleaned %d tasks\n", m_iTotalTaskNum);
 }
 
