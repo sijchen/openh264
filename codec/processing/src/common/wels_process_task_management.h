@@ -50,7 +50,22 @@
 
 WELSVP_NAMESPACE_BEGIN
 
-class CWelsProcessTaskManage :  public WelsCommon::IWelsTaskSink {
+class IWelsProcessTaskManage {
+ public:
+  virtual ~IWelsProcessTaskManage() { }
+
+  virtual EResult   Init() = 0;
+  virtual void            Uninit() = 0;
+
+  virtual EResult   ExecuteTasks (IStrategy* pStrategy, int32_t iType, SPixMap* pSrcPixMap, SPixMap* pRefPixMap)
+    = 0;
+
+  static IWelsProcessTaskManage* CreateProcessTaskManage();
+
+  virtual int32_t  GetThreadPoolThreadNum() = 0;
+};
+
+class CWelsProcessTaskManage : public IWelsProcessTaskManage, public WelsCommon::IWelsTaskSink {
  public:
   CWelsProcessTaskManage();
   ~CWelsProcessTaskManage();

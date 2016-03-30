@@ -59,7 +59,18 @@
 
 WELSVP_NAMESPACE_BEGIN
 
+IWelsProcessTaskManage*   IWelsProcessTaskManage::CreateProcessTaskManage() {
 
+  IWelsProcessTaskManage* pTaskManage;
+  pTaskManage = WELS_NEW_OP (CWelsProcessTaskManage(), CWelsProcessTaskManage);
+  WELS_VERIFY_RETURN_IF (NULL, NULL == pTaskManage)
+
+  if (RET_SUCCESS != pTaskManage->Init()) {
+    pTaskManage->Uninit();
+    WELS_DELETE_OP (pTaskManage);
+  }
+  return pTaskManage;
+}
 
 CWelsProcessTaskManage::CWelsProcessTaskManage()
   : m_pThreadPool (NULL),
@@ -69,7 +80,7 @@ CWelsProcessTaskManage::CWelsProcessTaskManage()
 }
 
 CWelsProcessTaskManage::~CWelsProcessTaskManage() {
-  //fprintf(stdout, "~CWelsProcessTaskManage\n");
+  fprintf(stdout, "~CWelsProcessTaskManage\n");
   Uninit();
 }
 
@@ -97,6 +108,7 @@ void   CWelsProcessTaskManage::Uninit() {
 EResult CWelsProcessTaskManage::CreateTasks (const int32_t kiTaskCount) {
   CWelsProcessTask* pTask = NULL;
   int32_t iPartitionNum = m_pThreadPool->GetThreadNum();
+  printf("iPartitionNum=%d\n", iPartitionNum );
 
   m_pcAllTaskList[0] = new TASKLIST_TYPE();
   WELS_VERIFY_RETURN_IF (RET_OUTOFMEMORY, NULL == m_pcAllTaskList[0])
@@ -116,12 +128,12 @@ EResult CWelsProcessTaskManage::CreateTasks (const int32_t kiTaskCount) {
 void CWelsProcessTaskManage::DestroyTasks() {
   //for (int32_t iIdx = 0; iIdx < CWelsProcessTask::WELS_PROCESS_TASK_ALL; iIdx++)  {
   int32_t iIdx = 0;
-    while (NULL != m_pcAllTaskList[iIdx]->begin()) {
-      CWelsProcessTask* pTask = m_pcAllTaskList[iIdx]->begin();
-      WELS_DELETE_OP (pTask);
-      m_pcAllTaskList[iIdx]->pop_front();
-    }
-  WELS_DELETE_OP(m_pcAllTaskList[iIdx]);
+  while (NULL != m_pcAllTaskList[iIdx]->begin()) {
+    CWelsProcessTask* pTask = m_pcAllTaskList[iIdx]->begin();
+    WELS_DELETE_OP (pTask);
+    m_pcAllTaskList[iIdx]->pop_front();
+  }
+  WELS_DELETE_OP (m_pcAllTaskList[iIdx]);
   //}
   //fprintf(stdout, "[MT] CWelsProcessTaskManage() DestroyTasks, cleaned %d tasks\n", m_iTotalTaskNum);
 }
@@ -148,49 +160,50 @@ int  CWelsProcessTaskManage::OnTaskExecuted() {
 
 
 void GetPartitionOfPixMap (int32_t iIdx, int32_t iTotal, SPixMap& sWholePixMap, SPixMap* pPartPixMap) {
-  memcpy(pPartPixMap, &sWholePixMap, sizeof(SPixMap));
+  memcpy (pPartPixMap, &sWholePixMap, sizeof (SPixMap));
 
-  int32_t iPartitionHeight = ((sWholePixMap.sRect.iRectHeight >> 3) / iTotal ) << 3; //many processing are with x8 blocks
+  int32_t iPartitionHeight = ((sWholePixMap.sRect.iRectHeight >> 3) / iTotal) << 3;  //many processing are with x8 blocks
 
   if (sWholePixMap.iSizeInBits != 8) {
     return;
   }
   //To Volvet: arithmetic on a void* is illegal in both C and C++
-  pPartPixMap->pPixel[0] = (uint8_t*)(sWholePixMap.pPixel[0]) +  (iIdx * iPartitionHeight) * sWholePixMap.iStride[0];
-  pPartPixMap->pPixel[1] = (uint8_t*)sWholePixMap.pPixel[1] +  (iIdx * iPartitionHeight >> 1) *
+  pPartPixMap->pPixel[0] = (uint8_t*) (sWholePixMap.pPixel[0]) + (iIdx * iPartitionHeight) * sWholePixMap.iStride[0];
+  pPartPixMap->pPixel[1] = (uint8_t*)sWholePixMap.pPixel[1] + (iIdx * iPartitionHeight >> 1) *
                            sWholePixMap.iStride[1];
-  pPartPixMap->pPixel[2] = (uint8_t*)sWholePixMap.pPixel[2] +  (iIdx * iPartitionHeight >> 1) *
+  pPartPixMap->pPixel[2] = (uint8_t*)sWholePixMap.pPixel[2] + (iIdx * iPartitionHeight >> 1) *
                            sWholePixMap.iStride[2];
 
   //iRectHeight
   pPartPixMap->sRect.iRectHeight = iPartitionHeight;
-  if (iIdx == iTotal-1) {
-    pPartPixMap->sRect.iRectHeight = sWholePixMap.sRect.iRectHeight - (iIdx-1) * iPartitionHeight;
+  if (iIdx == iTotal - 1) {
+    pPartPixMap->sRect.iRectHeight = sWholePixMap.sRect.iRectHeight - (iIdx - 1) * iPartitionHeight;
   }
 }
 
 void GetTransposePartitionOfPixMap (int32_t iIdx, int32_t iTotal, SPixMap& sWholePixMap, SPixMap* pPartPixMap) {
-  memcpy(pPartPixMap, &sWholePixMap, sizeof(SPixMap));
+  memcpy (pPartPixMap, &sWholePixMap, sizeof (SPixMap));
 
-  int32_t iPartitionHeight = ((sWholePixMap.sRect.iRectHeight >> 3) / iTotal ) << 3; //many processsing in vp is based on x8 blocks
-  
+  int32_t iPartitionWidth = ((sWholePixMap.sRect.iRectWidth >> 3) / iTotal) <<
+                            3;  //many processsing in vp is based on x8 blocks
+
   //To Volvet: arithmetic on a void* is illegal in both C and C++
   if (sWholePixMap.iSizeInBits != 8) {
     return;
   }
-  pPartPixMap->pPixel[0] = (uint8_t*)(sWholePixMap.pPixel[0]) + (iIdx * iPartitionHeight) * sWholePixMap.iStride[0];
-  pPartPixMap->pPixel[1] = (uint8_t*)(sWholePixMap.pPixel[1]) + (iIdx * iPartitionHeight >> 1) * sWholePixMap.iStride[1];
-  pPartPixMap->pPixel[2] = (uint8_t*)(sWholePixMap.pPixel[2]) + (iIdx * iPartitionHeight >> 1) * sWholePixMap.iStride[2];
-  
-  if (iIdx != iTotal-1) {
-    pPartPixMap->sRect.iRectHeight = iPartitionHeight;
+  pPartPixMap->pPixel[0] = (uint8_t*) (sWholePixMap.pPixel[0]) + (iIdx * iPartitionWidth);
+  pPartPixMap->pPixel[1] = (uint8_t*) (sWholePixMap.pPixel[1]) + (iIdx * iPartitionWidth >> 1);
+  pPartPixMap->pPixel[2] = (uint8_t*) (sWholePixMap.pPixel[2]) + (iIdx * iPartitionWidth >> 1);
+
+  if (iIdx != iTotal - 1) {
+    pPartPixMap->sRect.iRectHeight = iPartitionWidth;
   } else {
-    pPartPixMap->sRect.iRectHeight = sWholePixMap.sRect.iRectHeight - iIdx * iPartitionHeight;
+    pPartPixMap->sRect.iRectHeight = sWholePixMap.sRect.iRectHeight - iIdx * iPartitionWidth;
   }
 }
 
 EResult  CWelsProcessTaskManage::ExecuteTasks (IStrategy* pStrategy, int32_t iType, SPixMap* pSrcPixMap,
-    SPixMap* pRefPixMap) {
+    SPixMap* pDstPixMap) {
   /*METHOD_DENOISE              ,
   METHOD_SCENE_CHANGE_DETECTION_VIDEO ,
   METHOD_SCENE_CHANGE_DETECTION_SCREEN ,
@@ -203,7 +216,8 @@ EResult  CWelsProcessTaskManage::ExecuteTasks (IStrategy* pStrategy, int32_t iTy
   METHOD_IMAGE_ROTATE          ,
   METHOD_SCROLL_DETECTION,
   METHOD_MASK*/
-  if (METHOD_IMAGE_ROTATE == pStrategy->m_eMethod || pSrcPixMap->eFormat != VIDEO_FORMAT_420|| pRefPixMap->eFormat != VIDEO_FORMAT_420) {
+  if (METHOD_IMAGE_ROTATE == pStrategy->m_eMethod || pSrcPixMap->eFormat != VIDEO_FORMAT_420
+      || pDstPixMap->eFormat != VIDEO_FORMAT_420) {
     return RET_NOTSUPPORTED;
   }
 
@@ -213,12 +227,16 @@ EResult  CWelsProcessTaskManage::ExecuteTasks (IStrategy* pStrategy, int32_t iTy
     return RET_SUCCESS;
   }
   for (int32_t iIdx = 0; iIdx < m_iWaitTaskNum; iIdx++) {
-    SPixMap sTarRefPixMap;
+    SPixMap sTarDstPixMap;
     SPixMap sTarSrcPixMap;
-    GetPartitionOfPixMap (iIdx, m_iWaitTaskNum, *pRefPixMap, &sTarRefPixMap);
+    if (METHOD_IMAGE_ROTATE == pStrategy->m_eMethod) {
+      GetTransposePartitionOfPixMap (iIdx, m_iWaitTaskNum, *pDstPixMap, &sTarDstPixMap);
+    } else {
+      GetPartitionOfPixMap (iIdx, m_iWaitTaskNum, *pDstPixMap, &sTarDstPixMap);
+    }
     GetPartitionOfPixMap (iIdx, m_iWaitTaskNum, *pSrcPixMap, &sTarSrcPixMap);
 
-    m_pcAllTaskList[0]->GetIndexNode (iIdx)->UpdatePixMap (pStrategy, iType, sTarSrcPixMap, sTarRefPixMap);
+    m_pcAllTaskList[0]->GetIndexNode (iIdx)->UpdatePixMap (pStrategy, iType, sTarSrcPixMap, sTarDstPixMap);
 
   }
 

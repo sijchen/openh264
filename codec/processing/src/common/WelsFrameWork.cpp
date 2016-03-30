@@ -97,8 +97,8 @@ CVpFrameWork::CVpFrameWork (uint32_t uiThreadsNum, EResult& eReturn) {
 
   WelsMutexInit (&m_mutes);
 
-  pProcessTaskManage = new CWelsProcessTaskManage();
-  if (NULL == pProcessTaskManage) {
+  m_pProcessTaskManage = IWelsProcessTaskManage::CreateProcessTaskManage();
+  if (NULL == m_pProcessTaskManage) {
     eReturn = RET_OUTOFMEMORY;
   }
 
@@ -115,7 +115,7 @@ CVpFrameWork::~CVpFrameWork() {
 
   WelsMutexDestroy (&m_mutes);
 
-  delete pProcessTaskManage;
+  delete m_pProcessTaskManage;
 }
 
 EResult CVpFrameWork::Init (int32_t iType, void* pCfg) {
@@ -173,9 +173,13 @@ EResult CVpFrameWork::Process (int32_t iType, SPixMap* pSrcPixMap, SPixMap* pDst
   WelsMutexLock (&m_mutes);
 
   IStrategy* pStrategy = m_pStgChain[iCurIdx];
+  if (eMethod != METHOD_SCROLL_DETECTION) {
   if (pStrategy)
     eReturn = pStrategy->Process (0, &sSrcPic, &sDstPic);
-
+  } else {
+  m_pProcessTaskManage->ExecuteTasks(pStrategy, 0, pSrcPixMap, pDstPixMap);
+  }
+  
   WelsMutexUnlock (&m_mutes);
 
   return eReturn;

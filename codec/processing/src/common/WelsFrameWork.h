@@ -95,7 +95,7 @@ class IStrategy : public IWelsVP {
   bool            m_bInit;
 };
 
-class CWelsProcessTaskManage;
+class IWelsProcessTaskManage;
 
 class CVpFrameWork : public IWelsVP {
  public:
@@ -126,7 +126,7 @@ class CVpFrameWork : public IWelsVP {
 
   WELS_MUTEX m_mutes;
 
-  CWelsProcessTaskManage*  pProcessTaskManage; //was planning to put it under CWelsH264SVCEncoder but it may be updated (lock/no lock) when param is changed
+  IWelsProcessTaskManage*  m_pProcessTaskManage; //was planning to put it under CWelsH264SVCEncoder but it may be updated (lock/no lock) when param is changed
 };
 
 WELSVP_NAMESPACE_END
