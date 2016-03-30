@@ -98,6 +98,9 @@ EResult CWelsProcessTaskManage::CreateTasks (const int32_t kiTaskCount) {
   CWelsProcessTask* pTask = NULL;
   int32_t iPartitionNum = m_pThreadPool->GetThreadNum();
 
+  m_pcAllTaskList[0] = new TASKLIST_TYPE();
+  WELS_VERIFY_RETURN_IF (RET_OUTOFMEMORY, NULL == m_pcAllTaskList[0])
+
   for (int idx = 0; idx < iPartitionNum; idx++) {
     //pTask = (CWelsProcessTask*) (new CWelsProcessTask (this));
     pTask = new CWelsProcessTask (this);
@@ -118,8 +121,7 @@ void CWelsProcessTaskManage::DestroyTasks() {
       WELS_DELETE_OP (pTask);
       m_pcAllTaskList[iIdx]->pop_front();
     }
-    m_pcAllTaskList[iIdx] = NULL;
-
+  WELS_DELETE_OP(m_pcAllTaskList[iIdx]);
   //}
   //fprintf(stdout, "[MT] CWelsProcessTaskManage() DestroyTasks, cleaned %d tasks\n", m_iTotalTaskNum);
 }
