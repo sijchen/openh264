@@ -103,9 +103,10 @@ exit:
 }
 
 int32_t CWelsPreProcess::WelsPreprocessDestroy() {
+    printf("CWelsPreProcess::WelsPreprocessDestroy0\n");
   WelsDestroyVpInterface (m_pInterfaceVp, WELSVP_INTERFACE_VERION);
   m_pInterfaceVp = NULL;
-  printf("CWelsPreProcess::WelsPreprocessDestroy\n");
+  printf("CWelsPreProcess::WelsPreprocessDestroy1\n");
   return 0;
 }
 
@@ -149,6 +150,7 @@ int32_t CWelsPreProcess::AllocSpatialPictures (sWelsEncCtx* pCtx, SWelsSvcCoding
       SPicture* pPic = AllocPicture (pMa, kiPicWidth, kiPicHeight, false, 0);
       WELS_VERIFY_RETURN_IF (1, (NULL == pPic))
       m_pSpatialPic[iDlayerIndex][i] = pPic;
+      printf("AllocSpatialPictures %d %d %x\n", iDlayerIndex, i, m_pSpatialPic[iDlayerIndex][i]);
       ++ i;
     } while (i < kuiRefNumInTemporal);
 
@@ -170,9 +172,12 @@ void CWelsPreProcess::FreeSpatialPictures (sWelsEncCtx* pCtx) {
     uint8_t i = 0;
     uint8_t uiRefNumInTemporal = m_uiSpatialPicNum[j];
 
+    printf("FreePicture0 uiRefNumInTemporal=%d\n", uiRefNumInTemporal);
     while (i < uiRefNumInTemporal) {
       if (NULL != m_pSpatialPic[j][i]) {
+        printf("FreePicture0 j=%d i=%d pic=%x\n", j, i, m_pSpatialPic[j][i]);
         FreePicture (pMa, &m_pSpatialPic[j][i]);
+        printf("FreePicture1 j=%d i=%d pic=%x\n", j, i, m_pSpatialPic[j][i]);
       }
       ++ i;
     }

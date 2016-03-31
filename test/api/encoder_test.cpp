@@ -97,7 +97,9 @@ TEST_P (EncoderOutputTest, CompareOutput) {
   unsigned char digest[SHA_DIGEST_LENGTH];
   SHA1Result (&ctx_, digest);
   if (!HasFatalFailure()) {
+    printf("CompareHash0\n");
     CompareHash (digest, p.pkcHashStr);
+     printf("CompareHash1\n");
   }
 }
 static const EncodeFileParam kFileParamArray[] = {

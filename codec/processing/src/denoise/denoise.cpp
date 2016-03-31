@@ -76,16 +76,16 @@ EResult CDenoiser::Process (int32_t iType, SPixMap* pSrc, SPixMap* dst) {
   int32_t iHeightY = pSrc->sRect.iRectHeight;
   int32_t iWidthUV = iWidthY >> 1;
   int32_t iHeightUV = iHeightY >> 1;
-
+  printf("pSrcY0=%x, %x, %d\n", pSrcY, pSrcV, pSrc->sRect.iRectHeight);
   if (m_uiType & DENOISE_Y_COMPONENT)
     BilateralDenoiseLuma (pSrcY, iWidthY, iHeightY, pSrc->iStride[0]);
-
+  printf("pSrcY1=%x, %x, %d\n", pSrcY, pSrcV, pSrc->sRect.iRectHeight);
   if (m_uiType & DENOISE_U_COMPONENT)
     WaverageDenoiseChroma (pSrcU, iWidthUV, iHeightUV, pSrc->iStride[1]);
-
+  printf("pSrcY2=%x, %x, %d\n", pSrcY, pSrcV, pSrc->sRect.iRectHeight);
   if (m_uiType & DENOISE_V_COMPONENT)
     WaverageDenoiseChroma (pSrcV, iWidthUV, iHeightUV, pSrc->iStride[2]);
-
+  printf("pSrcY3=%x, %x, %d\n", pSrcY, pSrcV, pSrc->sRect.iRectHeight);
   return RET_SUCCESS;
 }
 

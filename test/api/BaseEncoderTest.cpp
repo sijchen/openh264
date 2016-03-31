@@ -77,7 +77,9 @@ void BaseEncoderTest::SetUp() {
 
 void BaseEncoderTest::TearDown() {
   if (encoder_) {
+    printf("BaseEncoderTest::TearDown0\n");
     encoder_->Uninitialize();
+    printf("BaseEncoderTest::TearDown1\n");
     WelsDestroySVCEncoder (encoder_);
   }
 }

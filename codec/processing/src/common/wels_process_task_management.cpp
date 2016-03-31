@@ -168,7 +168,6 @@ void GetPartitionOfPixMap (int32_t iIdx, int32_t iTotal, SPixMap& sWholePixMap, 
   memcpy (pPartPixMap, &sWholePixMap, sizeof (SPixMap));
 
   int32_t iPartitionHeight = ((sWholePixMap.sRect.iRectHeight >> 3) / iTotal) << 3;  //many processing are with x8 blocks
-
   if (sWholePixMap.iSizeInBits != 8) {
     return;
   }
@@ -181,7 +180,7 @@ void GetPartitionOfPixMap (int32_t iIdx, int32_t iTotal, SPixMap& sWholePixMap, 
   //iRectHeight
   pPartPixMap->sRect.iRectHeight = iPartitionHeight;
   if (iIdx == iTotal - 1) {
-    pPartPixMap->sRect.iRectHeight = sWholePixMap.sRect.iRectHeight - (iIdx - 1) * iPartitionHeight;
+    pPartPixMap->sRect.iRectHeight = sWholePixMap.sRect.iRectHeight - iIdx * iPartitionHeight;
   }
 }
 

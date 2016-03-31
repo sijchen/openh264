@@ -2586,9 +2586,10 @@ void WelsUninitEncoderExt (sWelsEncCtx** ppCtx) {
       ++ iThreadIdx;
     }
   }
-
+  printf("pVpp0\n");
   if ((*ppCtx)->pVpp) {
     (*ppCtx)->pVpp->FreeSpatialPictures (*ppCtx);
+      printf("pVpp1\n");
     WELS_DELETE_OP ((*ppCtx)->pVpp);
   }
   printf("FreeMemorySvc1\n");
