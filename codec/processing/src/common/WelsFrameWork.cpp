@@ -177,9 +177,12 @@ EResult CVpFrameWork::Process (int32_t iType, SPixMap* pSrcPixMap, SPixMap* pDst
   WelsMutexLock (&m_mutes);
 
   IStrategy* pStrategy = m_pStgChain[iCurIdx];
-  if (eMethod == METHOD_DENOISE )//|| eMethod == METHOD_DOWNSAMPLE || eMethod == METHOD_IMAGE_ROTATE) {
-  {  m_pProcessTaskManage->ExecuteTasks(pStrategy, 0, pSrcPixMap, pDstPixMap);
+  if (eMethod == METHOD_DENOISE)// || eMethod == METHOD_IMAGE_ROTATE) {
+  {  printf("m_pProcessTaskManage ExecuteTasks\n");
+    m_pProcessTaskManage->ExecuteTasks(pStrategy, 0, pSrcPixMap, pDstPixMap);
   } else {
+    //METHOD_DENOISE cannot use multi-threading
+    //METHOD_DOWNSAMPLE cannot use multi-threading
     if (pStrategy)
       eReturn = pStrategy->Process (0, &sSrcPic, &sDstPic);
   }

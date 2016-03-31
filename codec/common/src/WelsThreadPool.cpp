@@ -101,7 +101,7 @@ void CWelsThreadPool::RemoveInstance() {
     StopAllRunning();
     fprintf(stdout, "Uninit=%d\n", m_iRefCount);
     Uninit();
-    fprintf(stdout, "m_iRefCount=%d, IdleThreadNum=%d, BusyThreadNum=%d, WaitedTask=%d\n", m_iRefCount, GetIdleThreadNum(), GetBusyThreadNum(), GetWaitedTaskNum());
+    //fprintf(stdout, "m_iRefCount=%d, IdleThreadNum=%d, BusyThreadNum=%d, WaitedTask=%d\n", m_iRefCount, GetIdleThreadNum(), GetBusyThreadNum(), GetWaitedTaskNum());
   }
 }
 
@@ -135,7 +135,7 @@ WELS_THREAD_ERROR_CODE CWelsThreadPool::OnTaskStop (CWelsTaskThread* pThread, IW
 
   SignalThread();
 
-  //fprintf(stdout, "ThreadPool: Task %x at Thread %x Finished\n", pTask, pThread);
+  fprintf(stdout, "ThreadPool: Task %x at Thread %x Finished\n", pTask, pThread);
   return WELS_THREAD_ERROR_OK;
 }
 
@@ -198,13 +198,13 @@ WELS_THREAD_ERROR_CODE CWelsThreadPool::Uninit() {
     m_cIdleThreads->pop_front();
   }
   m_cLockIdleTasks.Unlock();
-
+  fprintf(stdout, "WelsThreadPool::Uninit: %x, %x, %x\n",m_cWaitedTasks, m_cIdleThreads, m_cBusyThreads);
   Kill();
-
+  fprintf(stdout, "WelsThreadPool::Kill\n");
   WELS_DELETE_OP(m_cWaitedTasks);
   WELS_DELETE_OP(m_cIdleThreads);
   WELS_DELETE_OP(m_cBusyThreads);
-
+  fprintf(stdout, "WelsThreadPool::iReturn=%d\n", iReturn);
   return iReturn;
 }
 
@@ -226,7 +226,7 @@ void CWelsThreadPool::ExecuteTask() {
 WELS_THREAD_ERROR_CODE CWelsThreadPool::QueueTask (IWelsTask* pTask) {
   CWelsAutoLock  cLock (m_cLockPool);
 
-  //fprintf(stdout, "CWelsThreadPool::QueueTask: %d, pTask=%x\n", m_iRefCount, pTask);
+  fprintf(stdout, "CWelsThreadPool::QueueTask: %d, pTask=%x\n", m_iRefCount, pTask);
   if (GetWaitedTaskNum() == 0) {
     CWelsTaskThread* pThread = GetIdleThread();
 
@@ -237,7 +237,7 @@ WELS_THREAD_ERROR_CODE CWelsThreadPool::QueueTask (IWelsTask* pTask) {
       return WELS_THREAD_ERROR_OK;
     }
   }
-  //fprintf(stdout, "ThreadPool:  AddTaskToWaitedList: %x\n", pTask);
+  fprintf(stdout, "ThreadPool:  AddTaskToWaitedList: %x\n", pTask);
   AddTaskToWaitedList (pTask);
 
   //fprintf(stdout, "ThreadPool:  SignalThread: %x\n", pTask);
@@ -315,6 +315,9 @@ int32_t  CWelsThreadPool::GetBusyThreadNum() {
 }
 
 int32_t  CWelsThreadPool::GetIdleThreadNum() {
+  if (NULL == m_cIdleThreads) {
+    return -1;
+  }
   return m_cIdleThreads->size();
 }
 

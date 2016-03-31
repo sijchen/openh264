@@ -94,12 +94,15 @@ EResult CWelsProcessTaskManage::Init() {
 
 void   CWelsProcessTaskManage::Uninit() {
 
-  m_pThreadPool->RemoveInstance();
-  //WELS_DELETE_OP (m_pThreadPool);
 
-  fprintf(stdout, "m_pThreadPool = m_pThreadPool->RemoveInstance2\n");
   DestroyTasks();
   fprintf(stdout, "m_pThreadPool = m_pThreadPool->RemoveInstance\n");
+  
+  m_pThreadPool->RemoveInstance();
+  //WELS_DELETE_OP (m_pThreadPool);
+  
+  fprintf(stdout, "m_pThreadPool = m_pThreadPool->RemoveInstance2\n");
+  
   WelsEventClose (&m_hTaskEvent);
   
   fprintf(stdout, "WelsEventClose\n");
@@ -123,7 +126,7 @@ EResult CWelsProcessTaskManage::CreateTasks (const int32_t kiTaskCount) {
     m_pcAllTaskList[0]->push_back (pTask);
   }
 
-  //fprintf(stdout, "CWelsProcessTaskManage CreateTasks m_iThreadNum %d kiTaskCount=%d\n", m_iThreadNum, kiTaskCount);
+  fprintf(stdout, "CWelsProcessTaskManage CreateTasks m_iThreadNum %d kiTaskCount=%d\n", m_iThreadNum, kiTaskCount);
   return RET_SUCCESS;
 }
 
@@ -217,10 +220,9 @@ EResult  CWelsProcessTaskManage::ExecuteTasks (IStrategy* pStrategy, int32_t iTy
   METHOD_SCROLL_DETECTION,
   METHOD_MASK*/
   if (METHOD_IMAGE_ROTATE == pStrategy->m_eMethod || pSrcPixMap->eFormat != VIDEO_FORMAT_420
-      || pDstPixMap->eFormat != VIDEO_FORMAT_420) {
+      || (pDstPixMap && pDstPixMap->eFormat != VIDEO_FORMAT_420)) {
     return RET_NOTSUPPORTED;
   }
-
   m_iWaitTaskNum = m_pcAllTaskList[0]->size();
   fprintf(stdout, "ExecuteTaskList m_iWaitTaskNum=%d\n", m_iWaitTaskNum);
   if (0 == m_iWaitTaskNum) {
@@ -229,9 +231,9 @@ EResult  CWelsProcessTaskManage::ExecuteTasks (IStrategy* pStrategy, int32_t iTy
   for (int32_t iIdx = 0; iIdx < m_iWaitTaskNum; iIdx++) {
     SPixMap sTarDstPixMap;
     SPixMap sTarSrcPixMap;
-    if (METHOD_IMAGE_ROTATE == pStrategy->m_eMethod) {
+    if (METHOD_IMAGE_ROTATE == pStrategy->m_eMethod && pDstPixMap) {
       GetTransposePartitionOfPixMap (iIdx, m_iWaitTaskNum, *pDstPixMap, &sTarDstPixMap);
-    } else {
+    } else if (pDstPixMap) {
       GetPartitionOfPixMap (iIdx, m_iWaitTaskNum, *pDstPixMap, &sTarDstPixMap);
     }
     GetPartitionOfPixMap (iIdx, m_iWaitTaskNum, *pSrcPixMap, &sTarSrcPixMap);
