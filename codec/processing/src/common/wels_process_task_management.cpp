@@ -78,7 +78,7 @@ CWelsProcessTaskManage::CWelsProcessTaskManage()
 }
 
 CWelsProcessTaskManage::~CWelsProcessTaskManage() {
-  //fprintf(stdout, "~CWelsProcessTaskManage\n");
+  fprintf(stdout, "~CWelsProcessTaskManage\n");
   Uninit();
 }
 
@@ -93,20 +93,22 @@ EResult CWelsProcessTaskManage::Init() {
 }
 
 void   CWelsProcessTaskManage::Uninit() {
-  DestroyTasks();
-  //fprintf(stdout, "m_pThreadPool = m_pThreadPool->RemoveInstance\n");
+
   m_pThreadPool->RemoveInstance();
   //WELS_DELETE_OP (m_pThreadPool);
 
-  //fprintf(stdout, "m_pThreadPool = m_pThreadPool->RemoveInstance2\n");
-
+  fprintf(stdout, "m_pThreadPool = m_pThreadPool->RemoveInstance2\n");
+  DestroyTasks();
+  fprintf(stdout, "m_pThreadPool = m_pThreadPool->RemoveInstance\n");
   WelsEventClose (&m_hTaskEvent);
+  
+  fprintf(stdout, "WelsEventClose\n");
 }
 
 EResult CWelsProcessTaskManage::CreateTasks (const int32_t kiTaskCount) {
   CWelsProcessTask* pTask = NULL;
   int32_t iPartitionNum = m_pThreadPool->GetThreadNum();
-  //printf("iPartitionNum=%d\n", iPartitionNum );
+  printf("iPartitionNum=%d\n", iPartitionNum );
 
   m_pcAllTaskList[0] = new TASKLIST_TYPE();
   WELS_VERIFY_RETURN_IF (RET_OUTOFMEMORY, NULL == m_pcAllTaskList[0])
@@ -116,6 +118,8 @@ EResult CWelsProcessTaskManage::CreateTasks (const int32_t kiTaskCount) {
     pTask = new CWelsProcessTask (this);
     //pTask = WELS_NEW_OP (CWelsProcessTask(this), CWelsProcessTask);
     WELS_VERIFY_RETURN_IF (RET_OUTOFMEMORY, NULL == pTask)
+    
+    fprintf(stdout, "CWelsProcessTaskManage::CreateTasks Sink 0x%x 0x%x\n", pTask, this);
     m_pcAllTaskList[0]->push_back (pTask);
   }
 
@@ -133,7 +137,7 @@ void CWelsProcessTaskManage::DestroyTasks() {
   }
   WELS_DELETE_OP (m_pcAllTaskList[iIdx]);
   //}
-  //fprintf(stdout, "[MT] CWelsProcessTaskManage() DestroyTasks, cleaned %d tasks\n", m_iTotalTaskNum);
+  fprintf(stdout, "[MT] CWelsProcessTaskManage() DestroyTasks, cleaned tasks\n");
 }
 
 void  CWelsProcessTaskManage::OnTaskMinusOne() {
@@ -165,7 +169,6 @@ void GetPartitionOfPixMap (int32_t iIdx, int32_t iTotal, SPixMap& sWholePixMap, 
   if (sWholePixMap.iSizeInBits != 8) {
     return;
   }
-  //To Volvet: arithmetic on a void* is illegal in both C and C++
   pPartPixMap->pPixel[0] = (uint8_t*) (sWholePixMap.pPixel[0]) + (iIdx * iPartitionHeight) * sWholePixMap.iStride[0];
   pPartPixMap->pPixel[1] = (uint8_t*)sWholePixMap.pPixel[1] + (iIdx * iPartitionHeight >> 1) *
                            sWholePixMap.iStride[1];
@@ -185,7 +188,6 @@ void GetTransposePartitionOfPixMap (int32_t iIdx, int32_t iTotal, SPixMap& sWhol
   int32_t iPartitionWidth = ((sWholePixMap.sRect.iRectWidth >> 3) / iTotal) <<
                             3;  //many processsing in vp is based on x8 blocks
 
-  //To Volvet: arithmetic on a void* is illegal in both C and C++
   if (sWholePixMap.iSizeInBits != 8) {
     return;
   }
@@ -220,7 +222,7 @@ EResult  CWelsProcessTaskManage::ExecuteTasks (IStrategy* pStrategy, int32_t iTy
   }
 
   m_iWaitTaskNum = m_pcAllTaskList[0]->size();
-  //fprintf(stdout, "ExecuteTaskList m_iWaitTaskNum=%d\n", m_iWaitTaskNum);
+  fprintf(stdout, "ExecuteTaskList m_iWaitTaskNum=%d\n", m_iWaitTaskNum);
   if (0 == m_iWaitTaskNum) {
     return RET_SUCCESS;
   }

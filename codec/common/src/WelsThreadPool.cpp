@@ -94,12 +94,14 @@ CWelsThreadPool& CWelsThreadPool::AddReference () {
 
 void CWelsThreadPool::RemoveInstance() {
   CWelsAutoLock  cLock (m_cInitLock);
-  //fprintf(stdout, "m_iRefCount=%d\n", m_iRefCount);
+  fprintf(stdout, "m_iRefCount=%d\n", m_iRefCount);
   -- m_iRefCount;
   if (0 == m_iRefCount) {
+    fprintf(stdout, "StopAllRunning=%d\n", m_iRefCount);
     StopAllRunning();
+    fprintf(stdout, "Uninit=%d\n", m_iRefCount);
     Uninit();
-    //fprintf(stdout, "m_iRefCount=%d, IdleThreadNum=%d, BusyThreadNum=%d, WaitedTask=%d\n", m_iRefCount, GetIdleThreadNum(), GetBusyThreadNum(), GetWaitedTaskNum());
+    fprintf(stdout, "m_iRefCount=%d, IdleThreadNum=%d, BusyThreadNum=%d, WaitedTask=%d\n", m_iRefCount, GetIdleThreadNum(), GetBusyThreadNum(), GetWaitedTaskNum());
   }
 }
 
@@ -164,14 +166,16 @@ WELS_THREAD_ERROR_CODE CWelsThreadPool::Init () {
 
 WELS_THREAD_ERROR_CODE CWelsThreadPool::StopAllRunning() {
   WELS_THREAD_ERROR_CODE iReturn = WELS_THREAD_ERROR_OK;
-
+  fprintf(stdout, "ClearWaitedTasks\n");
   ClearWaitedTasks();
-
+  
+  fprintf(stdout, "WelsThreadPool::StopAllRunning\n");
   while (GetBusyThreadNum() > 0) {
-    //WELS_INFO_TRACE ("CWelsThreadPool::Uninit - Waiting all thread to exit");
+    fprintf(stdout, "WelsThreadPool::Uninit - Waiting all thread to exit\n");
     WelsSleep (10);
   }
 
+  fprintf(stdout, "WelsThreadPool::StopAllRunning2\n");
   if (GetIdleThreadNum() != m_iMaxThreadNum) {
     iReturn = WELS_THREAD_ERROR_GENERAL;
   }
@@ -214,7 +218,7 @@ void CWelsThreadPool::ExecuteTask() {
       break;
     }
     pTask = GetWaitedTask();
-    //fprintf(stdout, "ThreadPool:  ExecuteTask = %x at thread %x\n", pTask, pThread);
+    fprintf(stdout, "ThreadPool:  ExecuteTask = %x at thread %x\n", pTask, pThread);
     pThread->SetTask (pTask);
   }
 }
@@ -227,7 +231,7 @@ WELS_THREAD_ERROR_CODE CWelsThreadPool::QueueTask (IWelsTask* pTask) {
     CWelsTaskThread* pThread = GetIdleThread();
 
     if (pThread != NULL) {
-      //fprintf(stdout, "ThreadPool:  ExecuteTask = %x at thread %x\n", pTask, pThread);
+      fprintf(stdout, "ThreadPool:  ExecuteTask = %x at thread %x\n", pTask, pThread);
       pThread->SetTask (pTask);
 
       return WELS_THREAD_ERROR_OK;
@@ -337,8 +341,10 @@ void  CWelsThreadPool::ClearWaitedTasks() {
   CWelsAutoLock cLock (m_cLockWaitedTasks);
   IWelsTask* pTask = NULL;
   while (0 != m_cWaitedTasks->size()) {
+    fprintf(stdout, "WelsThreadPool::ClearWaitedTasks %d\n", m_cWaitedTasks->size());
     pTask = m_cWaitedTasks->begin();
     if (pTask->GetSink()) {
+      fprintf(stdout, "WelsThreadPool::pTask->GetSink() 0x%x 0x%x\n", pTask, pTask->GetSink());
       pTask->GetSink()->OnTaskCancelled();
     }
     m_cWaitedTasks->pop_front();

@@ -2132,7 +2132,7 @@ void FreeMemorySvc (sWelsEncCtx** ppCtx) {
     CMemoryAlign* pMa = pCtx->pMemAlign;
     SWelsSvcCodingParam* pParam = pCtx->pSvcParam;
     int32_t ilayer = 0;
-
+printf("FreeMemorySvc2135\n");
     // SStrideTables
     if (NULL != pCtx->pStrideTab) {
       if (NULL != pCtx->pStrideTab->pStrideDecBlockOffset[0][1]) {
@@ -2147,7 +2147,7 @@ void FreeMemorySvc (sWelsEncCtx** ppCtx) {
       pMa->WelsFree (pCtx->pDqIdcMap, "pDqIdcMap");
       pCtx->pDqIdcMap = NULL;
     }
-
+printf("FreeMemorySvc2150\n");
     if (NULL != pCtx->pOut) {
       // bs pBuffer
       if (NULL != pCtx->pOut->pBsBuffer) {
@@ -2167,16 +2167,16 @@ void FreeMemorySvc (sWelsEncCtx** ppCtx) {
       pMa->WelsFree (pCtx->pOut, "SWelsEncoderOutput");
       pCtx->pOut = NULL;
     }
-
+printf("FreeMemorySvc2170\n");
     if (pParam != NULL && pParam->iMultipleThreadIdc > 1)
       ReleaseMtResource (ppCtx);
-
+printf("FreeMemorySvc2173\n");
     // frame bitstream pBuffer
     if (NULL != pCtx->pFrameBs) {
       pMa->WelsFree (pCtx->pFrameBs, "pFrameBs");
       pCtx->pFrameBs = NULL;
     }
-
+printf("FreeMemorySvc2179\n");
     // pSpsArray
     if (NULL != pCtx->pSpsArray) {
       pMa->WelsFree (pCtx->pSpsArray, "pSpsArray");
@@ -2212,7 +2212,7 @@ void FreeMemorySvc (sWelsEncCtx** ppCtx) {
       pMa->WelsFree (pCtx->pRefIndexBlock4x4, "pRefIndexBlock4x4");
       pCtx->pRefIndexBlock4x4 = NULL;
     }
-
+printf("FreeMemorySvc2215\n");
     if (NULL != pCtx->ppMbListD) {
       if (NULL != pCtx->ppMbListD[0]) {
         pMa->WelsFree (pCtx->ppMbListD[0], "ppMbListD[0]");
@@ -2260,7 +2260,7 @@ void FreeMemorySvc (sWelsEncCtx** ppCtx) {
       pMa->WelsFree (pCtx->ppRefPicListExt, "ppRefPicListExt");
       pCtx->ppRefPicListExt = NULL;
     }
-
+printf("FreeMemorySvc2263\n");
     // VAA
     if (NULL != pCtx->pVaa) {
       if (pCtx->pSvcParam->bEnableAdaptiveQuant) { //free mem
@@ -2293,7 +2293,7 @@ void FreeMemorySvc (sWelsEncCtx** ppCtx) {
       pMa->WelsFree (pCtx->pVaa, "pVaa");
       pCtx->pVaa = NULL;
     }
-
+printf("FreeMemorySvc2296\n");
     // rate control module memory free
     if (NULL != pCtx->pWelsSvcRc) {
       WelsRcFreeMemory (pCtx);
@@ -2591,7 +2591,9 @@ void WelsUninitEncoderExt (sWelsEncCtx** ppCtx) {
     (*ppCtx)->pVpp->FreeSpatialPictures (*ppCtx);
     WELS_DELETE_OP ((*ppCtx)->pVpp);
   }
+  printf("FreeMemorySvc1\n");
   FreeMemorySvc (ppCtx);
+  printf("FreeMemorySvc2\n");
   *ppCtx = NULL;
 }
 

@@ -88,7 +88,7 @@ CWelsTaskManageBase::CWelsTaskManageBase()
 }
 
 CWelsTaskManageBase::~CWelsTaskManageBase() {
-  //fprintf(stdout, "~CWelsTaskManageBase\n");
+  fprintf(stdout, "~CWelsTaskManageBase\n");
   Uninit();
 }
 
@@ -119,12 +119,14 @@ WelsErrorType CWelsTaskManageBase::Init (sWelsEncCtx* pEncCtx) {
 }
 
 void   CWelsTaskManageBase::Uninit() {
-  DestroyTasks();
-  //fprintf(stdout, "m_pThreadPool = m_pThreadPool->RemoveInstance\n");
+
   m_pThreadPool->RemoveInstance();
   //WELS_DELETE_OP (m_pThreadPool);
 
-  //fprintf(stdout, "m_pThreadPool = m_pThreadPool->RemoveInstance2\n");
+  DestroyTasks();
+  fprintf(stdout, "m_pThreadPool = m_pThreadPool->RemoveInstance\n");
+  
+  fprintf(stdout, "m_pThreadPool = m_pThreadPool->RemoveInstance2\n");
 
   for (int32_t iDid = 0; iDid < MAX_DEPENDENCY_LAYER; iDid++) {
     WELS_DELETE_OP(m_cEncodingTaskList[iDid]);
@@ -144,9 +146,11 @@ WelsErrorType CWelsTaskManageBase::CreateTasks (sWelsEncCtx* pEncCtx, const int3
     kiTaskCount = m_iTaskNum[kiCurDid] = pEncCtx->iActiveThreadsNum;
   }
 
+
   for (int idx = 0; idx < kiTaskCount; idx++) {
     pTask = WELS_NEW_OP (CWelsUpdateMbMapTask (this, pEncCtx, idx), CWelsUpdateMbMapTask);
     WELS_VERIFY_RETURN_IF (ENC_RETURN_MEMALLOCERR, NULL == pTask)
+      fprintf(stdout, "CWelsTaskManageBase::CreateTasks Sink 0x%x 0x%x\n", pTask, this);
     m_cPreEncodingTaskList[kiCurDid]->push_back (pTask);
   }
 
@@ -162,6 +166,7 @@ WelsErrorType CWelsTaskManageBase::CreateTasks (sWelsEncCtx* pEncCtx, const int3
       }
     }
     WELS_VERIFY_RETURN_IF (ENC_RETURN_MEMALLOCERR, NULL == pTask)
+          fprintf(stdout, "CWelsTaskManageBase::CreateTasks Sink 0x%x 0x%x\n", pTask, this);
     m_cEncodingTaskList[kiCurDid]->push_back (pTask);
   }
 
@@ -223,6 +228,7 @@ WelsErrorType  CWelsTaskManageBase::ExecuteTaskList (TASKLIST_TYPE** pTaskList) 
   int32_t iIdx = 0;
   while (iIdx < iCurrentTaskCount) {
     m_pThreadPool->QueueTask (pTargetTaskList->GetIndexNode (iIdx));
+    fprintf(stdout, "ExecuteTaskList QueueTask pTask=0x%x\n", pTargetTaskList->GetIndexNode (iIdx));
     iIdx ++;
   }
   WelsEventWait (&m_hTaskEvent);

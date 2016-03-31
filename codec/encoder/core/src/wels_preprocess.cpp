@@ -105,7 +105,7 @@ exit:
 int32_t CWelsPreProcess::WelsPreprocessDestroy() {
   WelsDestroyVpInterface (m_pInterfaceVp, WELSVP_INTERFACE_VERION);
   m_pInterfaceVp = NULL;
-
+  printf("CWelsPreProcess::WelsPreprocessDestroy\n");
   return 0;
 }
 

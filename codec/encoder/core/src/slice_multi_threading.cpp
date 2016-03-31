@@ -413,7 +413,7 @@ void ReleaseMtResource (sWelsEncCtx** ppCtx) {
     pMa->WelsFree (pSmt->pThreadPEncCtx, "pThreadPEncCtx");
     pSmt->pThreadPEncCtx = NULL;
   }
-
+printf("FreeMemorySvc416\n");
   for (int i = 0; i < MAX_THREADS_NUM; i++) {
     if (pSmt->pThreadBsBuffer[i]) {
       pMa->WelsFree (pSmt->pThreadBsBuffer[i], "pSmt->pThreadBsBuffer");
@@ -421,11 +421,11 @@ void ReleaseMtResource (sWelsEncCtx** ppCtx) {
     }
   }
   memset (&pSmt->bThreadBsBufferUsage, 0, MAX_THREADS_NUM * sizeof (bool));
-
+printf("FreeMemorySvc424\n");
   if ((*ppCtx)->pTaskManage != NULL) {
     WELS_DELETE_OP((*ppCtx)->pTaskManage);
   }
-
+printf("FreeMemorySvc425\n");
 #ifdef MT_DEBUG
   // file handle for debug
   if (pSmt->pFSliceDiff) {

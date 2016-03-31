@@ -115,7 +115,11 @@ CVpFrameWork::~CVpFrameWork() {
 
   WelsMutexDestroy (&m_mutes);
 
-  delete m_pProcessTaskManage;
+  if (m_pProcessTaskManage) {
+    delete m_pProcessTaskManage;
+    m_pProcessTaskManage = NULL;
+  }
+  printf("end ~CVpFrameWork\n");
 }
 
 EResult CVpFrameWork::Init (int32_t iType, void* pCfg) {
@@ -173,11 +177,11 @@ EResult CVpFrameWork::Process (int32_t iType, SPixMap* pSrcPixMap, SPixMap* pDst
   WelsMutexLock (&m_mutes);
 
   IStrategy* pStrategy = m_pStgChain[iCurIdx];
-  if (eMethod != METHOD_DENOISE || eMethod != METHOD_DOWNSAMPLE || eMethod != METHOD_IMAGE_ROTATE) {
-  if (pStrategy)
-    eReturn = pStrategy->Process (0, &sSrcPic, &sDstPic);
+  if (eMethod == METHOD_DENOISE )//|| eMethod == METHOD_DOWNSAMPLE || eMethod == METHOD_IMAGE_ROTATE) {
+  {  m_pProcessTaskManage->ExecuteTasks(pStrategy, 0, pSrcPixMap, pDstPixMap);
   } else {
-  m_pProcessTaskManage->ExecuteTasks(pStrategy, 0, pSrcPixMap, pDstPixMap);
+    if (pStrategy)
+      eReturn = pStrategy->Process (0, &sSrcPic, &sDstPic);
   }
   
   WelsMutexUnlock (&m_mutes);

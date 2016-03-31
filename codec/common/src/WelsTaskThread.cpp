@@ -37,6 +37,7 @@
  *
  *************************************************************************************
  */
+#include <stdio.h>
 #include "WelsTaskThread.h"
 
 namespace WelsCommon {
@@ -60,6 +61,7 @@ void CWelsTaskThread::ExecuteTask() {
 
   if (m_pTask) {
     m_pTask->Execute();
+    fprintf(stdout, "CWelsTaskThread::ExecuteTask m_pTask %x\n", m_pTask);
   }
 
   if (m_pSink) {
