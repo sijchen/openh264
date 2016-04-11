@@ -43,6 +43,8 @@
 #include "memory.h"
 #include "WelsFrameWork.h"
 #include "IWelsVP.h"
+#include "ScrollDetectionFuncs.h"
+#include "wels_process_task_base.h"
 
 WELSVP_NAMESPACE_BEGIN
 
@@ -58,11 +60,39 @@ class CScrollDetection : public IStrategy {
   EResult Set (int32_t iType, void* pParam);
   EResult Get (int32_t iType, void* pParam);
 
+  virtual EResult ProcessPart (int32_t iType, SPixMap* pSrc, SPixMap* pDst, void * pPointer);
+  virtual EResult SumAllParts ();
+  
  private:
   void ScrollDetectionWithMask (SPixMap* pSrcPixMap, SPixMap* pRefPixMap);
-  void ScrollDetectionWithoutMask (SPixMap* pSrcPixMap, SPixMap* pRefPixMap);
+  void ScrollDetectionWithoutMask (SPixMap* pSrcPixMap, SPixMap* pRefPixMap, SScrollDetectionParam* pScrollDetectionParam);
  private:
   SScrollDetectionParam m_sScrollDetectionParam;
+  SScrollDetectionParam m_sScrollDetectionParam_Part[REGION_NUMBER];
+};
+
+class CScrollDetectionTask : public CWelsProcessTask {
+public:
+  CScrollDetectionTask (WelsCommon::IWelsTaskSink* pSink): CWelsProcessTask (pSink) { m_iTaskIdx = -1; };
+
+  uint32_t GetTaskNum(uint32_t iNumber) const {return REGION_NUMBER;};
+  
+  void GetProperPixMap(IStrategy* pStrategy, int32_t iType, int32_t iIdx, SPixMap* pSrcPixMap,
+                       SPixMap* pDstPixMap) {
+    m_iTaskIdx = iIdx;
+    UpdatePixMap (pStrategy, iType, *pSrcPixMap, *pDstPixMap);
+  };
+  
+  int32_t Execute() {
+    if (m_iTaskIdx < 0 || m_iTaskIdx>=REGION_NUMBER) {
+      return -1;
+    }
+    WelsThreadSetName ("OpenH264Enc_CWelsProcessTask_Process");
+    return m_pStrategy->ProcessPart (m_iType, &m_pSrcPixMap, &m_pRefPixMap, &m_iTaskIdx);
+  }
+private:
+  SScrollDetectionParam m_sScrollDetectionParamPart[REGION_NUMBER];
+  int32_t m_iTaskIdx;
 };
 
 WELSVP_NAMESPACE_END

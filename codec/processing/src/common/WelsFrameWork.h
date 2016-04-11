@@ -88,6 +88,9 @@ class IStrategy : public IWelsVP {
   }
   virtual EResult Process (int32_t iType, SPixMap* pSrc, SPixMap* pDst) = 0;
 
+  virtual EResult ProcessPart (int32_t iType, SPixMap* pSrc, SPixMap* pDst, void* pParam) { return RET_SUCCESS; };
+  virtual EResult SumAllParts () { return RET_SUCCESS; };
+  
  public:
   EMethods       m_eMethod;
   EVideoFormat m_eFormat;

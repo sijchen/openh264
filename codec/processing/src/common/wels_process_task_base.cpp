@@ -39,18 +39,85 @@
  */
 
 #include "wels_process_task_base.h"
+
 WELSVP_NAMESPACE_BEGIN
+
+void GetPartitionOfPixMap (int32_t iIdx, int32_t iTotal, SPixMap& sWholePixMap, SPixMap* pPartPixMap) {
+  memcpy (pPartPixMap, &sWholePixMap, sizeof (SPixMap));
+  
+  int32_t iPartitionHeight = ((sWholePixMap.sRect.iRectHeight >> 3) / iTotal) << 3;  //many processing are with x8 blocks
+  if (sWholePixMap.iSizeInBits != 8) {
+    return;
+  }
+  pPartPixMap->pPixel[0] = (uint8_t*) (sWholePixMap.pPixel[0]) + (iIdx * iPartitionHeight) * sWholePixMap.iStride[0];
+  pPartPixMap->pPixel[1] = (uint8_t*)sWholePixMap.pPixel[1] + (iIdx * iPartitionHeight >> 1) *
+  sWholePixMap.iStride[1];
+  pPartPixMap->pPixel[2] = (uint8_t*)sWholePixMap.pPixel[2] + (iIdx * iPartitionHeight >> 1) *
+  sWholePixMap.iStride[2];
+  
+  //iRectHeight
+  pPartPixMap->sRect.iRectHeight = iPartitionHeight;
+  if (iIdx == iTotal - 1) {
+    pPartPixMap->sRect.iRectHeight = sWholePixMap.sRect.iRectHeight - iIdx * iPartitionHeight;
+  }
+}
+
+void GetTransposePartitionOfPixMap (int32_t iIdx, int32_t iTotal, SPixMap& sWholePixMap, SPixMap* pPartPixMap) {
+  memcpy (pPartPixMap, &sWholePixMap, sizeof (SPixMap));
+  
+  int32_t iPartitionWidth = ((sWholePixMap.sRect.iRectWidth >> 3) / iTotal) <<
+  3;  //many processsing in vp is based on x8 blocks
+  
+  if (sWholePixMap.iSizeInBits != 8) {
+    return;
+  }
+  pPartPixMap->pPixel[0] = (uint8_t*) (sWholePixMap.pPixel[0]) + (iIdx * iPartitionWidth);
+  pPartPixMap->pPixel[1] = (uint8_t*) (sWholePixMap.pPixel[1]) + (iIdx * iPartitionWidth >> 1);
+  pPartPixMap->pPixel[2] = (uint8_t*) (sWholePixMap.pPixel[2]) + (iIdx * iPartitionWidth >> 1);
+  
+  if (iIdx != iTotal - 1) {
+    pPartPixMap->sRect.iRectHeight = iPartitionWidth;
+  } else {
+    pPartPixMap->sRect.iRectHeight = sWholePixMap.sRect.iRectHeight - iIdx * iPartitionWidth;
+  }
+}
+
+void CWelsProcessTask::GetProperPixMap(IStrategy* pStrategy, int32_t iType, int32_t iIdx, SPixMap* pSrcPixMap,
+                                       SPixMap* pDstPixMap) {
+  int32_t iTaskNum = GetTaskNum();
+  SPixMap sTarDstPixMap;
+  SPixMap sTarSrcPixMap;
+  //if (METHOD_IMAGE_ROTATE == pStrategy->m_eMethod && pDstPixMap) {
+  //  GetTransposePartitionOfPixMap (iIdx, m_iWaitTaskNum, *pDstPixMap, &sTarDstPixMap);
+  //} else
+  if (pDstPixMap) {
+    GetPartitionOfPixMap (iIdx, iTaskNum, *pDstPixMap, &sTarDstPixMap);
+  }
+  GetPartitionOfPixMap (iIdx, iTaskNum, *pSrcPixMap, &sTarSrcPixMap);
+  
+  UpdatePixMap (pStrategy, iType, sTarSrcPixMap, sTarDstPixMap);
+  
+}
+
 
 void CWelsProcessTask::UpdatePixMap (IStrategy* pStrategy, int32_t iType, SPixMap& pSrcPixMap, SPixMap& pRefPixMap) {
   m_pStrategy = pStrategy;
   m_pSrcPixMap = pSrcPixMap;
   m_pRefPixMap = pRefPixMap;
   m_iType = iType;
+  
+  m_eMethod    = WelsVpGetValidMethod (iType);
 };
+
+
+
 int32_t CWelsProcessTask::Execute() {
-  WelsThreadSetName ("OpenH264Enc_CWelsProcessTask_Execute");
-  return m_pStrategy->Process (m_iType, &m_pSrcPixMap, &m_pRefPixMap);
+  WelsThreadSetName ("OpenH264Enc_CWelsProcessTask_Process");
+  return m_pStrategy->ProcessPart (m_iType, &m_pSrcPixMap, &m_pRefPixMap, NULL);
 }
+
+
+
 WELSVP_NAMESPACE_END
 
 

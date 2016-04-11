@@ -46,6 +46,10 @@
 #include "typedef.h"
 #include "WelsTask.h"
 #include "WelsFrameWork.h"
+
+#include "ScrollDetectionFuncs.h"
+
+
 WELSVP_NAMESPACE_BEGIN
 
 class CWelsProcessTask : public WelsCommon::IWelsTask {
@@ -56,22 +60,32 @@ class CWelsProcessTask : public WelsCommon::IWelsTask {
     WELS_PROCESS_TASK_ALL = 2,
   };
 
-  CWelsProcessTask (WelsCommon::IWelsTaskSink* pSink): IWelsTask (pSink) {};
+  CWelsProcessTask (WelsCommon::IWelsTaskSink* pSink): IWelsTask (pSink), m_bSeparatedFlag(false) {};
   virtual ~CWelsProcessTask() {};
 
-  //pTask = virtual uint32_t GetTaskType() const = 0;
+  virtual uint32_t GetTaskNum(uint32_t iNumber = 0) {
+    if (iNumber!=0) {
+      m_iTaskNum=iNumber;
+    }
+    return iNumber;
+  };
 
+  void GetProperPixMap(IStrategy* pStrategy, int32_t iType, int32_t iIdx, SPixMap* pSrcPixMap,
+                       SPixMap* pDstPixMap);
   void UpdatePixMap (IStrategy* pStrategy, int32_t iType, SPixMap& pSrcPixMap, SPixMap& pRefPixMap);
 
   int32_t Execute();
 
- private:
+ protected:
   IStrategy* m_pStrategy;
   SPixMap m_pSrcPixMap;
   SPixMap m_pRefPixMap;
   int32_t m_iType;
+  EMethods m_eMethod;
+  bool m_bSeparatedFlag;
+  
+  int32_t m_iTaskNum;
 };
-
 
 WELSVP_NAMESPACE_END
 #endif

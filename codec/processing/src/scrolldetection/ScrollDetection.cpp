@@ -45,7 +45,7 @@ EResult CScrollDetection::Process (int32_t iType, SPixMap* pSrcPixMap, SPixMap* 
   }
 
   if (!m_sScrollDetectionParam.bMaskInfoAvailable)
-    ScrollDetectionWithoutMask (pSrcPixMap, pRefPixMap);
+    ScrollDetectionWithoutMask (pSrcPixMap, pRefPixMap, &m_sScrollDetectionParam);
   else
     ScrollDetectionWithMask (pSrcPixMap, pRefPixMap);
 
@@ -88,7 +88,7 @@ void CScrollDetection::ScrollDetectionWithMask (SPixMap* pSrcPixMap, SPixMap* pR
   }
 }
 
-void CScrollDetection::ScrollDetectionWithoutMask (SPixMap* pSrcPixMap, SPixMap* pRefPixMap) {
+void CScrollDetection::ScrollDetectionWithoutMask (SPixMap* pSrcPixMap, SPixMap* pRefPixMap, SScrollDetectionParam* pScrollDetectionParam) {
   int32_t iStartX, iStartY, iWidth, iHeight;
 
   const int32_t kiPicBorderWidth = pSrcPixMap->sRect.iRectHeight >> 4;
@@ -105,11 +105,54 @@ void CScrollDetection::ScrollDetectionWithoutMask (SPixMap* pSrcPixMap, SPixMap*
     iWidth /= 2;
     iStartX += iWidth / 2;
 
-    ScrollDetectionCore (pSrcPixMap, pRefPixMap, iWidth, iHeight, iStartX, iStartY, m_sScrollDetectionParam);
+    ScrollDetectionCore (pSrcPixMap, pRefPixMap, iWidth, iHeight, iStartX, iStartY, *pScrollDetectionParam);
 
-    if (m_sScrollDetectionParam.bScrollDetectFlag && m_sScrollDetectionParam.iScrollMvY)
+    if (pScrollDetectionParam->bScrollDetectFlag && pScrollDetectionParam->iScrollMvY)
       break;
   }
 }
+
+EResult CScrollDetection::ProcessPart (int32_t iType, SPixMap* pSrcPixMap, SPixMap* pRefPixMap, void* pTaskIdx) {
+  if (pRefPixMap->pPixel[0] == NULL || pSrcPixMap->pPixel[0] == NULL ||
+      pRefPixMap->sRect.iRectWidth != pSrcPixMap->sRect.iRectWidth
+      || pRefPixMap->sRect.iRectHeight != pSrcPixMap->sRect.iRectHeight) {
+    return RET_INVALIDPARAM;
+  }
+  
+  if (m_sScrollDetectionParam.bMaskInfoAvailable) {
+    return RET_INVALIDPARAM;
+  }
+
+  int32_t iStartX, iStartY, iWidth, iHeight;
+  int32_t kiTaskIdx = * ((int32_t*)pTaskIdx);
+
+  const int32_t kiPicBorderWidth = pSrcPixMap->sRect.iRectHeight >> 4;
+  const int32_t kiRegionWidth = (int) (pSrcPixMap->sRect.iRectWidth - (kiPicBorderWidth << 1)) / 3;
+  const int32_t kiRegionHeight = (pSrcPixMap->sRect.iRectHeight * 7) >> 3;
+  const int32_t kiHieghtStride = (int) pSrcPixMap->sRect.iRectHeight * 5 / 24;
+
+    iStartX = kiPicBorderWidth + (kiTaskIdx % 3) * kiRegionWidth;
+    iStartY = -pSrcPixMap->sRect.iRectHeight * 7 / 48 + (int) (kiTaskIdx / 3) * (kiHieghtStride);
+    iWidth = kiRegionWidth;
+    iHeight = kiRegionHeight;
+    
+    iWidth /= 2;
+    iStartX += iWidth / 2;
+    
+    ScrollDetectionCore (pSrcPixMap, pRefPixMap, iWidth, iHeight, iStartX, iStartY, m_sScrollDetectionParam_Part[kiTaskIdx]);
+  
+  return RET_SUCCESS;
+}
+
+EResult CScrollDetection::SumAllParts () {
+  for (int32_t i = 0; i < REGION_NUMBER; i++) {
+    if (m_sScrollDetectionParam_Part[i].bScrollDetectFlag && m_sScrollDetectionParam_Part[i].iScrollMvY) {
+      m_sScrollDetectionParam = m_sScrollDetectionParam_Part[i];
+      break;
+    }
+  }
+  return RET_SUCCESS;
+}
+
 
 WELSVP_NAMESPACE_END

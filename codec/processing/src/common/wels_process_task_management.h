@@ -57,9 +57,11 @@ class IWelsProcessTaskManage {
   virtual EResult   Init() = 0;
   virtual void            Uninit() = 0;
 
+  //virtual EResult   ExecuteRegional (IStrategy* pStrategy, int32_t iType, SPixMap* pSrcPixMap, SPixMap* pRefPixMap)
+  //  = 0;
   virtual EResult   ExecuteTasks (IStrategy* pStrategy, int32_t iType, SPixMap* pSrcPixMap, SPixMap* pRefPixMap)
-    = 0;
-
+  = 0;
+  
   static IWelsProcessTaskManage* CreateProcessTaskManage();
 
   virtual int32_t  GetThreadPoolThreadNum() = 0;
@@ -71,7 +73,8 @@ class CWelsProcessTaskManage : public IWelsProcessTaskManage, public WelsCommon:
   ~CWelsProcessTaskManage();
 
   EResult   Init();
-
+  
+  //EResult   ExecuteRegional (IStrategy* pStrategy, int32_t iType, SPixMap* pSrcPixMap, SPixMap* pRefPixMap);
   EResult   ExecuteTasks (IStrategy* pStrategy, int32_t iType, SPixMap* pSrcPixMap, SPixMap* pRefPixMap);
 
   int32_t  GetThreadPoolThreadNum();
@@ -90,7 +93,7 @@ class CWelsProcessTaskManage : public IWelsProcessTaskManage, public WelsCommon:
  protected:
   WelsCommon::CWelsThreadPool*   m_pThreadPool;
 
-  TASKLIST_TYPE*  m_pcAllTaskList[CWelsProcessTask::WELS_PROCESS_TASK_ALL];
+  TASKLIST_TYPE*  m_pcAllTaskList[METHOD_MASK];
   int32_t         m_iTaskNum;
 
   int32_t         m_iThreadNum;

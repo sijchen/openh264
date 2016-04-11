@@ -119,7 +119,7 @@ CVpFrameWork::~CVpFrameWork() {
     delete m_pProcessTaskManage;
     m_pProcessTaskManage = NULL;
   }
-  printf("end ~CVpFrameWork\n");
+  printf ("end ~CVpFrameWork\n");
 }
 
 EResult CVpFrameWork::Init (int32_t iType, void* pCfg) {
@@ -160,6 +160,20 @@ EResult CVpFrameWork::Flush (int32_t iType) {
   return eReturn;
 }
 
+bool CouldBeSeparated (EMethods eMethod) {
+  //METHOD_DENOISE cannot use multi-threading
+  //METHOD_DOWNSAMPLE cannot use multi-threading
+  /*if (eMethod == METHOD_DENOISE || eMethod == METHOD_DOWNSAMPLE) {
+    return false;
+  } else {
+    return true;
+  }*/
+  if (eMethod == METHOD_SCROLL_DETECTION) {
+    return true;
+  }
+  return false;
+}
+
 EResult CVpFrameWork::Process (int32_t iType, SPixMap* pSrcPixMap, SPixMap* pDstPixMap) {
   EResult eReturn        = RET_NOTSUPPORTED;
   EMethods eMethod    = WelsVpGetValidMethod (iType);
@@ -177,16 +191,15 @@ EResult CVpFrameWork::Process (int32_t iType, SPixMap* pSrcPixMap, SPixMap* pDst
   WelsMutexLock (&m_mutes);
 
   IStrategy* pStrategy = m_pStgChain[iCurIdx];
-  if (eMethod == METHOD_DENOISE)// || eMethod == METHOD_IMAGE_ROTATE) {
-  {  printf("m_pProcessTaskManage ExecuteTasks\n");
-    m_pProcessTaskManage->ExecuteTasks(pStrategy, 0, pSrcPixMap, pDstPixMap);
+
+  if (CouldBeSeparated (eMethod)) {
+    printf ("m_pProcessTaskManage ExecuteTasks\n");
+    m_pProcessTaskManage->ExecuteTasks (pStrategy, 0, pSrcPixMap, pDstPixMap);
   } else {
-    //METHOD_DENOISE cannot use multi-threading
-    //METHOD_DOWNSAMPLE cannot use multi-threading
     if (pStrategy)
       eReturn = pStrategy->Process (0, &sSrcPic, &sDstPic);
   }
-  
+
   WelsMutexUnlock (&m_mutes);
 
   return eReturn;
