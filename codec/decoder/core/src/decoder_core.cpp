@@ -831,9 +831,6 @@ int32_t ParseSliceHeaderSyntaxs (PWelsDecoderContext pCtx, PBitStringAux pBs, co
   pSliceHead->pSps   = pSps;
 
   pSliceHeadExt->pSubsetSps = pSubsetSps;
-  UpdateDecoderStatisticsForActiveParaset(&(pCtx->sDecoderStatistics),
-                                          pSps, pPps,
-                                          (kbExtensionFlag) ? (pSubsetSps->sSps.iSpsId) : (pSps->iSpsId) );
 
   if (pSps->iNumRefFrames == 0) {
     if ((uiSliceType != I_SLICE) && (uiSliceType != SI_SLICE)) {
@@ -2107,6 +2104,10 @@ void WelsDqLayerDecodeStart (PWelsDecoderContext pCtx, PNalUnit pCurNal, PSps pS
   pCtx->pSliceHeader = pSh;
 
   pCtx->iFrameNum    = pSh->iFrameNum;
+
+  UpdateDecoderStatisticsForActiveParaset(&(pCtx->sDecoderStatistics),
+                                          pSps, pPps,
+                                          (pCurNal->sNalData.sVclNal.bSliceHeaderExtFlag) ? (pCurNal->sNalData.sVclNal.sSliceHeaderExt.pSubsetSps->sSps.iSpsId) : (pSps->iSpsId) );
 }
 
 int32_t InitRefPicList (PWelsDecoderContext pCtx, const uint8_t kuiNRi, int32_t iPoc) {
