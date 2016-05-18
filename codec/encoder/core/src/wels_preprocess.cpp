@@ -216,10 +216,6 @@ int32_t CWelsPreProcess::BuildSpatialPicList (sWelsEncCtx* pCtx, const SSourcePi
 
 SPicture* CWelsPreProcess::GetBestRefPic (EUsageType iUsageType, bool bSceneLtr, EWelsSliceType eSliceType,
     int32_t kiDidx, int32_t iRefTemporalIdx) {
-  if (I_SLICE == eSliceType) {
-    return m_pSpatialPic[kiDidx][iRefTemporalIdx];
-  }
-
   assert (iUsageType == SCREEN_CONTENT_REAL_TIME);
   SVAAFrameInfoExt* pVaaExt = static_cast<SVAAFrameInfoExt*> (m_pEncCtx->pVaa);
   SRefInfoParam* BestRefCandidateParam = (bSceneLtr) ? (& (pVaaExt->sVaaLtrBestRefCandidate[0])) :
