@@ -120,6 +120,8 @@ class CWelsPreProcess {
   CWelsPreProcess (sWelsEncCtx* pEncCtx);
   virtual  ~CWelsPreProcess();
 
+  static CWelsPreProcess* CreatePreProcess (sWelsEncCtx* pEncCtx);
+
  public:
   int32_t WelsPreprocessReset (sWelsEncCtx* pEncCtx,int32_t iWidth,int32_t iHeight);
   int32_t AllocSpatialPictures (sWelsEncCtx* pCtx, SWelsSvcCodingParam* pParam);
@@ -140,6 +142,14 @@ class CWelsPreProcess {
                       const uint32_t kuiShortRefCount);
   void UpdateSrcListLosslessScreenRefSelectionWithLtr (SPicture* pCurPicture, const int32_t kiCurDid,
       const int32_t kuiMarkLongTermPicIdx, SPicture** pLongRefList);
+
+
+ protected:
+  bool GetSceneChangeFlag (ESceneChangeIdc eSceneChangeIdc);
+  virtual  ESceneChangeIdc  DetectSceneChange (SPicture* pCurPicture, SPicture* pRefPicture) = 0;
+
+  void InitPixMap (const SPicture* pPicture, SPixMap* pPixMap);
+
  private:
   int32_t WelsPreprocessCreate();
   int32_t WelsPreprocessDestroy();
@@ -150,7 +160,7 @@ class CWelsPreProcess {
   int32_t SingleLayerPreprocess (sWelsEncCtx* pEncCtx, const SSourcePicture* kpSrc, Scaled_Picture* m_sScaledPicture);
 
   void  BilateralDenoising (SPicture* pSrc, const int32_t iWidth, const int32_t iHeight);
-  bool  DetectSceneChange (SPicture* pCurPicture, SPicture* pRefPicture);
+
   int32_t DownsamplePadding (SPicture* pSrc, SPicture* pDstPic,  int32_t iSrcWidth, int32_t iSrcHeight,
                              int32_t iShrinkWidth, int32_t iShrinkHeight, int32_t iTargetWidth, int32_t iTargetHeight,
                              bool bForceCopy);
@@ -168,20 +178,6 @@ class CWelsPreProcess {
   void WelsMoveMemoryWrapper (SWelsSvcCodingParam* pSvcParam, SPicture* pDstPic, const SSourcePicture* kpSrc,
                               const int32_t kiWidth, const int32_t kiHeight);
 
-  ESceneChangeIdc DetectSceneChangeScreen (sWelsEncCtx* pCtx, SPicture* pCurPicture);
-  void InitPixMap (const SPicture* pPicture, SPixMap* pPixMap);
-  void GetAvailableRefListLosslessScreenRefSelection (SPicture** pSrcPicList, uint8_t iCurTid,
-      const int32_t iClosestLtrFrameNum,
-      SRefInfoParam* pAvailableRefList, int32_t& iAvailableRefNum, int32_t& iAvailableSceneRefNum);
-  void GetAvailableRefList (SPicture** pSrcPicList, uint8_t iCurTid, const int32_t iClosestLtrFrameNum,
-                            SRefInfoParam* pAvailableRefList, int32_t& iAvailableRefNum, int32_t& iAvailableSceneRefNum);
-  void InitRefJudgement (SRefJudgement* pRefJudgement);
-  bool JudgeBestRef (SPicture* pRefPic, const SRefJudgement& sRefJudgement, const int64_t iFrameComplexity,
-                     const bool bIsClosestLtrFrame);
-  void SaveBestRefToJudgement (const int32_t iRefPictureAvQP, const int64_t iComplexity, SRefJudgement* pRefJudgement);
-  void SaveBestRefToLocal (SRefInfoParam* pRefPicInfo, const SSceneChangeResult& sSceneChangeResult,
-                           SRefInfoParam* pRefSaved);
-  void SaveBestRefToVaa (SRefInfoParam& sRefSaved, SRefInfoParam* pVaaBestRef);
 
   /*!
   * \brief  exchange two picture pData planes
@@ -191,11 +187,13 @@ class CWelsPreProcess {
   */
   void WelsExchangeSpatialPictures (SPicture** ppPic1, SPicture** ppPic2);
 
+ protected:
+  IWelsVP*         m_pInterfaceVp;
+  sWelsEncCtx*     m_pEncCtx;
+
  private:
   Scaled_Picture   m_sScaledPicture;
   SPicture*        m_pLastSpatialPicture[MAX_DEPENDENCY_LAYER][2];
-  IWelsVP*         m_pInterfaceVp;
-  sWelsEncCtx*     m_pEncCtx;
   bool             m_bInitDone;
   uint8_t          m_uiSpatialLayersInTemporal[MAX_DEPENDENCY_LAYER];
   uint8_t          m_uiSpatialPicNum[MAX_DEPENDENCY_LAYER];
@@ -206,6 +204,39 @@ class CWelsPreProcess {
   int32_t           m_iAvaliableRefInSpatialPicList;
 
 };
+
+class CWelsPreProcessVideo : public CWelsPreProcess {
+ public:
+  CWelsPreProcessVideo (sWelsEncCtx* pEncCtx) : CWelsPreProcess (pEncCtx) {};
+
+  virtual  ESceneChangeIdc  DetectSceneChange (SPicture* pCurPicture, SPicture* pRefPicture);
+};
+
+
+
+class CWelsPreProcessScreen : public CWelsPreProcess {
+ public:
+  CWelsPreProcessScreen (sWelsEncCtx* pEncCtx) : CWelsPreProcess (pEncCtx) {};
+
+  virtual  ESceneChangeIdc  DetectSceneChange (SPicture* pCurPicture, SPicture* pRefPicture);
+
+ private:
+  void GetAvailableRefListLosslessScreenRefSelection (SPicture** pSrcPicList, uint8_t iCurTid,
+      const int32_t iClosestLtrFrameNum,
+      SRefInfoParam* pAvailableRefList, int32_t& iAvailableRefNum, int32_t& iAvailableSceneRefNum);
+
+  void GetAvailableRefList (SPicture** pSrcPicList, uint8_t iCurTid, const int32_t iClosestLtrFrameNum,
+                            SRefInfoParam* pAvailableRefList, int32_t& iAvailableRefNum, int32_t& iAvailableSceneRefNum);
+  void InitRefJudgement (SRefJudgement* pRefJudgement);
+
+  bool JudgeBestRef (SPicture* pRefPic, const SRefJudgement& sRefJudgement, const int64_t iFrameComplexity,
+                     const bool bIsClosestLtrFrame);
+  void SaveBestRefToJudgement (const int32_t iRefPictureAvQP, const int64_t iComplexity, SRefJudgement* pRefJudgement);
+  void SaveBestRefToLocal (SRefInfoParam* pRefPicInfo, const SSceneChangeResult& sSceneChangeResult,
+                           SRefInfoParam* pRefSaved);
+  void SaveBestRefToVaa (SRefInfoParam& sRefSaved, SRefInfoParam* pVaaBestRef);
+};
+
 
 }
 
