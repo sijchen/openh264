@@ -146,7 +146,7 @@ class CWelsPreProcess {
 
  protected:
   bool GetSceneChangeFlag (ESceneChangeIdc eSceneChangeIdc);
-  virtual  ESceneChangeIdc  DetectSceneChange (SPicture* pCurPicture, SPicture* pRefPicture) = 0;
+  virtual  ESceneChangeIdc  DetectSceneChange (SPicture* pCurPicture, SPicture* pRefPicture = NULL) = 0;
 
   void InitPixMap (const SPicture* pPicture, SPixMap* pPixMap);
 
@@ -209,7 +209,7 @@ class CWelsPreProcessVideo : public CWelsPreProcess {
  public:
   CWelsPreProcessVideo (sWelsEncCtx* pEncCtx) : CWelsPreProcess (pEncCtx) {};
 
-  virtual  ESceneChangeIdc  DetectSceneChange (SPicture* pCurPicture, SPicture* pRefPicture);
+  virtual  ESceneChangeIdc  DetectSceneChange (SPicture* pCurPicture, SPicture* pRefPicture = NULL);
 };
 
 
@@ -218,7 +218,7 @@ class CWelsPreProcessScreen : public CWelsPreProcess {
  public:
   CWelsPreProcessScreen (sWelsEncCtx* pEncCtx) : CWelsPreProcess (pEncCtx) {};
 
-  virtual  ESceneChangeIdc  DetectSceneChange (SPicture* pCurPicture, SPicture* pRefPicture);
+  virtual  ESceneChangeIdc  DetectSceneChange (SPicture* pCurPicture, SPicture* pRefPicture = NULL);
 
  private:
   void GetAvailableRefListLosslessScreenRefSelection (SPicture** pSrcPicList, uint8_t iCurTid,

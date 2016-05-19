@@ -374,8 +374,7 @@ int32_t CWelsPreProcess::SingleLayerPreprocess (sWelsEncCtx* pCtx, const SSource
   if (pSvcParam->bEnableSceneChangeDetect && !pCtx->pVaa->bIdrPeriodFlag) {
     if (pSvcParam->iUsageType == SCREEN_CONTENT_REAL_TIME) {
       pCtx->pVaa->eSceneChangeIdc = (pDlayerParamInternal->bEncCurFrmAsIdrFlag ? LARGE_CHANGED_SCENE :
-                                     DetectSceneChange (NULL,
-                                         pDstPic));
+                                     DetectSceneChange (pDstPic));
       pCtx->pVaa->bSceneChangeFlag = (LARGE_CHANGED_SCENE == pCtx->pVaa->eSceneChangeIdc);
     } else {
       if ((!pDlayerParamInternal->bEncCurFrmAsIdrFlag)
@@ -1020,7 +1019,7 @@ void CWelsPreProcessScreen::SaveBestRefToVaa (SRefInfoParam& sRefSaved, SRefInfo
   (*pVaaBestRef) = sRefSaved;
 }
 
-ESceneChangeIdc CWelsPreProcessScreen::DetectSceneChange (SPicture* pointer, SPicture* pCurPicture) {
+ESceneChangeIdc CWelsPreProcessScreen::DetectSceneChange (SPicture* pCurPicture, SPicture* pRef ) {
   sWelsEncCtx* pCtx = m_pEncCtx;
 #define STATIC_SCENE_MOTION_RATIO 0.01f
   SWelsSvcCodingParam* pSvcParam = pCtx->pSvcParam;
