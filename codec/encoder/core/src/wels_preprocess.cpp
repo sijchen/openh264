@@ -81,9 +81,11 @@ CWelsPreProcess* CWelsPreProcess::CreatePreProcess (sWelsEncCtx* pEncCtx) {
   case SCREEN_CONTENT_REAL_TIME:
     pPreProcess = WELS_NEW_OP (CWelsPreProcessScreen (pEncCtx),
                                CWelsPreProcessScreen);
+    break;
   default:
     pPreProcess = WELS_NEW_OP (CWelsPreProcessVideo (pEncCtx),
                                CWelsPreProcessVideo);
+    break;
 
   }
   WELS_VERIFY_RETURN_IF (NULL, NULL == pPreProcess)
@@ -381,8 +383,8 @@ int32_t CWelsPreProcess::SingleLayerPreprocess (sWelsEncCtx* pCtx, const SSource
         SPicture* pRefPic = pCtx->pLtr[iDependencyId].bReceivedT0LostFlag ?
                             m_pSpatialPic[iDependencyId][m_uiSpatialLayersInTemporal[iDependencyId] +
                                 pCtx->pVaa->uiValidLongTermPicIdx] : m_pLastSpatialPicture[iDependencyId][0];
-        pCtx->pVaa->eSceneChangeIdc = DetectSceneChange (pDstPic, pRefPic);
-        pCtx->pVaa->bSceneChangeFlag = GetSceneChangeFlag(pCtx->pVaa->eSceneChangeIdc);
+        //pCtx->pVaa->eSceneChangeIdc = DetectSceneChange (pDstPic, pRefPic);
+        pCtx->pVaa->bSceneChangeFlag = GetSceneChangeFlag (DetectSceneChange (pDstPic, pRefPic));
       }
     }
   }
