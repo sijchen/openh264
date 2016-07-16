@@ -1282,9 +1282,7 @@ void CWelsH264SVCEncoder::DumpSrcPicture (const SSourcePicture*  pSrcPic, const 
   char strFileName[256] = {0};
   const int32_t iDataLength = m_iMaxPicWidth * m_iMaxPicHeight;
 
-  WelsStrncpy (strFileName, 256, "pic_in_"); // confirmed_safe_unsafe_usage
-
-  WelsSnprintf (strFileName, sizeof (strFileName), "%d_", m_iMaxPicWidth);// confirmed_safe_unsafe_usage
+  WelsSnprintf (strFileName, sizeof (strFileName), "pic_in_%d_", m_iMaxPicWidth);// confirmed_safe_unsafe_usage
 
   switch (pSrcPic->iColorFormat) {
   case videoFormatI420:
