@@ -1232,12 +1232,14 @@ static const EncodeOptionParam kOptionParamArray[] = {
   {true, false, true, 30, 2304, 4096, 1, SM_RESERVED, 0, 15.0, 1, ""},
   {true, false, true, 30, 3072, 3072, 1, SM_RESERVED, 0, 15.0, 1, ""},
   //{true, false, true, 30, 3072, 3072, 1, SM_RESERVED, 0, 15.0, 4, ""}, //14760
-  {false, false, true, 30, 1072, 8576, 24, SM_SINGLE_SLICE, 0, 15.0, 1, ""},
+  {false, false, true, 30, 1072, 8576, 1, SM_RESERVED, 0, 15.0, 1, ""},
   //{false, true, true, 30, 8576, 1072, 24, SM_SINGLE_SLICE, 0, 15.0, 1, ""}, //14754
   //{false, false, false, 2, 8576, 1088, 24, SM_SINGLE_SLICE, 0, 15.0, 1, ""}, //14755
   //{false, false, false, 2, 1088, 8576, 24, SM_SINGLE_SLICE, 0, 15.0, 1, ""}, //14755
   //{false, false, true, 1, 8704, 1072, 24, SM_SINGLE_SLICE, 0, 15.0, 1, "test14756_1.264"}, //14756
   //{false, false, true, 1, 1072, 8704, 24, SM_SINGLE_SLICE, 0, 15.0, 1, "test14756_2.264"}, //14756
+  //{false, false, true, 30, 589824, 16, 24, SM_RESERVED, 0, 15.0, 1, ""},
+  //{false, false, true, 30, 589824, 16, 24, SM_RESERVED, 0, 15.0, 1, ""},
 };
 
 class EncodeTestAPI : public ::testing::TestWithParam<EncodeOptionParam>, public ::EncodeDecodeTestAPIBase {
@@ -1301,7 +1303,6 @@ TEST_P (EncodeTestAPI, SetEncOptionSize) {
     if (p.sFileSave != NULL && strlen (p.sFileSave) > 0) {
       pFile = fopen (p.sFileSave, "wb");
     }
-
 
     if (SM_FIXEDSLCNUM_SLICE == param_.sSpatialLayers[0].sSliceArgument.uiSliceMode) {
       param_.sSpatialLayers[0].sSliceArgument.uiSliceNum = 8;
