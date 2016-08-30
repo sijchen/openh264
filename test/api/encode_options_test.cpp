@@ -1237,7 +1237,7 @@ static const EncodeOptionParam kOptionParamArray[] = {
   //{false, false, false, 2, 8576, 1088, 24, SM_SINGLE_SLICE, 0, 15.0, 1, ""}, //14755
   //{false, false, false, 2, 1088, 8576, 24, SM_SINGLE_SLICE, 0, 15.0, 1, ""}, //14755
   {false, false, true, 1, 8688, 1072, 24, SM_SINGLE_SLICE, 0, 15.0, 1, ""}, //Annex A: PicWidthInMbs <= sqrt(36864*8) = 543; 543*16=8688; 36864/543=67; 67*16=1072
-  {false, false, true, 1, 1072, 8688, 24, SM_SINGLE_SLICE, 0, 15.0, 1, ""}, //14756
+  {false, false, true, 1, 1072, 8688, 24, SM_SINGLE_SLICE, 0, 15.0, 1, ""}, //Annex A: FrameHeightInMbs <= sqrt(36864*8) = 543; 543*16=8688; 36864/543=67; 67*16=1072
   //{false, false, true, 30, 589824, 16, 24, SM_RESERVED, 0, 15.0, 1, ""},
   //{false, false, true, 30, 589824, 16, 24, SM_RESERVED, 0, 15.0, 1, ""},
 };
