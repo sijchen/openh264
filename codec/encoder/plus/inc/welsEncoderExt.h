@@ -124,8 +124,6 @@ class CWelsH264SVCEncoder : public ISVCEncoder {
 
   void    InitEncoder (void);
   void    DumpSrcPicture (const SSourcePicture*  pSrcPic, const int iUsageType);
-
-  int               m_iFileDumpUsageType;
 };
 }
 #endif // !defined(WELS_PLUS_WELSENCODEREXT_H)

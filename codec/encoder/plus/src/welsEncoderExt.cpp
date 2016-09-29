@@ -184,7 +184,6 @@ int CWelsH264SVCEncoder::Initialize (const SEncParamBase* argv) {
   if (m_pWelsTrace == NULL) {
     return cmMallocMemeError;
   }
-  m_iFileDumpUsageType = static_cast<int>(CAMERA_VIDEO_REAL_TIME);
 
   WelsLog (&m_pWelsTrace->m_sLogCtx, WELS_LOG_INFO, "CWelsH264SVCEncoder::InitEncoder(), openh264 codec version = %s",
            VERSION_NUMBER);
@@ -1274,26 +1273,21 @@ int CWelsH264SVCEncoder::GetOption (ENCODER_OPTION eOptionId, void* pOption) {
 
 void CWelsH264SVCEncoder::DumpSrcPicture (const SSourcePicture*  pSrcPic, const int iUsageType) {
 #ifdef DUMP_SRC_PICTURE
-  if (m_iFileDumpUsageType != iUsageType) {
-    return;
-  }
-
   FILE* pFile = NULL;
   char strFileName[256] = {0};
   const int32_t iDataLength = m_iMaxPicWidth * m_iMaxPicHeight;
 
-  WelsSnprintf (strFileName, sizeof (strFileName), "pic_in_%d_", m_iMaxPicWidth);// confirmed_safe_unsafe_usage
+  WelsSnprintf (strFileName, sizeof (strFileName), "pic_in_%dx%d.yuv", m_iMaxPicWidth, m_iMaxPicHeight);// confirmed_safe_unsafe_usage
 
   switch (pSrcPic->iColorFormat) {
   case videoFormatI420:
   case videoFormatYV12:
-    WelsStrcat (strFileName, 256, ".yuv"); // confirmed_safe_unsafe_usage
     pFile = WelsFopen (strFileName, "ab+");
 
     if (NULL != pFile) {
-      fwrite (pSrcPic->pData[0], sizeof (uint8_t), iDataLength, pFile);
-      fwrite (pSrcPic->pData[1], sizeof (uint8_t), iDataLength >> 2, pFile);
-      fwrite (pSrcPic->pData[2], sizeof (uint8_t), iDataLength >> 2, pFile);
+      fwrite (pSrcPic->pData[0], sizeof (uint8_t), pSrcPic->iStride[0]*m_iMaxPicHeight, pFile);
+      fwrite (pSrcPic->pData[1], sizeof (uint8_t), pSrcPic->iStride[1]*(m_iMaxPicHeight >> 1), pFile);
+      fwrite (pSrcPic->pData[2], sizeof (uint8_t), pSrcPic->iStride[2]*(m_iMaxPicHeight >> 1), pFile);
       fflush (pFile);
       fclose (pFile);
     } else {
