@@ -1116,8 +1116,8 @@ TEST_F (EncoderInterfaceTest, DiffResolutionCheck) {
 }
 
 TEST_F (EncoderInterfaceTest, NalSizeChecking) {
-  // int uiTraceLevel = WELS_LOG_DETAIL;
-  // pPtrEnc->SetOption (ENCODER_OPTION_TRACE_LEVEL, &uiTraceLevel);
+  int uiTraceLevel = WELS_LOG_INFO;
+  pPtrEnc->SetOption (ENCODER_OPTION_TRACE_LEVEL, &uiTraceLevel);
 
   pParamExt->iPicWidth = 1280;
   pParamExt->iPicHeight = 720;
