@@ -1818,32 +1818,26 @@ printf("FreeMemorySvc2150\n");
       pMa->WelsFree (pCtx->pOut, "SWelsEncoderOutput");
       pCtx->pOut = NULL;
     }
-printf("FreeMemorySvc2170\n");
+
     if (pParam != NULL && pParam->iMultipleThreadIdc > 1)
       ReleaseMtResource (ppCtx);
-<<<<<<< HEAD
-printf("FreeMemorySvc2173\n");
-=======
+
 
     if (NULL != pCtx->pReferenceStrategy) {
       WELS_DELETE_OP (pCtx->pReferenceStrategy);
     }
 
->>>>>>> 4484df4bbb4561128a3320a1ab329cff20843431
     // frame bitstream pBuffer
     if (NULL != pCtx->pFrameBs) {
       pMa->WelsFree (pCtx->pFrameBs, "pFrameBs");
       pCtx->pFrameBs = NULL;
     }
-<<<<<<< HEAD
-printf("FreeMemorySvc2179\n");
-=======
+
     for (int32_t iIdx = 0; iIdx < MAX_THREADS_NUM; iIdx++) {
       pMa->WelsFree (pCtx->pDynamicBsBuffer[iIdx], "DynamicSliceBs");
       pCtx->pDynamicBsBuffer[iIdx] = NULL;
 
     }
->>>>>>> 4484df4bbb4561128a3320a1ab329cff20843431
     // pSpsArray
     if (NULL != pCtx->pSpsArray) {
       pMa->WelsFree (pCtx->pSpsArray, "pSpsArray");

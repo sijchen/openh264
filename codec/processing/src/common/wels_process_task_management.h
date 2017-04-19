@@ -79,7 +79,7 @@ class CWelsProcessTaskManage : public IWelsProcessTaskManage, public WelsCommon:
 
   int32_t  GetThreadPoolThreadNum();
 
-  typedef  WelsCommon::CWelsCircleQueue<CWelsProcessTask>            TASKLIST_TYPE;
+  typedef  WelsCommon::CWelsNonDuplicatedList<CWelsProcessTask>            TASKLIST_TYPE;
 
   //IWelsTaskSink
   virtual int OnTaskExecuted();
