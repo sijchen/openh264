@@ -97,12 +97,12 @@ enum EWelsNalUnitType {
   NAL_UNIT_SPS_EXT              = 13,
   NAL_UNIT_PREFIX               = 14,
   NAL_UNIT_SUBSET_SPS           = 15,
-  NAL_UNIT_RESV_16              = 16,
+  NAL_UNIT_DEPTH_PARAM          = 16, // NAL_UNIT_RESV_16
   NAL_UNIT_RESV_17              = 17,
   NAL_UNIT_RESV_18              = 18,
   NAL_UNIT_AUX_CODED_SLICE      = 19,
   NAL_UNIT_CODED_SLICE_EXT      = 20,
-  NAL_UNIT_RESV_21              = 21,
+  NAL_UNIT_MVC_SLICE_EXT        = 21, // NAL_UNIT_RESV_21
   NAL_UNIT_RESV_22              = 22,
   NAL_UNIT_RESV_23              = 23,
   NAL_UNIT_UNSPEC_24            = 24,
@@ -147,6 +147,7 @@ extern const EVclType g_keTypeMap[32][2];
 #define IS_SUBSET_SPS_NAL(t)                    ( (t) == NAL_UNIT_SUBSET_SPS )
 #define IS_PPS_NAL(t)                           ( (t) == NAL_UNIT_PPS )
 #define IS_SEI_NAL(t)                           ( (t) == NAL_UNIT_SEI )
+#define IS_AU_DELIMITER_NAL(t)                  ( (t) == NAL_UNIT_AU_DELIMITER )
 #define IS_PREFIX_NAL(t)                        ( (t) == NAL_UNIT_PREFIX )
 #define IS_SUBSET_SPS_USED(t)                   ( (t) == NAL_UNIT_SUBSET_SPS || (t) == NAL_UNIT_CODED_SLICE_EXT )
 #define IS_VCL_NAL_AVC_BASE(t)                  ( (t) == NAL_UNIT_CODED_SLICE || (t) == NAL_UNIT_CODED_SLICE_IDR )
@@ -212,6 +213,17 @@ enum EMmcoCode {
   MMCO_SET_MAX_LONG = 4,
   MMCO_RESET        = 5,
   MMCO_LONG         = 6
+};
+
+enum EVuiVideoFormat {
+   VUI_COMPONENT   = 0,
+   VUI_PAL         = 1,
+   VUI_NTSC        = 2,
+   VUI_SECAM       = 3,
+   VUI_MAC         = 4,
+   VUI_UNSPECIFIED = 5,
+   VUI_RESERVED1   = 6,
+   VUI_RESERVED2   = 7
 };
 
 /*

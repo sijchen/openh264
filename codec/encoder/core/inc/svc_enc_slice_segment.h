@@ -71,7 +71,6 @@ namespace WelsEnc {
 #define JUMPPACKETSIZE_CONSTRAINT(max_byte)             ( max_byte - AVER_MARGIN_BYTES ) //in bytes
 #define JUMPPACKETSIZE_JUDGE(len,mb_idx,max_byte)       ( (len) > JUMPPACKETSIZE_CONSTRAINT(max_byte) ) //( (mb_idx+1)%40/*16slice for compare*/ == 0 )        //
 //cur_mb_idx is for early tests, can be omit in optimization
-
 typedef struct TagSlice      SSlice;
 typedef struct TagDqLayer    SDqLayer;
 typedef struct TagWelsEncCtx sWelsEncCtx;
@@ -103,6 +102,7 @@ int32_t         iBsStackLeftBits;
 SCabacCtx       sStoredCabac;
 int32_t         iMbSkipRunStack;
 uint8_t         uiLastMbQp;
+uint8_t*        pRestoreBuffer;
 } SDynamicSlicingStack;
 
 /*!
@@ -149,12 +149,12 @@ uint16_t WelsMbToSliceIdc (SDqLayer* pCurDq, const int32_t kiMbXY);
 /*!
  * \brief   Get first mb in slice/slice_group: uiSliceIdc (apply in Single/multiple slices and FMO)
  *
- * \param   pSliceInLayer   slice list in current layer
+ * \param   pCurLayer       current layer
  * \param   kiSliceIdc      slice idc
  *
  * \return  first_mb - successful; -1 - failed;
  */
-int32_t WelsGetFirstMbOfSlice (SSlice* pSliceInLayer, const int32_t kiSliceIdc);
+int32_t WelsGetFirstMbOfSlice (SDqLayer* pCurLayer, const int32_t kiSliceIdc);
 
 /*!
  * \brief   Get successive mb to be processed in slice/slice_group: uiSliceIdc (apply in Single/multiple slices and FMO)
@@ -180,11 +180,12 @@ int32_t WelsGetPrevMbOfSlice (SDqLayer* pCurDq, const int32_t kiMbXY);
  * \brief   Get number of mb in slice/slice_group: uiSliceIdc (apply in Single/multiple slices and FMO)
  *
  * \param   pCurDq          current layer info
+ * \param   pSlice          slice which request slice num
  * \param   kiSliceIdc      slice/slice_group idc
  *
  * \return  count_num_of_mb - successful; -1 - failed;
  */
-int32_t WelsGetNumMbInSlice (SDqLayer* pCurDq, const int32_t kiSliceIdc);
+int32_t WelsGetNumMbInSlice (SDqLayer* pCurDq, SSlice* pSlice, const int32_t kuiSliceIdc);
 
 /*!
  *  Get slice count for multiple slice segment

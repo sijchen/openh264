@@ -29,7 +29,7 @@ using namespace WelsCommon;
 #define TEMPORAL_LAYER_NUM_RANGE (2*MAX_TEMPORAL_LAYER_NUM)
 #define SAVED_NALUNIT_NUM        ( (MAX_SPATIAL_LAYER_NUM*MAX_QUALITY_LAYER_NUM) + 1 + MAX_SPATIAL_LAYER_NUM )
 #define MAX_SLICES_NUM           ( ( MAX_NAL_UNITS_IN_LAYER - SAVED_NALUNIT_NUM ) / 3 )
-#define SLICE_MODE_NUM           (6)
+#define SLICE_MODE_NUM           (SM_RESERVED)
 #define LOOP_FILTER_IDC_NUM      (3)
 #define LOOF_FILTER_OFFSET_RANGE (6)
 #define MAX_REF_PIC_COUNT        (16)
@@ -87,7 +87,7 @@ class EncodeDecodeTestBase : public BaseEncoderTest, public BaseDecoderTest {
 
   virtual void prepareParam (int iLayers, int iSlices, int width, int height, float framerate, SEncParamExt* pParam);
 
-  virtual void prepareEncDecParam (const EncodeDecodeFileParamBase EncDecFileParam);
+  virtual bool prepareEncDecParam (const EncodeDecodeFileParamBase EncDecFileParam);
 
   virtual void encToDecData (const SFrameBSInfo& info, int& len);
 
@@ -129,7 +129,7 @@ class EncodeDecodeTestAPIBase : public EncodeDecodeTestBase {
 
   void prepareParamDefault (int iLayers, int iSlices, int width, int height, float framerate, SEncParamExt* pParam);
 
-  void InitialEncDec (int iWidth, int iHeight);
+  bool InitialEncDec (int iWidth, int iHeight);
   void RandomParamExtCombination();
   void ValidateParamExtCombination();
   void SliceParamValidationForMode2 (int iSpatialIdx);
@@ -137,8 +137,8 @@ class EncodeDecodeTestAPIBase : public EncodeDecodeTestBase {
   void SliceParamValidationForMode4();
 
   void EncodeOneFrame (int iCheckTypeIndex);
-  void EncDecOneFrame (const int iWidth, const int iHeight, const int iFrame, FILE* pfEnc);
-  void TestOneSimulcastAVC (SEncParamExt* pParam, ISVCDecoder** decoder, unsigned char** pBsBuf, int iSpatialLayerNum,
+  bool EncDecOneFrame (const int iWidth, const int iHeight, const int iFrame, FILE* pfEnc);
+  bool TestOneSimulcastAVC (SEncParamExt* pParam, ISVCDecoder** decoder, unsigned char** pBsBuf, int iSpatialLayerNum,
                             int iEncFrameNum,
                             int iCallTimes);
 };

@@ -45,6 +45,7 @@
 #include "param_svc.h"
 #include "nal_encap.h"
 #include "picture.h"
+#include "paraset_strategy.h"
 #include "dq_map.h"
 #include "stat.h"
 #include "macros.h"
@@ -62,6 +63,8 @@
 namespace WelsEnc {
 
 class IWelsTaskManage;
+class IWelsReferenceStrategy;
+
 /*
  *  reference list for each quality layer in SVC
  */
@@ -135,6 +138,7 @@ typedef struct TagWelsEncCtx {
 
   SSliceThreading*  pSliceThreading;
   IWelsTaskManage*  pTaskManage; //was planning to put it under CWelsH264SVCEncoder but it may be updated (lock/no lock) when param is changed
+  IWelsReferenceStrategy* pReferenceStrategy;
 
   // pointers
   SPicture*         pEncPic;                // pointer to current picture to be encoded
@@ -168,8 +172,6 @@ typedef struct TagWelsEncCtx {
   int32_t           iCheckWindowInterval;
   int32_t           iCheckWindowIntervalShift;
   bool              bCheckWindowShiftResetFlag;
-  int32_t           iSkipFrameFlag; //_GOM_RC_
-  int32_t           iContinualSkipFrames;
   int32_t           iGlobalQp;      // global qp
 
 // VAA
@@ -197,7 +199,7 @@ typedef struct TagWelsEncCtx {
   int32_t           iSliceBufferSize[MAX_DEPENDENCY_LAYER];
 
   bool              bRefOfCurTidIsLtr[MAX_DEPENDENCY_LAYER][MAX_TEMPORAL_LEVEL];
-  uint16_t          uiIdrPicId;           // IDR picture id: [0, 65535], this one is used for LTR
+ // uint16_t          uiIdrPicId;           // IDR picture id: [0, 65535], this one is used for LTR
   int32_t           iMaxSliceCount;// maximal count number of slices for all layers observation
   int16_t           iActiveThreadsNum;      // number of threads active so far
 
@@ -233,33 +235,9 @@ typedef struct TagWelsEncCtx {
   SStateCtx sWelsCabacContexts[4][WELS_QP_MAX + 1][WELS_CONTEXT_COUNT];
 #ifdef ENABLE_FRAME_DUMP
   bool bDependencyRecFlag[MAX_DEPENDENCY_LAYER];
-  bool bRecFlag;
 #endif
   int64_t            uiLastTimestamp;
-  uint32_t GetNeededSpsNum() {
-    if (0 == sPSOVector.uiNeededSpsNum) {
-      sPSOVector.uiNeededSpsNum = ((SPS_LISTING & pSvcParam->eSpsPpsIdStrategy) ? (MAX_SPS_COUNT) : (1));
-      sPSOVector.uiNeededSpsNum *= ((pSvcParam->bSimulcastAVC) ? (pSvcParam->iSpatialLayerNum) : (1));
-    }
-    return sPSOVector.uiNeededSpsNum;
-  }
-
-  uint32_t GetNeededSubsetSpsNum() {
-    if (0 == sPSOVector.uiNeededSubsetSpsNum) {
-      sPSOVector.uiNeededSubsetSpsNum = ((pSvcParam->bSimulcastAVC) ? (0) :
-                                         ((SPS_LISTING & pSvcParam->eSpsPpsIdStrategy) ? (MAX_SPS_COUNT) : (pSvcParam->iSpatialLayerNum - 1)));
-    }
-    return sPSOVector.uiNeededSubsetSpsNum;
-  }
-
-  uint32_t GetNeededPpsNum() {
-    if (0 == sPSOVector.uiNeededPpsNum) {
-      sPSOVector.uiNeededPpsNum = ((pSvcParam->eSpsPpsIdStrategy & SPS_PPS_LISTING) ? (MAX_PPS_COUNT) :
-                                   (1 + pSvcParam->iSpatialLayerNum));
-      sPSOVector.uiNeededPpsNum *= ((pSvcParam->bSimulcastAVC) ? (pSvcParam->iSpatialLayerNum) : (1));
-    }
-    return sPSOVector.uiNeededPpsNum;
-  }
+  uint8_t*           pDynamicBsBuffer[MAX_THREADS_NUM];
 } sWelsEncCtx/*, *PWelsEncCtx*/;
 }
 #endif//sWelsEncCtx_H__

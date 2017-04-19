@@ -46,6 +46,7 @@
 #include "deblocking.h"
 #include "ref_list_mgr_svc.h"
 #include "mc.h"
+#include "paraset_strategy.h"
 #include "sample.h"
 
 #include "svc_enc_golomb.h"
@@ -221,7 +222,9 @@ int32_t InitFunctionPointers (sWelsEncCtx* pEncCtx, SWelsSvcCodingParam* pParam,
 
   InitFillNeighborCacheInterFunc (pFuncList, pParam->bEnableBackgroundDetection);
 
-  InitRefListMgrFunc (pFuncList, pParam->bEnableLongTermReference, bScreenContent);
+  pFuncList->pParametersetStrategy = IWelsParametersetStrategy::CreateParametersetStrategy (pParam->eSpsPpsIdStrategy,
+                                     pParam->bSimulcastAVC, pParam->iSpatialLayerNum);
+  WELS_VERIFY_RETURN_IF (ENC_RETURN_MEMALLOCERR, (NULL == pFuncList->pParametersetStrategy))
 
   return iReturn;
 }
@@ -327,12 +330,12 @@ void InitFrameCoding (sWelsEncCtx* pEncCtx, const EVideoFrameType keFrameType, c
 #endif//FRAME_INFO_OUTPUT
 }
 
-EVideoFrameType DecideFrameType (sWelsEncCtx* pEncCtx, const int8_t kiSpatialNum, const int32_t kiDidx) {
+EVideoFrameType DecideFrameType (sWelsEncCtx* pEncCtx, const int8_t kiSpatialNum, const int32_t kiDidx,
+                                 bool bSkipFrameFlag) {
   SWelsSvcCodingParam* pSvcParam = pEncCtx->pSvcParam;
   SSpatialLayerInternal* pParamInternal = &pEncCtx->pSvcParam->sDependencyLayers[kiDidx];
   EVideoFrameType iFrameType = videoFrameTypeInvalid;
   bool bSceneChangeFlag = false;
-  int32_t iSkipFrameFlag = pSvcParam->bSimulcastAVC?pParamInternal->iSkipFrameFlag:pEncCtx->iSkipFrameFlag;
   if (pSvcParam->iUsageType == SCREEN_CONTENT_REAL_TIME) {
     if ((!pSvcParam->bEnableSceneChangeDetect) || pEncCtx->pVaa->bIdrPeriodFlag ||
         (kiSpatialNum < pSvcParam->iSpatialLayerNum)) {
@@ -362,8 +365,7 @@ EVideoFrameType DecideFrameType (sWelsEncCtx* pEncCtx, const int8_t kiSpatialNum
     } else {
       iFrameType = videoFrameTypeP;
     }
-    if (videoFrameTypeP == iFrameType && iSkipFrameFlag > 0) {
-      pParamInternal->iSkipFrameFlag = 0;
+    if (videoFrameTypeP == iFrameType && bSkipFrameFlag) {
       iFrameType = videoFrameTypeSkip;
     } else if (videoFrameTypeIDR == iFrameType) {
       pParamInternal->iCodingIndex = 0;
@@ -386,8 +388,7 @@ EVideoFrameType DecideFrameType (sWelsEncCtx* pEncCtx, const int8_t kiSpatialNum
     iFrameType = (pEncCtx->pVaa->bIdrPeriodFlag || bSceneChangeFlag
                   || pParamInternal->bEncCurFrmAsIdrFlag) ? videoFrameTypeIDR : videoFrameTypeP;
 
-    if (videoFrameTypeP == iFrameType && iSkipFrameFlag > 0) {  // for frame skip, 1/5/2010
-      pParamInternal->iSkipFrameFlag = 0;
+    if (videoFrameTypeP == iFrameType && bSkipFrameFlag) {  // for frame skip, 1/5/2010
       iFrameType = videoFrameTypeSkip;
     } else if (videoFrameTypeIDR == iFrameType) {
       pParamInternal->iCodingIndex = 0;
@@ -401,18 +402,21 @@ EVideoFrameType DecideFrameType (sWelsEncCtx* pEncCtx, const int8_t kiSpatialNum
  */
 
 extern "C" void DumpDependencyRec (SPicture* pCurPicture, const char* kpFileName, const int8_t kiDid, bool bAppend,
-                                   SDqLayer* pDqLayer) {
+                                   SDqLayer* pDqLayer, bool bSimulCastAVC) {
   WelsFileHandle* pDumpRecFile = NULL;
   int32_t iWrittenSize = 0;
   const char* openMode = bAppend ? "ab" : "wb";
-  SWelsSPS* pSpsTmp = (kiDid > BASE_DEPENDENCY_ID) ? & (pDqLayer->sLayerInfo.pSubsetSpsP->pSps) :
-                      pDqLayer->sLayerInfo.pSpsP;
+  SWelsSPS* pSpsTmp = NULL;
+  if (bSimulCastAVC || (kiDid == BASE_DEPENDENCY_ID)) {
+    pSpsTmp = pDqLayer->sLayerInfo.pSpsP;
+  } else {
+    pSpsTmp = & (pDqLayer->sLayerInfo.pSubsetSpsP->pSps);
+  }
   bool bFrameCroppingFlag = pSpsTmp->bFrameCroppingFlag;
   SCropOffset* pFrameCrop = &pSpsTmp->sFrameCrop;
 
   if (NULL == pCurPicture || NULL == kpFileName || kiDid >= MAX_DEPENDENCY_LAYER)
     return;
-
   if (strlen (kpFileName) > 0) // confirmed_safe_unsafe_usage
     pDumpRecFile = WelsFopen (kpFileName, openMode);
   else {
