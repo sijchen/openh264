@@ -100,7 +100,8 @@ WelsErrorType CWelsTaskManageBase::Init (sWelsEncCtx* pEncCtx) {
   int32_t iReturn = ENC_RETURN_SUCCESS;
   //fprintf(stdout, "m_pThreadPool = &(CWelsThreadPool::GetInstance, this=%x\n", this);
   iReturn = CWelsThreadPool::SetThreadNum (m_iThreadNum);
-  m_pThreadPool = (CWelsThreadPool::AddReference());
+  m_pThreadPool = CWelsThreadPool::AddReference();
+
   if ((iReturn != ENC_RETURN_SUCCESS) && pEncCtx) {
     WelsLog (& (pEncCtx->sLogCtx), WELS_LOG_WARNING, "Set Thread Num to %d did not succeed, current thread num in use: %d",
              m_iThreadNum, m_pThreadPool->GetThreadNum());
@@ -120,13 +121,17 @@ WelsErrorType CWelsTaskManageBase::Init (sWelsEncCtx* pEncCtx) {
 }
 
 void   CWelsTaskManageBase::Uninit() {
-  DestroyTasks();
-  //fprintf(stdout, "m_pThreadPool = m_pThreadPool->RemoveInstance\n");
-  if (m_pThreadPool)
-    m_pThreadPool->RemoveInstance();
+  if (m_pThreadPool) {
+    m_pThreadPool->RemoveInstance (this);
+  }
+  m_pThreadPool = NULL;
+
   //WELS_DELETE_OP (m_pThreadPool);
 
-  //fprintf(stdout, "m_pThreadPool = m_pThreadPool->RemoveInstance2\n");
+  //fprintf (stdout, "m_pThreadPool = m_pThreadPool->RemoveInstance\n");
+
+  DestroyTasks();
+  //fprintf (stdout, "DestroyTasks\n");
 
   for (int32_t iDid = 0; iDid < MAX_DEPENDENCY_LAYER; iDid++) {
     WELS_DELETE_OP (m_cEncodingTaskList[iDid]);
